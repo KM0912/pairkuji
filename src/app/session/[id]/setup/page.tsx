@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { SessionHeader } from '../../../../components/SessionHeader';
 import { SessionSettings } from '../../../../components/SessionSettings';
 import { PlayerManagement } from '../../../../components/PlayerManagement';
@@ -78,6 +79,15 @@ export default function SetupPage({ params }: SetupPageProps) {
           sessionId={sessionId}
           actions={
             <div className="flex items-center space-x-4">
+              <Link href={`/session/${sessionId}/export`}>
+                <Button variant="outline" size="sm">
+                  <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                  </svg>
+                  入出力
+                </Button>
+              </Link>
+              
               <div className="text-sm text-gray-600">
                 {canStartRound ? (
                   <span className="text-green-600 font-medium">
