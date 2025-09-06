@@ -3,7 +3,9 @@ import { immer } from 'zustand/middleware/immer';
 import type { 
   PracticeSettings, 
   UpdatePracticeSettingsData,
-  Member, 
+  Member,
+  CreateMemberData,
+  UpdateMemberData,
   PracticePlayer,
   CreatePracticePlayerData,
   UpdatePracticePlayerData 
@@ -23,7 +25,10 @@ interface PracticeStore {
   updateSettings: (data: UpdatePracticeSettingsData) => Promise<void>;
   initializeNewPractice: (courts: number) => Promise<void>;
   
-  // Member Management (delegated to memberStore)
+  // Member Management  
+  createMember: (data: CreateMemberData) => Promise<number>;
+  updateMember: (id: number, data: UpdateMemberData) => Promise<void>;
+  deleteMember: (id: number) => Promise<void>;
   loadAllMembers: () => Promise<void>;
   
   // Practice Player Management
@@ -154,6 +159,98 @@ export const usePracticeStore = create<PracticeStore>()(
     },
 
     // Member Management
+    createMember: async (data: CreateMemberData) => {
+      const state = get();
+      state._setLoading(true);
+      state._setError(null);
+
+      try {
+        const now = new Date().toISOString();
+        const newMember: Omit<Member, 'id'> = {
+          ...data,
+          createdAt: now,
+          updatedAt: now,
+        };
+
+        const id = await db.members.add(newMember as any);
+
+        const createdMember: Member = {
+          id,
+          ...newMember,
+        };
+
+        set((state) => {
+          state.members.push(createdMember);
+        });
+
+        return id;
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : '選手の作成に失敗しました';
+        state._setError(errorMessage);
+        throw error;
+      } finally {
+        state._setLoading(false);
+      }
+    },
+
+    updateMember: async (id: number, data: UpdateMemberData) => {
+      const state = get();
+      state._setLoading(true);
+      state._setError(null);
+
+      try {
+        const updatedAt = new Date().toISOString();
+        const updateData = { ...data, updatedAt };
+
+        await db.members.update(id, updateData);
+
+        set((state) => {
+          const memberIndex = state.members.findIndex(m => m.id === id);
+          if (memberIndex !== -1) {
+            const member = state.members[memberIndex];
+            if (member) {
+              Object.keys(updateData).forEach(key => {
+                if (key in member) {
+                  (member as any)[key] = (updateData as any)[key];
+                }
+              });
+            }
+          }
+        });
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : '選手の更新に失敗しました';
+        state._setError(errorMessage);
+        throw error;
+      } finally {
+        state._setLoading(false);
+      }
+    },
+
+    deleteMember: async (id: number) => {
+      const state = get();
+      state._setLoading(true);
+      state._setError(null);
+
+      try {
+        // Delete related practice players in transaction
+        await db.transaction('rw', [db.members, db.practicePlayers], async () => {
+          await db.members.delete(id);
+          await db.practicePlayers.where('memberId').equals(id).delete();
+        });
+
+        set((state) => {
+          state.members = state.members.filter(m => m.id !== id);
+          state.practicePlayers = state.practicePlayers.filter(pp => pp.memberId !== id);
+        });
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : '選手の削除に失敗しました';
+        state._setError(errorMessage);
+        throw error;
+      } finally {
+        state._setLoading(false);
+      }
+    },
+
     loadAllMembers: async () => {
       const state = get();
       state._setError(null);

@@ -2,19 +2,19 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardContent, Button, Input, Badge, ConfirmModal } from './ui';
-import { useMemberStore } from '../lib/stores/memberStore';
+import { usePracticeStore } from '../lib/stores/practiceStore';
 import type { Member } from '../types';
 
 export const MemberManagement: React.FC = () => {
   const { 
     members, 
-    loadAllMembers, 
-    createMember, 
-    updateMember, 
-    deleteMember, 
+    loadAllMembers,
+    createMember,
+    updateMember,
+    deleteMember,
     isLoading, 
     error 
-  } = useMemberStore();
+  } = usePracticeStore();
   
   const [isAddingMember, setIsAddingMember] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
