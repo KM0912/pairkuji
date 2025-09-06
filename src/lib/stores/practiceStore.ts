@@ -1,0 +1,152 @@
+import { create } from 'zustand';
+import { db } from '@/lib/db';
+import type { PracticePlayer, PracticeSettings } from '@/types/practice';
+import type { Round, CourtMatch } from '@/types/round';
+
+const SETTINGS_ID = 1;
+
+type State = {
+  settings: PracticeSettings | null;
+  players: PracticePlayer[];
+  rounds: Round[];
+  isLoading: boolean;
+  error: string | null;
+};
+
+type Actions = {
+  load: () => Promise<void>;
+  startPractice: (courts: number, memberIds: number[]) => Promise<void>;
+  toggleStatus: (memberId: number) => Promise<void>;
+  generateNextRound: () => Promise<void>;
+  resetPractice: () => Promise<void>;
+  clearError: () => void;
+};
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = a[i]!;
+    a[i] = a[j]!;
+    a[j] = tmp;
+  }
+  return a;
+}
+
+export const usePracticeStore = create<State & Actions>((set, get) => ({
+  settings: null,
+  players: [],
+  rounds: [],
+  isLoading: false,
+  error: null,
+
+  load: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const [settings, players, rounds] = await Promise.all([
+        db.practiceSettings.get(SETTINGS_ID),
+        db.practicePlayers.toArray(),
+        db.rounds.orderBy('roundNo').toArray(),
+      ]);
+      set({ settings: settings ?? null, players, rounds, isLoading: false });
+    } catch (e: any) {
+      set({ error: e?.message ?? 'Failed to load practice', isLoading: false });
+    }
+  },
+
+  startPractice: async (courts, memberIds) => {
+    const now = new Date().toISOString();
+    try {
+      await db.transaction('rw', db.practiceSettings, db.practicePlayers, db.rounds, async () => {
+        await db.practiceSettings.clear();
+        await db.practicePlayers.clear();
+        await db.rounds.clear();
+        const settings: PracticeSettings = {
+          id: SETTINGS_ID,
+          courts,
+          currentRound: 0,
+          startedAt: now,
+          updatedAt: now,
+        };
+        await db.practiceSettings.put(settings);
+        const players: PracticePlayer[] = memberIds.map(mid => ({
+          memberId: mid,
+          status: 'active',
+          createdAt: now,
+        }));
+        await db.practicePlayers.bulkAdd(players);
+      });
+
+      await get().load();
+    } catch (e: any) {
+      set({ error: e?.message ?? 'Failed to start practice' });
+    }
+  },
+
+  toggleStatus: async (memberId) => {
+    try {
+      const player = await db.practicePlayers.where({ memberId }).first();
+      if (!player) return;
+      const updated: PracticePlayer = { ...player, status: player.status === 'active' ? 'rest' : 'active' };
+      await db.practicePlayers.put({ ...updated, id: player.id });
+      set({ players: get().players.map(p => (p.memberId === memberId ? updated : p)) });
+    } catch (e: any) {
+      set({ error: e?.message ?? 'Failed to toggle status' });
+    }
+  },
+
+  generateNextRound: async () => {
+    const state = get();
+    const s = state.settings;
+    if (!s) return;
+    try {
+      const activeMemberIds = state.players.filter(p => p.status === 'active').map(p => p.memberId);
+      const shuffled = shuffle(activeMemberIds);
+      const courtsToUse = Math.min(s.courts, Math.floor(shuffled.length / 4));
+      const courts: CourtMatch[] = [];
+      let idx = 0;
+      for (let c = 1; c <= courtsToUse; c++) {
+        const a1 = shuffled[idx++];
+        const a2 = shuffled[idx++];
+        const b1 = shuffled[idx++];
+        const b2 = shuffled[idx++];
+        if ([a1, a2, b1, b2].some(v => v === undefined)) break;
+        courts.push({ courtNo: c, pairA: [a1!, a2!], pairB: [b1!, b2!] });
+      }
+      const used = courts.flatMap(cm => [...cm.pairA, ...cm.pairB]);
+      const rests = state.players
+        .filter(p => p.status === 'active' && !used.includes(p.memberId))
+        .map(p => p.memberId);
+
+      const nextNo = s.currentRound + 1;
+      const round: Round = { roundNo: nextNo, courts, rests };
+
+      await db.transaction('rw', db.rounds, db.practiceSettings, async () => {
+        await db.rounds.put(round);
+        await db.practiceSettings.put({ ...s, currentRound: nextNo, updatedAt: new Date().toISOString() });
+      });
+
+      set({
+        rounds: [...state.rounds, round],
+        settings: { ...s, currentRound: nextNo, updatedAt: new Date().toISOString() },
+      });
+    } catch (e: any) {
+      set({ error: e?.message ?? 'Failed to generate round' });
+    }
+  },
+
+  resetPractice: async () => {
+    try {
+      await db.transaction('rw', db.practiceSettings, db.practicePlayers, db.rounds, async () => {
+        await db.practiceSettings.clear();
+        await db.practicePlayers.clear();
+        await db.rounds.clear();
+      });
+      set({ settings: null, players: [], rounds: [] });
+    } catch (e: any) {
+      set({ error: e?.message ?? 'Failed to reset practice' });
+    }
+  },
+
+  clearError: () => set({ error: null }),
+}));
