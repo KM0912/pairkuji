@@ -1,7 +1,17 @@
 // Session types
 export type { Session, CreateSessionData, UpdateSessionData } from './session';
 
-// Player types
+// Member types (new)
+export type {
+  Member,
+  SessionPlayer,
+  CreateMemberData,
+  UpdateMemberData,
+  CreateSessionPlayerData,
+  UpdateSessionPlayerData,
+} from './member';
+
+// Player types (legacy - for backward compatibility)
 export type {
   Player,
   PlayerStatus,

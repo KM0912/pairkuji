@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import type { Round, CourtMatch, Player, PlayerStats } from '../../types';
+import type { Round, CourtMatch, Player, PlayerStats, Member, SessionPlayer } from '../../types';
 import { db } from '../db';
-import { generateOptimalRound } from '../algorithm/fairness';
+import { generateOptimalRoundFromSessionPlayers } from '../algorithm/sessionPlayerAdapter';
 
 interface RoundStore {
   // State
@@ -54,25 +54,37 @@ export const useRoundStore = create<RoundStore>()(
           throw new Error('セッションが見つかりません');
         }
 
-        // Get active players
-        const players = await db.players
+        // Get session players with member data
+        const sessionPlayers = await db.sessionPlayers
           .where('sessionId')
           .equals(sessionId)
-          .and(player => player.status === 'active')
+          .and(sp => sp.status === 'active')
           .toArray();
 
-        if (players.length < 4) {
+        if (sessionPlayers.length < 4) {
           throw new Error('最低4名のアクティブなプレイヤーが必要です');
         }
 
-        // Get player statistics
+        // Get member data for session players
+        const memberIds = sessionPlayers.map(sp => sp.memberId);
+        const members = await db.members.where('id').anyOf(memberIds).toArray();
+        
+        const sessionMembersData = sessionPlayers.map(sessionPlayer => {
+          const member = members.find(m => m.id === sessionPlayer.memberId);
+          if (!member) {
+            throw new Error(`Member with id ${sessionPlayer.memberId} not found`);
+          }
+          return { member, sessionPlayer };
+        });
+
+        // Get player statistics (using memberId as playerId)
         const stats = await db.playerStats
           .where('sessionId')
           .equals(sessionId)
           .toArray();
 
-        // Generate optimal round using fairness algorithm
-        const assignment = generateOptimalRound(sessionId, players, stats, session.courts);
+        // Generate optimal round using fairness algorithm with adapter
+        const assignment = generateOptimalRoundFromSessionPlayers(sessionId, sessionMembersData, stats, session.courts);
         
         const newRoundNo = (session.currentRound || 0) + 1;
         const newRound: Round = {

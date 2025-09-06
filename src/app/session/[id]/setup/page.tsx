@@ -5,10 +5,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { SessionHeader } from '../../../../components/SessionHeader';
 import { SessionSettings } from '../../../../components/SessionSettings';
-import { PlayerManagement } from '../../../../components/PlayerManagement';
+import { SessionPlayerSelection } from '../../../../components/SessionPlayerSelection';
 import { Button, ConfirmModal } from '../../../../components/ui';
 import { useSessionStore } from '../../../../lib/stores/sessionStore';
-import { usePlayerStore } from '../../../../lib/stores/playerStore';
+import { useMemberStore } from '../../../../lib/stores/memberStore';
 import { useRoundStore } from '../../../../lib/stores/roundStore';
 
 interface SetupPageProps {
@@ -18,20 +18,21 @@ interface SetupPageProps {
 export default function SetupPage({ params }: SetupPageProps) {
   const router = useRouter();
   const { loadSession, currentSession } = useSessionStore();
-  const { getActivePlayers, loadPlayersBySession } = usePlayerStore();
+  const { getMembersBySession, loadSessionPlayers } = useMemberStore();
   const { generateRound, isLoading: isGeneratingRound } = useRoundStore();
   
   const [startModal, setStartModal] = useState(false);
 
   const sessionId = params.id;
-  const activePlayers = getActivePlayers(sessionId);
+  const sessionMembersData = getMembersBySession(sessionId);
+  const activePlayers = sessionMembersData.filter(data => data.sessionPlayer.status === 'active');
   const canStartRound = activePlayers.length >= 4;
 
   useEffect(() => {
     const initializePage = async () => {
       try {
         await loadSession(sessionId);
-        await loadPlayersBySession(sessionId);
+        await loadSessionPlayers(sessionId);
       } catch (error) {
         console.error('Failed to load session data:', error);
         router.push('/');
@@ -39,7 +40,7 @@ export default function SetupPage({ params }: SetupPageProps) {
     };
 
     initializePage();
-  }, [sessionId, loadSession, loadPlayersBySession, router]);
+  }, [sessionId, loadSession, loadSessionPlayers, router]);
 
   const handleStartRound = async () => {
     if (!canStartRound) return;
@@ -117,8 +118,8 @@ export default function SetupPage({ params }: SetupPageProps) {
           {/* Session Settings */}
           <SessionSettings sessionId={sessionId} />
 
-          {/* Player Management */}
-          <PlayerManagement sessionId={sessionId} />
+          {/* Session Player Selection */}
+          <SessionPlayerSelection sessionId={sessionId} />
 
           {/* Mobile Start Button */}
           <div className="block lg:hidden">
