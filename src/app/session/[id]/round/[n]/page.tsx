@@ -96,7 +96,6 @@ export default function RoundPage({ params }: RoundPageProps) {
         <SessionHeader 
           sessionId={sessionId}
           showBackButton={false}
-          showTimer={true}
           actions={
             <div className="flex items-center space-x-4">
               <div className="text-sm text-gray-600">

@@ -4,18 +4,10 @@ import type { Round, CourtMatch, Player, PlayerStats } from '../../types';
 import { db } from '../db';
 import { generateOptimalRound } from '../algorithm/fairness';
 
-interface TimerState {
-  isRunning: boolean;
-  startTime: Date | null;
-  remainingMs: number;
-  intervalId: NodeJS.Timeout | null;
-}
-
 interface RoundStore {
   // State
   currentRound: Round | null;
   rounds: Round[];
-  timerState: TimerState;
   isLoading: boolean;
   error: string | null;
   
@@ -29,11 +21,6 @@ interface RoundStore {
   moveToRest: (playerId: number) => void;
   moveToPlay: (playerId: number, courtNo: number, position: 'team1' | 'team2', index: 0 | 1) => void;
   
-  // Timer Control
-  startTimer: (durationMs: number) => void;
-  pauseTimer: () => void;
-  resetTimer: () => void;
-  
   // Data Loading
   loadRounds: (sessionId: string) => Promise<void>;
   loadCurrentRound: (sessionId: string, roundNo: number) => Promise<void>;
@@ -42,7 +29,6 @@ interface RoundStore {
   // Internal methods
   _setError: (error: string | null) => void;
   _setLoading: (loading: boolean) => void;
-  _updateTimer: () => void;
   _updatePlayerStats: (round: Round) => Promise<void>;
   _rollbackPlayerStats: (sessionId: string, roundNo: number) => Promise<void>;
 }
@@ -52,12 +38,6 @@ export const useRoundStore = create<RoundStore>()(
     // Initial state
     currentRound: null,
     rounds: [],
-    timerState: {
-      isRunning: false,
-      startTime: null,
-      remainingMs: 0,
-      intervalId: null,
-    },
     isLoading: false,
     error: null,
 
@@ -296,59 +276,6 @@ export const useRoundStore = create<RoundStore>()(
       });
     },
 
-    // Timer Control
-    startTimer: (durationMs: number) => {
-      const state = get();
-      
-      // Clear existing timer
-      if (state.timerState.intervalId) {
-        clearInterval(state.timerState.intervalId);
-      }
-      
-      const startTime = new Date();
-      const intervalId = setInterval(() => {
-        state._updateTimer();
-      }, 1000);
-      
-      set((state) => {
-        state.timerState = {
-          isRunning: true,
-          startTime,
-          remainingMs: durationMs,
-          intervalId,
-        };
-      });
-    },
-
-    pauseTimer: () => {
-      const state = get();
-      
-      if (state.timerState.intervalId) {
-        clearInterval(state.timerState.intervalId);
-      }
-      
-      set((state) => {
-        state.timerState.isRunning = false;
-        state.timerState.intervalId = null;
-      });
-    },
-
-    resetTimer: () => {
-      const state = get();
-      
-      if (state.timerState.intervalId) {
-        clearInterval(state.timerState.intervalId);
-      }
-      
-      set((state) => {
-        state.timerState = {
-          isRunning: false,
-          startTime: null,
-          remainingMs: 0,
-          intervalId: null,
-        };
-      });
-    },
 
     // Data Loading
     loadRounds: async (sessionId: string) => {
@@ -395,22 +322,9 @@ export const useRoundStore = create<RoundStore>()(
     },
 
     clearRounds: () => {
-      const state = get();
-      
-      // Clear timer
-      if (state.timerState.intervalId) {
-        clearInterval(state.timerState.intervalId);
-      }
-      
       set((state) => {
         state.currentRound = null;
         state.rounds = [];
-        state.timerState = {
-          isRunning: false,
-          startTime: null,
-          remainingMs: 0,
-          intervalId: null,
-        };
         state.error = null;
       });
     },
@@ -425,27 +339,6 @@ export const useRoundStore = create<RoundStore>()(
     _setLoading: (loading: boolean) => {
       set((state) => {
         state.isLoading = loading;
-      });
-    },
-
-    _updateTimer: () => {
-      set((state) => {
-        if (!state.timerState.isRunning || !state.timerState.startTime) return;
-        
-        const now = new Date();
-        const elapsed = now.getTime() - state.timerState.startTime.getTime();
-        const remaining = Math.max(0, state.timerState.remainingMs - elapsed);
-        
-        state.timerState.remainingMs = remaining;
-        
-        if (remaining === 0) {
-          // Timer finished
-          if (state.timerState.intervalId) {
-            clearInterval(state.timerState.intervalId);
-          }
-          state.timerState.isRunning = false;
-          state.timerState.intervalId = null;
-        }
       });
     },
 

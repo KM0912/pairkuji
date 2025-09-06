@@ -150,7 +150,6 @@ export const SessionList: React.FC = () => {
                   <div className="text-sm text-gray-600 space-y-1">
                     <div className="flex items-center space-x-4">
                       <span>コート: {session.courts}面</span>
-                      <span>試合時間: {session.minutesPerGame}分</span>
                       <span>参加者: {playerCount}名</span>
                     </div>
                     <div>

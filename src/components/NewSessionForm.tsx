@@ -12,7 +12,6 @@ export const NewSessionForm: React.FC = () => {
   const [formData, setFormData] = useState({
     title: '',
     courts: 3,
-    minutesPerGame: 15,
   });
   
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -22,10 +21,6 @@ export const NewSessionForm: React.FC = () => {
 
     if (formData.courts < 2 || formData.courts > 6) {
       errors.courts = 'コート数は2〜6の範囲で入力してください';
-    }
-
-    if (formData.minutesPerGame < 5 || formData.minutesPerGame > 60) {
-      errors.minutesPerGame = '1試合時間は5〜60分の範囲で入力してください';
     }
 
     setFormErrors(errors);
@@ -41,7 +36,6 @@ export const NewSessionForm: React.FC = () => {
       const sessionId = await createSession({
         title: formData.title.trim() || undefined,
         courts: formData.courts,
-        minutesPerGame: formData.minutesPerGame,
         currentRound: 0,
       });
 
@@ -85,18 +79,6 @@ export const NewSessionForm: React.FC = () => {
             onChange={(e) => handleInputChange('courts', parseInt(e.target.value) || 2)}
             error={formErrors.courts}
             helperText="使用するコート数を選択（2〜6）"
-            fullWidth
-          />
-
-          <Input
-            label="1試合時間（分）"
-            type="number"
-            min="5"
-            max="60"
-            value={formData.minutesPerGame}
-            onChange={(e) => handleInputChange('minutesPerGame', parseInt(e.target.value) || 15)}
-            error={formErrors.minutesPerGame}
-            helperText="1試合の時間を設定（5〜60分）"
             fullWidth
           />
 

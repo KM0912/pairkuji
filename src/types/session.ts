@@ -2,7 +2,6 @@ export interface Session {
   id: string;
   title?: string;
   courts: number;
-  minutesPerGame: number;
   currentRound: number;
   createdAt: string;
   updatedAt: string;

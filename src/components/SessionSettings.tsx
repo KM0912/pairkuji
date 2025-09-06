@@ -14,7 +14,6 @@ export const SessionSettings: React.FC<SessionSettingsProps> = ({ sessionId }) =
   const [formData, setFormData] = useState({
     title: '',
     courts: 3,
-    minutesPerGame: 15,
   });
   
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -25,7 +24,6 @@ export const SessionSettings: React.FC<SessionSettingsProps> = ({ sessionId }) =
       setFormData({
         title: currentSession.title || '',
         courts: currentSession.courts,
-        minutesPerGame: currentSession.minutesPerGame,
       });
     }
   }, [currentSession, sessionId]);
@@ -35,10 +33,6 @@ export const SessionSettings: React.FC<SessionSettingsProps> = ({ sessionId }) =
 
     if (formData.courts < 2 || formData.courts > 6) {
       errors.courts = 'コート数は2〜6の範囲で入力してください';
-    }
-
-    if (formData.minutesPerGame < 5 || formData.minutesPerGame > 60) {
-      errors.minutesPerGame = '1試合時間は5〜60分の範囲で入力してください';
     }
 
     setFormErrors(errors);
@@ -64,7 +58,6 @@ export const SessionSettings: React.FC<SessionSettingsProps> = ({ sessionId }) =
       await updateSession(sessionId, {
         title: formData.title.trim() || undefined,
         courts: formData.courts,
-        minutesPerGame: formData.minutesPerGame,
       });
       
       setHasChanges(false);
@@ -78,7 +71,6 @@ export const SessionSettings: React.FC<SessionSettingsProps> = ({ sessionId }) =
       setFormData({
         title: currentSession.title || '',
         courts: currentSession.courts,
-        minutesPerGame: currentSession.minutesPerGame,
       });
       setHasChanges(false);
       setFormErrors({});
@@ -113,31 +105,17 @@ export const SessionSettings: React.FC<SessionSettingsProps> = ({ sessionId }) =
             fullWidth
           />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input
-              label="コート数"
-              type="number"
-              min="2"
-              max="6"
-              value={formData.courts}
-              onChange={(e) => handleInputChange('courts', parseInt(e.target.value) || 2)}
-              error={formErrors.courts}
-              helperText="使用するコート数（2〜6）"
-              fullWidth
-            />
-
-            <Input
-              label="1試合時間（分）"
-              type="number"
-              min="5"
-              max="60"
-              value={formData.minutesPerGame}
-              onChange={(e) => handleInputChange('minutesPerGame', parseInt(e.target.value) || 15)}
-              error={formErrors.minutesPerGame}
-              helperText="1試合の時間（5〜60分）"
-              fullWidth
-            />
-          </div>
+          <Input
+            label="コート数"
+            type="number"
+            min="2"
+            max="6"
+            value={formData.courts}
+            onChange={(e) => handleInputChange('courts', parseInt(e.target.value) || 2)}
+            error={formErrors.courts}
+            helperText="使用するコート数（2〜6）"
+            fullWidth
+          />
 
           {error && (
             <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
