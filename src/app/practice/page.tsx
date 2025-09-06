@@ -24,6 +24,7 @@ export default function PracticePage() {
   }, [settings, players]);
 
   const memberMap = useMemo(() => new Map(members.map(m => [m.id!, m])), [members]);
+  const playerMap = useMemo(() => new Map(players.map(p => [p.memberId, p])), [players]);
 
   const onToggleSelect = (id: number) => {
     setSelected(prev => (prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]));
@@ -71,6 +72,8 @@ export default function PracticePage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-auto border rounded p-2">
                 {members.map(m => {
                   const isSelected = selected.includes(m.id!);
+                  const selectionIndex = selected.indexOf(m.id!);
+                  const playerNumber = selectionIndex !== -1 ? selectionIndex + 1 : null;
                   return (
                     <button
                       key={m.id}
@@ -82,7 +85,14 @@ export default function PracticePage() {
                           : 'bg-white border-gray-200 text-gray-900 hover:bg-gray-50'
                       }`}
                     >
-                      <span className={m.isActive ? '' : 'text-gray-400'}>{m.name}</span>
+                      <div className="flex items-center space-x-2">
+                        <span className={m.isActive ? '' : 'text-gray-400'}>{m.name}</span>
+                        {playerNumber && (
+                          <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-semibold text-white bg-blue-600 rounded-full">
+                            {playerNumber}
+                          </span>
+                        )}
+                      </div>
                       {isSelected && <span className="text-blue-600">✓</span>}
                     </button>
                   );
@@ -114,7 +124,12 @@ export default function PracticePage() {
                   if (!m) return null;
                   return (
                     <div key={p.memberId} className="flex items-center justify-between rounded-lg border bg-white px-3 py-2 shadow-sm">
-                      <span className="text-gray-900">{m.name}</span>
+                      <div className="flex items-center space-x-2">
+                        <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-semibold text-white bg-blue-600 rounded-full">
+                          {p.playerNumber}
+                        </span>
+                        <span className="text-gray-900">{m.name}</span>
+                      </div>
                       <button
                         className={`text-sm px-3 py-1 rounded-full border transition ${
                           p.status === 'active'
@@ -164,11 +179,14 @@ export default function PracticePage() {
                             <div className="text-xs font-semibold uppercase tracking-wide text-indigo-700 mb-2">Team A</div>
                             <div className="flex flex-col gap-2">
                               {cm.pairA.map((id) => {
-                                const name = memberMap.get(id)?.name ?? '???';
+                                const member = memberMap.get(id);
+                                const player = playerMap.get(id);
+                                const name = member?.name ?? '???';
+                                const number = player?.playerNumber ?? '?';
                                 return (
                                   <div key={id} className="flex items-center gap-2 rounded-full bg-white border border-indigo-100 px-2.5 py-1.5">
                                     <div className="h-7 w-7 shrink-0 rounded-full bg-indigo-600 text-white grid place-items-center text-xs font-semibold">
-                                      {initialOf(name)}
+                                      {number}
                                     </div>
                                     <div className="text-sm text-gray-900">{name}</div>
                                   </div>
@@ -187,11 +205,14 @@ export default function PracticePage() {
                             <div className="text-xs font-semibold uppercase tracking-wide text-rose-700 mb-2">Team B</div>
                             <div className="flex flex-col gap-2">
                               {cm.pairB.map((id) => {
-                                const name = memberMap.get(id)?.name ?? '???';
+                                const member = memberMap.get(id);
+                                const player = playerMap.get(id);
+                                const name = member?.name ?? '???';
+                                const number = player?.playerNumber ?? '?';
                                 return (
                                   <div key={id} className="flex items-center gap-2 rounded-full bg-white border border-rose-100 px-2.5 py-1.5">
                                     <div className="h-7 w-7 shrink-0 rounded-full bg-rose-600 text-white grid place-items-center text-xs font-semibold">
-                                      {initialOf(name)}
+                                      {number}
                                     </div>
                                     <div className="text-sm text-gray-900">{name}</div>
                                   </div>
@@ -208,10 +229,15 @@ export default function PracticePage() {
                       <div className="mb-2 font-medium text-gray-900">休憩</div>
                       <div className="flex flex-wrap gap-2">
                         {latestRound.rests.map(id => {
-                          const name = memberMap.get(id)?.name ?? '???';
+                          const member = memberMap.get(id);
+                          const player = playerMap.get(id);
+                          const name = member?.name ?? '???';
+                          const number = player?.playerNumber ?? '?';
                           return (
                             <span key={id} className="inline-flex items-center gap-1.5 rounded-full border bg-gray-50 px-2.5 py-1 text-sm text-gray-800">
-                              <span className="h-2 w-2 rounded-full bg-gray-400" />
+                              <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-semibold text-white bg-gray-500 rounded-full">
+                                {number}
+                              </span>
                               {name}
                             </span>
                           );

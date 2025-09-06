@@ -17,8 +17,19 @@ export class PairkujiDB extends Dexie {
     this.version(2).stores({
       members: '++id, name, isActive, createdAt, updatedAt',
       practiceSettings: 'id, updatedAt',
-      practicePlayers: '++id, memberId, status, createdAt',
+      practicePlayers: '++id, memberId, playerNumber, status, createdAt',
       rounds: 'roundNo',
+    });
+    this.version(3).stores({
+      members: '++id, name, isActive, createdAt, updatedAt',
+      practiceSettings: 'id, updatedAt',
+      practicePlayers: '++id, memberId, playerNumber, status, createdAt',
+      rounds: 'roundNo',
+    }).upgrade(async (tx) => {
+      // Clear existing practice data to ensure playerNumber is properly set
+      await tx.table('practiceSettings').clear();
+      await tx.table('practicePlayers').clear();
+      await tx.table('rounds').clear();
     });
   }
 }

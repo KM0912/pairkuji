@@ -69,8 +69,9 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
           updatedAt: now,
         };
         await db.practiceSettings.put(settings);
-        const players: PracticePlayer[] = memberIds.map(mid => ({
+        const players: PracticePlayer[] = memberIds.map((mid, index) => ({
           memberId: mid,
+          playerNumber: index + 1, // 選択順に番号を振る（1から開始）
           status: 'active',
           createdAt: now,
         }));
@@ -88,7 +89,7 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
       const player = await db.practicePlayers.where({ memberId }).first();
       if (!player) return;
       const updated: PracticePlayer = { ...player, status: player.status === 'active' ? 'rest' : 'active' };
-      await db.practicePlayers.put({ ...updated, id: player.id });
+      await db.practicePlayers.put(updated);
       set({ players: get().players.map(p => (p.memberId === memberId ? updated : p)) });
     } catch (e: any) {
       set({ error: e?.message ?? 'Failed to toggle status' });
