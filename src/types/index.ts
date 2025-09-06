@@ -1,15 +1,18 @@
-// Session types
-export type { Session, CreateSessionData, UpdateSessionData } from './session';
+// Settings types (new)
+export type { PracticeSettings, UpdatePracticeSettingsData } from './settings';
 
 // Member types (new)
 export type {
   Member,
-  SessionPlayer,
+  PracticePlayer,
   CreateMemberData,
   UpdateMemberData,
-  CreateSessionPlayerData,
-  UpdateSessionPlayerData,
+  CreatePracticePlayerData,
+  UpdatePracticePlayerData,
 } from './member';
+
+// Session types (legacy - for backward compatibility during migration)
+export type { Session, CreateSessionData, UpdateSessionData } from './session';
 
 // Player types (legacy - for backward compatibility)
 export type {
@@ -31,7 +34,7 @@ export type {
 // Stats types
 export type {
   PlayerStats,
-  SessionSummary,
+  PracticeSummary,
   CreateStatsData,
   UpdateStatsData,
 } from './stats';

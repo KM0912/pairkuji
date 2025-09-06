@@ -7,9 +7,8 @@ export interface Member {
   updatedAt: string;
 }
 
-export interface SessionPlayer {
+export interface PracticePlayer {
   id: number;
-  sessionId: string;
   memberId: number;
   status: 'active' | 'rest' | 'absent';
   createdAt: string;
@@ -17,5 +16,5 @@ export interface SessionPlayer {
 
 export type CreateMemberData = Omit<Member, 'id' | 'createdAt' | 'updatedAt'>;
 export type UpdateMemberData = Partial<Omit<Member, 'id' | 'createdAt'>>;
-export type CreateSessionPlayerData = Omit<SessionPlayer, 'id' | 'createdAt'>;
-export type UpdateSessionPlayerData = Partial<Omit<SessionPlayer, 'id' | 'sessionId' | 'memberId' | 'createdAt'>>;
+export type CreatePracticePlayerData = Omit<PracticePlayer, 'id' | 'createdAt'>;
+export type UpdatePracticePlayerData = Partial<Omit<PracticePlayer, 'id' | 'memberId' | 'createdAt'>>;

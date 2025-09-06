@@ -1,9 +1,26 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '../components/ui';
-import { NewSessionForm } from '../components/NewSessionForm';
-import { SessionList } from '../components/SessionList';
+import { NewPracticeForm } from '../components/NewPracticeForm';
+import { PracticeStatus } from '../components/PracticeStatus';
+import { usePracticeStore } from '../lib/stores/practiceStore';
 
 export default function HomePage() {
+  const { settings, loadSettings, isLoading } = usePracticeStore();
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings, refreshKey]);
+
+  const handleResetPractice = () => {
+    setRefreshKey(prev => prev + 1);
+  };
+
+  const showNewPracticeForm = !settings || !settings.startedAt;
+
   return (
     <main className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -29,16 +46,16 @@ export default function HomePage() {
         </div>
 
         {/* Main Content */}
-        <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
-          {/* New Session Form */}
-          <div className="flex justify-center lg:justify-end">
-            <NewSessionForm />
-          </div>
-
-          {/* Session List */}
-          <div className="lg:max-w-2xl">
-            <SessionList />
-          </div>
+        <div className="flex justify-center">
+          {isLoading ? (
+            <div className="flex justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          ) : showNewPracticeForm ? (
+            <NewPracticeForm />
+          ) : (
+            <PracticeStatus onResetPractice={handleResetPractice} />
+          )}
         </div>
 
         {/* Footer */}

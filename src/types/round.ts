@@ -5,13 +5,12 @@ export interface CourtMatch {
 }
 
 export interface Round {
-  sessionId: string;
   roundNo: number;
   courts: CourtMatch[];
-  rests: number[]; // playerIds
+  rests: number[]; // memberIds
 }
 
-export type CreateRoundData = Omit<Round, 'sessionId'>;
+export type CreateRoundData = Round;
 export type TeamPlayers = [number, number];
 export type MatchPlayers = {
   team1: TeamPlayers;

@@ -1,6 +1,5 @@
 export interface PlayerStats {
-  sessionId: string;
-  playerId: number;
+  playerId: number; // memberId
   playedCount: number;
   restCount: number;
   consecRest: number;
@@ -8,7 +7,7 @@ export interface PlayerStats {
   recentOpponents: number[];
 }
 
-export interface SessionSummary {
+export interface PracticeSummary {
   totalRounds: number;
   avgPlayCount: number;
   avgRestCount: number;
@@ -17,4 +16,4 @@ export interface SessionSummary {
 }
 
 export type CreateStatsData = Omit<PlayerStats, 'playedCount' | 'restCount' | 'consecRest' | 'recentPartners' | 'recentOpponents'>;
-export type UpdateStatsData = Partial<Omit<PlayerStats, 'sessionId' | 'playerId'>>;
+export type UpdateStatsData = Partial<Omit<PlayerStats, 'playerId'>>;

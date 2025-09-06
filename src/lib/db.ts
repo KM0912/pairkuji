@@ -1,13 +1,21 @@
 import Dexie from 'dexie';
-import type { Session, Player, Round, PlayerStats, Member, SessionPlayer } from '../types';
+import type { 
+  Session, Player, Round, PlayerStats, 
+  Member, PracticePlayer, PracticeSettings 
+} from '../types';
 
 class PairkujiDB extends Dexie {
-  sessions!: Dexie.Table<Session, string>;
+  // New simplified tables
+  practiceSettings!: Dexie.Table<PracticeSettings, 'settings'>;
   members!: Dexie.Table<Member, number>;
-  sessionPlayers!: Dexie.Table<SessionPlayer, number>;
-  players!: Dexie.Table<Player, number>; // Legacy table
-  rounds!: Dexie.Table<Round, [string, number]>;
-  playerStats!: Dexie.Table<PlayerStats, [string, number]>;
+  practicePlayers!: Dexie.Table<PracticePlayer, number>;
+  rounds!: Dexie.Table<Round, number>;
+  playerStats!: Dexie.Table<PlayerStats, number>;
+  
+  // Legacy tables (for migration)
+  sessions!: Dexie.Table<Session, string>;
+  sessionPlayers!: Dexie.Table<any, number>;
+  players!: Dexie.Table<Player, number>;
 
   constructor() {
     super('PairkujiDB');
@@ -38,6 +46,19 @@ class PairkujiDB extends Dexie {
       players: '++id, sessionId, name, status', // Keep for backward compatibility
       rounds: '[sessionId+roundNo], sessionId, roundNo',
       playerStats: '[sessionId+playerId], sessionId, playerId, playedCount, restCount, consecRest'
+    });
+
+    // Version 4: Simplified single practice model
+    this.version(4).stores({
+      practiceSettings: 'id, courts, currentRound, startedAt, updatedAt',
+      members: '++id, name, isActive, createdAt, updatedAt',
+      practicePlayers: '++id, memberId, status, createdAt',
+      rounds: '++roundNo, courts, rests',
+      playerStats: 'playerId, playedCount, restCount, consecRest',
+      // Legacy tables for migration
+      sessions: 'id, title, createdAt, updatedAt, currentRound',
+      sessionPlayers: '++id, [sessionId+memberId], sessionId, memberId, status, createdAt',
+      players: '++id, sessionId, name, status'
     });
   }
 }
