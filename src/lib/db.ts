@@ -29,6 +29,16 @@ class PairkujiDB extends Dexie {
       rounds: '[sessionId+roundNo], sessionId, roundNo',
       playerStats: '[sessionId+playerId], sessionId, playerId, playedCount, restCount, consecRest'
     });
+
+    // Version 3: Fix sessionPlayers composite index
+    this.version(3).stores({
+      sessions: 'id, title, createdAt, updatedAt, currentRound',
+      members: '++id, name, isActive, createdAt, updatedAt',
+      sessionPlayers: '++id, [sessionId+memberId], sessionId, memberId, status, createdAt',
+      players: '++id, sessionId, name, status', // Keep for backward compatibility
+      rounds: '[sessionId+roundNo], sessionId, roundNo',
+      playerStats: '[sessionId+playerId], sessionId, playerId, playedCount, restCount, consecRest'
+    });
   }
 }
 
