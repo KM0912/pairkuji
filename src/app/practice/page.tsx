@@ -40,7 +40,7 @@ export default function PracticePage() {
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold text-gray-900">練習</h1>
           {settings && (
@@ -49,7 +49,7 @@ export default function PracticePage() {
         </div>
 
         {!settings ? (
-          <form onSubmit={onStart} className="bg-white p-4 rounded-lg shadow mb-8">
+          <form onSubmit={onStart} className="bg-white p-6 rounded-xl border shadow-sm mb-8 space-y-6">
             <div className="mb-4">
               <label className="block text-sm text-gray-700 mb-1">コート数</label>
               <select
@@ -65,20 +65,28 @@ export default function PracticePage() {
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm text-gray-700">参加者を選択（チェック）</label>
+                <label className="block text-sm text-gray-700">参加者を選択</label>
                 <div className="text-sm text-gray-500">{selected.length} 名</div>
               </div>
-              <div className="grid grid-cols-2 gap-2 max-h-64 overflow-auto border rounded p-2">
-                {members.map(m => (
-                  <label key={m.id} className="flex items-center gap-2 text-gray-900">
-                    <input
-                      type="checkbox"
-                      checked={selected.includes(m.id!)}
-                      onChange={() => onToggleSelect(m.id!)}
-                    />
-                    <span className={m.isActive ? '' : 'text-gray-400'}>{m.name}</span>
-                  </label>
-                ))}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-auto border rounded p-2">
+                {members.map(m => {
+                  const isSelected = selected.includes(m.id!);
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => onToggleSelect(m.id!)}
+                      className={`flex items-center justify-between rounded px-3 py-2 border text-left transition ${
+                        isSelected
+                          ? 'bg-blue-50 border-blue-400 text-blue-700'
+                          : 'bg-white border-gray-200 text-gray-900 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className={m.isActive ? '' : 'text-gray-400'}>{m.name}</span>
+                      {isSelected && <span className="text-blue-600">✓</span>}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -95,23 +103,23 @@ export default function PracticePage() {
         ) : (
           <div className="space-y-8">
             {/* Settings and participants */}
-            <section className="bg-white p-4 rounded-lg shadow">
+            <section className="bg-white p-6 rounded-xl border shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <div className="text-gray-700">コート数: <strong>{settings.courts}</strong></div>
                 <div className="text-gray-700">ラウンド: <strong>{settings.currentRound}</strong></div>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {players.map(p => {
                   const m = memberMap.get(p.memberId);
                   if (!m) return null;
                   return (
-                    <div key={p.memberId} className="flex items-center justify-between border rounded px-3 py-2">
+                    <div key={p.memberId} className="flex items-center justify-between rounded-lg border bg-white px-3 py-2 shadow-sm">
                       <span className="text-gray-900">{m.name}</span>
                       <button
-                        className={`text-sm px-3 py-1 rounded border ${
+                        className={`text-sm px-3 py-1 rounded-full border transition ${
                           p.status === 'active'
-                            ? 'bg-green-50 border-green-400 text-green-700'
-                            : 'bg-gray-50 border-gray-300 text-gray-600'
+                            ? 'bg-green-50 border-green-400 text-green-700 hover:bg-green-100'
+                            : 'bg-gray-50 border-gray-300 text-gray-600 hover:bg-gray-100'
                         }`}
                         onClick={() => toggleStatus(p.memberId)}
                       >
@@ -124,7 +132,7 @@ export default function PracticePage() {
             </section>
 
             {/* Generate and show round */}
-            <section className="bg-white p-4 rounded-lg shadow">
+            <section className="bg-white p-6 rounded-xl border shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold">組み合わせ</h2>
                 <button
