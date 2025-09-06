@@ -75,7 +75,7 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
           status: 'active',
           createdAt: now,
         }));
-        await db.practicePlayers.bulkAdd(players);
+        await db.practicePlayers.bulkPut(players);
       });
 
       await get().load();
@@ -86,7 +86,7 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
 
   toggleStatus: async (memberId) => {
     try {
-      const player = await db.practicePlayers.where({ memberId }).first();
+      const player = await db.practicePlayers.get(memberId);
       if (!player) return;
       const updated: PracticePlayer = { ...player, status: player.status === 'active' ? 'rest' : 'active' };
       await db.practicePlayers.put(updated);
