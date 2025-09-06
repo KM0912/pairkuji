@@ -1,5 +1,5 @@
 import Dexie from 'dexie';
-import type { Session, Player, Round, PlayerStats } from '../types';
+import type { Session, Player, Round, PlayerStats, CreatePlayerData } from '../types';
 
 class PairkujiDB extends Dexie {
   sessions!: Dexie.Table<Session, string>;
