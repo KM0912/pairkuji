@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Button, Modal } from './ui';
 import { Countdown } from './Countdown';
+import { AutoSaveStatus } from './AutoSaveStatus';
 import { useSessionStore } from '../lib/stores/sessionStore';
 
 interface SessionHeaderProps {
@@ -38,9 +39,12 @@ export const SessionHeader: React.FC<SessionHeaderProps> = ({
           )}
           
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              {currentSession?.title || `セッション ${sessionId.slice(-6)}`}
-            </h1>
+            <div className="flex items-center space-x-4">
+              <h1 className="text-2xl font-bold text-gray-900">
+                {currentSession?.title || `セッション ${sessionId.slice(-6)}`}
+              </h1>
+              <AutoSaveStatus />
+            </div>
             {currentSession && (
               <p className="text-gray-600">
                 {currentSession.courts}コート・{currentSession.minutesPerGame}分/試合

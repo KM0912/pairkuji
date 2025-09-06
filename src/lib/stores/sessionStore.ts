@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import type { Session, CreateSessionData, UpdateSessionData } from '../../types';
 import { db } from '../db';
+import { autoSaveManager } from '../auto-save';
 
 interface SessionStore {
   // State
@@ -108,13 +109,18 @@ export const useSessionStore = create<SessionStore>()(
                 (state.currentSession as any)[key] = (updateData as any)[key];
               }
             });
+            
+            // Schedule auto-save for updated session
+            autoSaveManager.scheduleAutoSave(
+              `session-${id}`,
+              state.currentSession,
+              async (session) => {
+                const saveData = { ...updateData, updatedAt: new Date().toISOString() };
+                await db.sessions.update(id, saveData);
+              }
+            );
           }
         });
-
-        // Schedule auto-save if enabled
-        if (state.autoSave) {
-          state._scheduleAutoSave();
-        }
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'セッションの更新に失敗しました';
         state._setError(errorMessage);
