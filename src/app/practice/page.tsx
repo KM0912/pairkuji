@@ -79,7 +79,7 @@ export default function PracticePage() {
                 <div className="text-sm text-gray-500">{selected.length} 名</div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-auto border rounded p-2">
-                {members.map(m => {
+                {members.filter(m => m.isActive).map(m => {
                   const isSelected = selected.includes(m.id!);
                   const selectionIndex = selected.indexOf(m.id!);
                   const playerNumber = selectionIndex !== -1 ? selectionIndex + 1 : null;
@@ -95,7 +95,7 @@ export default function PracticePage() {
                       }`}
                     >
                       <div className="flex items-center space-x-2">
-                        <span className={m.isActive ? '' : 'text-gray-400'}>{m.name}</span>
+                        <span>{m.name}</span>
                         {playerNumber && (
                           <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-semibold text-white bg-blue-600 rounded-full">
                             {playerNumber}

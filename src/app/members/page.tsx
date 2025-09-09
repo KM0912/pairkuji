@@ -8,6 +8,7 @@ export default function MembersPage() {
     useMemberStore();
   const [name, setName] = useState('');
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [flashingId, setFlashingId] = useState<number | null>(null);
 
   useEffect(() => {
     load();
@@ -30,6 +31,12 @@ export default function MembersPage() {
     if (!name.trim()) return;
     await add(name.trim());
     setName('');
+  };
+
+  const onToggleActive = async (id: number, isActive: boolean) => {
+    setFlashingId(id);
+    await update(id, { isActive: !isActive });
+    setTimeout(() => setFlashingId(null), 1000);
   };
 
   return (
@@ -97,38 +104,52 @@ export default function MembersPage() {
 
         {/* List */}
         <ul className="space-y-2">
-          {filtered.map((m) => (
-            <li
-              key={m.id}
-              className="bg-white p-4 rounded-lg shadow flex items-center gap-3"
-            >
-              <input
-                className="border rounded px-2 py-1 flex-1 bg-white text-gray-900 border-gray-300"
-                defaultValue={m.name}
-                onBlur={(e) => {
-                  const val = e.target.value.trim();
-                  if (val && val !== m.name) update(m.id!, { name: val });
-                }}
-              />
-              <button
-                className={`px-3 py-2 rounded-lg text-sm border min-h-[40px] ${
-                  m.isActive
-                    ? 'bg-green-50 border-green-400 text-green-700'
-                    : 'bg-gray-50 border-gray-300 text-gray-600'
+          {filtered.map((m) => {
+            const isFlashing = flashingId === m.id;
+            return (
+              <li
+                key={m.id}
+                className={`p-4 rounded-lg shadow flex items-center gap-3 transition-all duration-300 ${
+                  m.isActive 
+                    ? 'bg-white border-l-4 border-l-green-400' 
+                    : 'bg-gray-50 border-l-4 border-l-gray-300'
+                } ${
+                  isFlashing 
+                    ? 'ring-2 ring-blue-400 ring-opacity-75 bg-blue-50' 
+                    : ''
                 }`}
-                onClick={() => update(m.id!, { isActive: !m.isActive })}
-                title={m.isActive ? '非アクティブにする' : 'アクティブにする'}
               >
-                {m.isActive ? 'アクティブ' : '非アクティブ'}
-              </button>
-              <button
-                className="px-3 py-2 rounded-lg text-sm border bg-white hover:bg-red-50 text-red-600 min-h-[40px]"
-                onClick={() => remove(m.id!)}
-              >
-                削除
-              </button>
-            </li>
-          ))}
+                <div className="flex items-center gap-2 flex-1">
+                  <div className={`w-2 h-2 rounded-full ${m.isActive ? 'bg-green-500' : 'bg-gray-400'}`} />
+                  <input
+                    className="border rounded px-2 py-1 flex-1 bg-white text-gray-900 border-gray-300"
+                    defaultValue={m.name}
+                    onBlur={(e) => {
+                      const val = e.target.value.trim();
+                      if (val && val !== m.name) update(m.id!, { name: val });
+                    }}
+                  />
+                </div>
+                <button
+                  className={`px-3 py-2 rounded-lg text-sm border min-h-[40px] transition-colors ${
+                    m.isActive
+                      ? 'bg-green-50 border-green-400 text-green-700 hover:bg-green-100'
+                      : 'bg-gray-50 border-gray-300 text-gray-600 hover:bg-gray-100'
+                  }`}
+                  onClick={() => onToggleActive(m.id!, m.isActive)}
+                  title={m.isActive ? '非アクティブにする' : 'アクティブにする'}
+                >
+                  {m.isActive ? 'アクティブ' : '非アクティブ'}
+                </button>
+                <button
+                  className="px-3 py-2 rounded-lg text-sm border bg-white hover:bg-red-50 text-red-600 min-h-[40px]"
+                  onClick={() => remove(m.id!)}
+                >
+                  削除
+                </button>
+              </li>
+            );
+          })}
           {!isLoading && filtered.length === 0 && (
             <li className="text-center text-gray-500 py-10">
               選手はいません。上のフォームから追加してください。
