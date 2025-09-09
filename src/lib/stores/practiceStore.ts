@@ -19,6 +19,7 @@ type Actions = {
   toggleStatus: (memberId: number) => Promise<void>;
   generateNextRound: () => Promise<void>;
   resetPractice: () => Promise<void>;
+  addParticipant: (memberId: number) => Promise<void>;
   clearError: () => void;
 };
 
@@ -146,6 +147,32 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
       set({ settings: null, players: [], rounds: [] });
     } catch (e: any) {
       set({ error: e?.message ?? 'Failed to reset practice' });
+    }
+  },
+
+  addParticipant: async (memberId) => {
+    const state = get();
+    try {
+      // Check if member is already participating
+      if (state.players.some(p => p.memberId === memberId)) {
+        set({ error: 'この選手は既に参加しています' });
+        return;
+      }
+
+      const now = new Date().toISOString();
+      const nextPlayerNumber = Math.max(...state.players.map(p => p.playerNumber), 0) + 1;
+      
+      const newPlayer: PracticePlayer = {
+        memberId,
+        playerNumber: nextPlayerNumber,
+        status: 'active',
+        createdAt: now,
+      };
+
+      await db.practicePlayers.put(newPlayer);
+      set({ players: [...state.players, newPlayer] });
+    } catch (e: any) {
+      set({ error: e?.message ?? 'Failed to add participant' });
     }
   },
 

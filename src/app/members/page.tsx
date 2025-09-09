@@ -91,7 +91,7 @@ export default function MembersPage() {
   return (
     <main className="bg-gray-50 min-h-screen">
       <div className="max-w-md mx-auto px-4 py-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">選手管理</h1>
+        <h1 className="text-2xl font-bold mb-6">選手管理</h1>
 
         {/* Add form */}
         <form
@@ -103,7 +103,7 @@ export default function MembersPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="選手名を入力"
-            className="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 border-gray-300 placeholder:text-gray-400"
+            className="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white border-gray-300 placeholder:text-gray-400"
           />
           <button
             type="submit"
@@ -174,7 +174,7 @@ export default function MembersPage() {
                     className={`w-2 h-2 rounded-full flex-shrink-0 ${m.isActive ? 'bg-green-500' : 'bg-gray-400'}`}
                   />
                   <button
-                    className="text-left flex-1 text-gray-900 min-w-0 truncate font-medium"
+                    className="text-left flex-1 min-w-0 truncate font-medium"
                     onClick={() =>
                       openEditModal({
                         id: m.id!,
@@ -267,7 +267,7 @@ export default function MembersPage() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg w-full max-w-sm mx-4">
               <div className="p-6">
-                <h2 className="text-lg text-gray-900 font-semibold mb-4">
+                <h2 className="text-lg font-semibold mb-4">
                   選手情報を編集
                 </h2>
                 <form onSubmit={saveEdit} className="space-y-4">
@@ -277,7 +277,7 @@ export default function MembersPage() {
                     </label>
                     <input
                       type="text"
-                      className="w-full border rounded-lg px-3 py-2 bg-white text-gray-900 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full border rounded-lg px-3 py-2 bg-white border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       value={editingMember.name}
                       onChange={(e) =>
                         setEditingMember({

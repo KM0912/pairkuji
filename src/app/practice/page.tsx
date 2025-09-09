@@ -6,10 +6,11 @@ import { usePracticeStore } from '@/lib/stores/practiceStore';
 
 export default function PracticePage() {
   const { members, load: loadMembers } = useMemberStore();
-  const { settings, players, rounds, load, startPractice, toggleStatus, generateNextRound, resetPractice } = usePracticeStore();
+  const { settings, players, rounds, load, startPractice, toggleStatus, generateNextRound, resetPractice, addParticipant } = usePracticeStore();
 
   const [courts, setCourts] = useState(2);
   const [selected, setSelected] = useState<number[]>([]);
+  const [showAddParticipant, setShowAddParticipant] = useState(false);
 
   useEffect(() => {
     loadMembers();
@@ -41,14 +42,22 @@ export default function PracticePage() {
   };
 
   const latestRound = rounds[rounds.length - 1];
-  const initialOf = (name?: string) => (name ? name.trim().slice(0, 1) : '?');
+
+  const availableMembers = members.filter(m => 
+    m.isActive && !players.some(p => p.memberId === m.id)
+  );
+
+  const onAddParticipant = async (memberId: number) => {
+    await addParticipant(memberId);
+    setShowAddParticipant(false);
+  };
 
   return (
     <main className="bg-gray-50 min-h-screen">
       <div className="max-w-md mx-auto px-4 py-6">
         {/* Header */}
         <div className="text-center mb-8 pt-4">
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">pairkuji</h1>
+          <h1 className="text-2xl font-bold mb-1">pairkuji</h1>
           <p className="text-gray-600 text-sm">ダブルス練習管理</p>
           {settings && (
             <div className="mt-4">
@@ -69,7 +78,7 @@ export default function PracticePage() {
               <select
                 value={courts}
                 onChange={e => setCourts(Number(e.target.value))}
-                className="border rounded px-3 py-2 bg-white text-gray-900 border-gray-300"
+                className="border rounded px-3 py-2 bg-white border-gray-300"
               >
                 {[2, 3, 4, 5, 6].map(n => (
                   <option key={n} value={n}>{n}</option>
@@ -95,7 +104,7 @@ export default function PracticePage() {
                       className={`flex items-center justify-between rounded px-3 py-2 border text-left transition ${
                         isSelected
                           ? 'bg-blue-50 border-blue-400 text-blue-700'
-                          : 'bg-white border-gray-200 text-gray-900 hover:bg-gray-50'
+                          : 'bg-white border-gray-200 hover:bg-gray-50'
                       }`}
                     >
                       <div className="flex items-center space-x-2">
@@ -131,31 +140,43 @@ export default function PracticePage() {
                 <div className="text-gray-700">コート数: <strong>{settings.courts}</strong></div>
                 <div className="text-gray-700">ラウンド: <strong>{settings.currentRound}</strong></div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {players.map(p => {
-                  const m = memberMap.get(p.memberId);
-                  if (!m) return null;
-                  return (
-                    <div key={p.memberId} className="flex items-center justify-between rounded-lg border bg-white px-3 py-2 shadow-sm">
-                      <div className="flex items-center space-x-2">
-                        <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-semibold text-white bg-blue-600 rounded-full">
-                          {p.playerNumber}
-                        </span>
-                        <span className="text-gray-900">{m.name}</span>
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {players.map(p => {
+                    const m = memberMap.get(p.memberId);
+                    if (!m) return null;
+                    return (
+                      <div key={p.memberId} className="flex items-center justify-between rounded-lg border bg-white px-3 py-2 shadow-sm">
+                        <div className="flex items-center space-x-2">
+                          <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-semibold text-white bg-blue-600 rounded-full">
+                            {p.playerNumber}
+                          </span>
+                          <span>{m.name}</span>
+                        </div>
+                        <button
+                          className={`text-sm px-3 py-1 rounded-full border transition ${
+                            p.status === 'active'
+                              ? 'bg-green-50 border-green-400 text-green-700 hover:bg-green-100'
+                              : 'bg-gray-50 border-gray-300 text-gray-600 hover:bg-gray-100'
+                          }`}
+                          onClick={() => toggleStatus(p.memberId)}
+                        >
+                          {p.status === 'active' ? '出場可' : '休憩'}
+                        </button>
                       </div>
-                      <button
-                        className={`text-sm px-3 py-1 rounded-full border transition ${
-                          p.status === 'active'
-                            ? 'bg-green-50 border-green-400 text-green-700 hover:bg-green-100'
-                            : 'bg-gray-50 border-gray-300 text-gray-600 hover:bg-gray-100'
-                        }`}
-                        onClick={() => toggleStatus(p.memberId)}
-                      >
-                        {p.status === 'active' ? '出場可' : '休憩'}
-                      </button>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
+
+                {/* Add participant button */}
+                <div className="flex justify-center pt-2">
+                  <button
+                    className="text-sm text-blue-600 hover:text-blue-700 border border-blue-300 hover:border-blue-400 px-4 py-2 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
+                    onClick={() => setShowAddParticipant(true)}
+                  >
+                    + 参加者を追加
+                  </button>
+                </div>
               </div>
             </section>
 
@@ -176,7 +197,7 @@ export default function PracticePage() {
               {latestRound ? (
                 <div className="space-y-4">
                   <div className="text-sm text-gray-500">Round {latestRound.roundNo}</div>
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4">
                     {latestRound.courts.map(cm => (
                       <div
                         key={cm.courtNo}
@@ -188,22 +209,22 @@ export default function PracticePage() {
                             Court {cm.courtNo}
                           </span>
                         </div>
-                        <div className="flex items-stretch gap-3">
+                        <div className="flex items-center gap-2">
                           {/* Team A */}
-                          <div className="flex-1 rounded-lg border border-indigo-100 bg-indigo-50/60 p-3">
-                            <div className="text-xs font-semibold uppercase tracking-wide text-indigo-700 mb-2">Team A</div>
-                            <div className="flex flex-col gap-2">
+                          <div className="flex-1 rounded-lg border border-indigo-100 bg-indigo-50/60 p-2">
+                            <div className="text-xs font-semibold uppercase tracking-wide text-indigo-700 mb-1">Team A</div>
+                            <div className="space-y-1">
                               {cm.pairA.map((id) => {
                                 const member = memberMap.get(id);
                                 const player = playerMap.get(id);
                                 const name = member?.name ?? '???';
                                 const number = player?.playerNumber ?? '?';
                                 return (
-                                  <div key={id} className="flex items-center gap-2 rounded-full bg-white border border-indigo-100 px-2.5 py-1.5">
-                                    <div className="h-7 w-7 shrink-0 rounded-full bg-indigo-600 text-white grid place-items-center text-xs font-semibold">
+                                  <div key={id} className="flex items-center gap-1 rounded-full bg-white border border-indigo-100 px-2 py-1">
+                                    <div className="h-4 w-4 shrink-0 rounded-full bg-indigo-600 text-white grid place-items-center text-xs font-semibold">
                                       {number}
                                     </div>
-                                    <div className="text-sm text-gray-900">{name}</div>
+                                    <div className="text-xs truncate">{name}</div>
                                   </div>
                                 );
                               })}
@@ -211,25 +232,25 @@ export default function PracticePage() {
                           </div>
 
                           {/* VS */}
-                          <div className="self-center text-gray-500">
-                            <div className="h-10 w-10 rounded-full bg-gray-100 grid place-items-center font-semibold">VS</div>
+                          <div className="flex-shrink-0">
+                            <div className="h-6 w-6 rounded-full bg-gray-100 grid place-items-center text-xs font-semibold text-gray-500">VS</div>
                           </div>
 
                           {/* Team B */}
-                          <div className="flex-1 rounded-lg border border-rose-100 bg-rose-50/60 p-3">
-                            <div className="text-xs font-semibold uppercase tracking-wide text-rose-700 mb-2">Team B</div>
-                            <div className="flex flex-col gap-2">
+                          <div className="flex-1 rounded-lg border border-rose-100 bg-rose-50/60 p-2">
+                            <div className="text-xs font-semibold uppercase tracking-wide text-rose-700 mb-1">Team B</div>
+                            <div className="space-y-1">
                               {cm.pairB.map((id) => {
                                 const member = memberMap.get(id);
                                 const player = playerMap.get(id);
                                 const name = member?.name ?? '???';
                                 const number = player?.playerNumber ?? '?';
                                 return (
-                                  <div key={id} className="flex items-center gap-2 rounded-full bg-white border border-rose-100 px-2.5 py-1.5">
-                                    <div className="h-7 w-7 shrink-0 rounded-full bg-rose-600 text-white grid place-items-center text-xs font-semibold">
+                                  <div key={id} className="flex items-center gap-1 rounded-full bg-white border border-rose-100 px-2 py-1">
+                                    <div className="h-4 w-4 shrink-0 rounded-full bg-rose-600 text-white grid place-items-center text-xs font-semibold">
                                       {number}
                                     </div>
-                                    <div className="text-sm text-gray-900">{name}</div>
+                                    <div className="text-xs truncate">{name}</div>
                                   </div>
                                 );
                               })}
@@ -241,7 +262,7 @@ export default function PracticePage() {
                   </div>
                   {latestRound.rests.length > 0 && (
                     <div className="rounded-lg border bg-white p-3 text-sm text-gray-700">
-                      <div className="mb-2 font-medium text-gray-900">休憩</div>
+                      <div className="mb-2 font-medium">休憩</div>
                       <div className="flex flex-wrap gap-2">
                         {latestRound.rests.map(id => {
                           const member = memberMap.get(id);
@@ -265,6 +286,42 @@ export default function PracticePage() {
                 <div className="text-gray-500">まだ組み合わせがありません。ボタンで生成してください。</div>
               )}
             </section>
+          </div>
+        )}
+
+        {/* Add Participant Modal */}
+        {showAddParticipant && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg w-full max-w-sm mx-4">
+              <div className="p-6">
+                <h2 className="text-lg font-semibold mb-4">参加者を追加</h2>
+                {availableMembers.length === 0 ? (
+                  <div className="text-center text-gray-500 py-4">
+                    追加できる選手がいません
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-64 overflow-auto">
+                    {availableMembers.map(m => (
+                      <button
+                        key={m.id}
+                        onClick={() => onAddParticipant(m.id!)}
+                        className="w-full text-left p-3 rounded-lg border hover:bg-gray-50 transition-colors"
+                      >
+                        {m.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <div className="flex gap-3 pt-4 mt-4 border-t">
+                  <button
+                    onClick={() => setShowAddParticipant(false)}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    キャンセル
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>
