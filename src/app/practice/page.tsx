@@ -99,12 +99,12 @@ export default function PracticePage() {
                       }`}
                     >
                       <div className="flex items-center space-x-2">
-                        <span>{m.name}</span>
                         {playerNumber && (
                           <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-semibold text-white bg-blue-600 rounded-full">
                             {playerNumber}
                           </span>
                         )}
+                        <span>{m.name}</span>
                       </div>
                       {isSelected && <span className="text-blue-600">✓</span>}
                     </button>
