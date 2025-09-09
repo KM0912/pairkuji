@@ -119,10 +119,10 @@ export default function MembersPage() {
                     : ''
                 }`}
               >
-                <div className="flex items-center gap-2 flex-1">
-                  <div className={`w-2 h-2 rounded-full ${m.isActive ? 'bg-green-500' : 'bg-gray-400'}`} />
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <div className={`w-2 h-2 rounded-full flex-shrink-0 ${m.isActive ? 'bg-green-500' : 'bg-gray-400'}`} />
                   <input
-                    className="border rounded px-2 py-1 flex-1 bg-white text-gray-900 border-gray-300"
+                    className="border rounded px-2 py-1 flex-1 bg-white text-gray-900 border-gray-300 min-w-0"
                     defaultValue={m.name}
                     onBlur={(e) => {
                       const val = e.target.value.trim();
@@ -130,23 +130,42 @@ export default function MembersPage() {
                     }}
                   />
                 </div>
-                <button
-                  className={`px-3 py-2 rounded-lg text-sm border min-h-[40px] transition-colors ${
-                    m.isActive
-                      ? 'bg-green-50 border-green-400 text-green-700 hover:bg-green-100'
-                      : 'bg-gray-50 border-gray-300 text-gray-600 hover:bg-gray-100'
-                  }`}
-                  onClick={() => onToggleActive(m.id!, m.isActive)}
-                  title={m.isActive ? '非アクティブにする' : 'アクティブにする'}
-                >
-                  {m.isActive ? 'アクティブ' : '非アクティブ'}
-                </button>
-                <button
-                  className="px-3 py-2 rounded-lg text-sm border bg-white hover:bg-red-50 text-red-600 min-h-[40px]"
-                  onClick={() => remove(m.id!)}
-                >
-                  削除
-                </button>
+                <div className="flex gap-2 flex-shrink-0">
+                  <button
+                    className={`px-2 py-2 rounded-lg text-xs border min-h-[40px] min-w-[60px] transition-colors flex items-center justify-center gap-1 ${
+                      m.isActive
+                        ? 'bg-green-50 border-green-400 text-green-700 hover:bg-green-100'
+                        : 'bg-gray-50 border-gray-300 text-gray-600 hover:bg-gray-100'
+                    }`}
+                    onClick={() => onToggleActive(m.id!, m.isActive)}
+                    title={m.isActive ? '無効にする' : '有効にする'}
+                  >
+                    {m.isActive ? (
+                      <>
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        有効
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        無効
+                      </>
+                    )}
+                  </button>
+                  <button
+                    className="px-2 py-2 rounded-lg border bg-white hover:bg-red-50 text-red-600 min-h-[40px] min-w-[40px] flex items-center justify-center"
+                    onClick={() => remove(m.id!)}
+                    title="削除"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
               </li>
             );
           })}
