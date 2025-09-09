@@ -142,7 +142,7 @@ export default function PracticePage() {
               </div>
               <div className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {players.map(p => {
+                  {players.sort((a, b) => a.playerNumber - b.playerNumber).map(p => {
                     const m = memberMap.get(p.memberId);
                     if (!m) return null;
                     return (
