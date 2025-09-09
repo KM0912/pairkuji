@@ -6,11 +6,12 @@ import { usePracticeStore } from '@/lib/stores/practiceStore';
 
 export default function PracticePage() {
   const { members, load: loadMembers } = useMemberStore();
-  const { settings, players, rounds, load, startPractice, toggleStatus, generateNextRound, resetPractice, addParticipant } = usePracticeStore();
+  const { settings, players, rounds, load, startPractice, toggleStatus, generateNextRound, resetPractice, addParticipant, substitutePlayer } = usePracticeStore();
 
   const [courts, setCourts] = useState(2);
   const [selected, setSelected] = useState<number[]>([]);
   const [showAddParticipant, setShowAddParticipant] = useState(false);
+  const [substituting, setSubstituting] = useState<number | null>(null);
 
   useEffect(() => {
     loadMembers();
@@ -43,6 +44,21 @@ export default function PracticePage() {
 
   const latestRound = rounds[rounds.length - 1];
 
+  // Calculate match counts for each player
+  const matchCounts = useMemo(() => {
+    const counts = new Map<number, number>();
+    
+    rounds.forEach(round => {
+      round.courts.forEach(court => {
+        [...court.pairA, ...court.pairB].forEach(memberId => {
+          counts.set(memberId, (counts.get(memberId) || 0) + 1);
+        });
+      });
+    });
+    
+    return counts;
+  }, [rounds]);
+
   const availableMembers = members.filter(m => 
     m.isActive && !players.some(p => p.memberId === m.id)
   );
@@ -50,6 +66,20 @@ export default function PracticePage() {
   const onAddParticipant = async (memberId: number) => {
     await addParticipant(memberId);
     setShowAddParticipant(false);
+  };
+
+  const onPlayerClick = async (memberId: number) => {
+    if (!substituting) {
+      // First click - select player for substitution
+      setSubstituting(memberId);
+    } else if (substituting === memberId) {
+      // Click same player - deselect
+      setSubstituting(null);
+    } else {
+      // Click different player - perform substitution
+      await substitutePlayer(substituting, memberId);
+      setSubstituting(null);
+    }
   };
 
   return (
@@ -63,7 +93,10 @@ export default function PracticePage() {
             <div className="mt-4">
               <button 
                 className="text-sm bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors" 
-                onClick={() => resetPractice()}
+                onClick={() => {
+                  setSubstituting(null);
+                  resetPractice();
+                }}
               >
                 練習をリセット
               </button>
@@ -147,14 +180,17 @@ export default function PracticePage() {
                     if (!m) return null;
                     return (
                       <div key={p.memberId} className="flex items-center justify-between rounded-lg border bg-white px-3 py-2 shadow-sm">
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2 flex-1 min-w-0">
                           <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-semibold text-white bg-blue-600 rounded-full">
                             {p.playerNumber}
                           </span>
-                          <span>{m.name}</span>
+                          <span className="truncate">{m.name}</span>
+                          <span className="text-xs text-gray-500 flex-shrink-0">
+                            {matchCounts.get(p.memberId) || 0}試合
+                          </span>
                         </div>
                         <button
-                          className={`text-sm px-3 py-1 rounded-full border transition ${
+                          className={`text-sm px-3 py-1 rounded-full border transition flex-shrink-0 ${
                             p.status === 'active'
                               ? 'bg-green-50 border-green-400 text-green-700 hover:bg-green-100'
                               : 'bg-gray-50 border-gray-300 text-gray-600 hover:bg-gray-100'
@@ -220,12 +256,20 @@ export default function PracticePage() {
                                 const name = member?.name ?? '???';
                                 const number = player?.playerNumber ?? '?';
                                 return (
-                                  <div key={id} className="flex items-center gap-1 rounded-full bg-white border border-indigo-100 px-2 py-1">
+                                  <button 
+                                    key={id} 
+                                    className={`flex items-center gap-1 rounded-full px-2 py-1 transition-colors ${
+                                      substituting === id
+                                        ? 'bg-yellow-100 border border-yellow-400 ring-2 ring-yellow-300'
+                                        : 'bg-white border border-indigo-100 hover:bg-indigo-50'
+                                    }`}
+                                    onClick={() => onPlayerClick(id)}
+                                  >
                                     <div className="h-4 w-4 shrink-0 rounded-full bg-indigo-600 text-white grid place-items-center text-xs font-semibold">
                                       {number}
                                     </div>
                                     <div className="text-xs truncate">{name}</div>
-                                  </div>
+                                  </button>
                                 );
                               })}
                             </div>
@@ -246,12 +290,20 @@ export default function PracticePage() {
                                 const name = member?.name ?? '???';
                                 const number = player?.playerNumber ?? '?';
                                 return (
-                                  <div key={id} className="flex items-center gap-1 rounded-full bg-white border border-rose-100 px-2 py-1">
+                                  <button 
+                                    key={id} 
+                                    className={`flex items-center gap-1 rounded-full px-2 py-1 transition-colors ${
+                                      substituting === id
+                                        ? 'bg-yellow-100 border border-yellow-400 ring-2 ring-yellow-300'
+                                        : 'bg-white border border-rose-100 hover:bg-rose-50'
+                                    }`}
+                                    onClick={() => onPlayerClick(id)}
+                                  >
                                     <div className="h-4 w-4 shrink-0 rounded-full bg-rose-600 text-white grid place-items-center text-xs font-semibold">
                                       {number}
                                     </div>
                                     <div className="text-xs truncate">{name}</div>
-                                  </div>
+                                  </button>
                                 );
                               })}
                             </div>
@@ -270,12 +322,20 @@ export default function PracticePage() {
                           const name = member?.name ?? '???';
                           const number = player?.playerNumber ?? '?';
                           return (
-                            <span key={id} className="inline-flex items-center gap-1.5 rounded-full border bg-gray-50 px-2.5 py-1 text-sm text-gray-800">
+                            <button 
+                              key={id} 
+                              className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-sm transition-colors ${
+                                substituting === id
+                                  ? 'bg-yellow-100 border-yellow-400 text-yellow-800 ring-2 ring-yellow-300'
+                                  : 'bg-gray-50 border-gray-200 text-gray-800 hover:bg-gray-100'
+                              }`}
+                              onClick={() => onPlayerClick(id)}
+                            >
                               <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-semibold text-white bg-gray-500 rounded-full">
                                 {number}
                               </span>
                               {name}
-                            </span>
+                            </button>
                           );
                         })}
                       </div>
@@ -321,6 +381,18 @@ export default function PracticePage() {
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Substitution hint */}
+        {substituting && (
+          <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg z-50">
+            <div className="flex items-center gap-2 text-sm">
+              <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-semibold text-blue-600 bg-white rounded-full">
+                {playerMap.get(substituting)?.playerNumber}
+              </span>
+              <span>{memberMap.get(substituting)?.name}を選択中</span>
             </div>
           </div>
         )}

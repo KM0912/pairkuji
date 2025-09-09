@@ -20,6 +20,7 @@ type Actions = {
   generateNextRound: () => Promise<void>;
   resetPractice: () => Promise<void>;
   addParticipant: (memberId: number) => Promise<void>;
+  substitutePlayer: (fromMemberId: number, toMemberId: number) => Promise<void>;
   clearError: () => void;
 };
 
@@ -173,6 +174,67 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
       set({ players: [...state.players, newPlayer] });
     } catch (e: any) {
       set({ error: e?.message ?? 'Failed to add participant' });
+    }
+  },
+
+  substitutePlayer: async (fromMemberId, toMemberId) => {
+    const state = get();
+    if (!state.settings) return;
+
+    try {
+      // Update the latest round with substitution
+      const latestRound = state.rounds[state.rounds.length - 1];
+      if (!latestRound) return;
+
+      const updatedRound = { ...latestRound };
+      
+      // Update courts - swap fromMemberId and toMemberId
+      updatedRound.courts = latestRound.courts.map(court => ({
+        ...court,
+        pairA: court.pairA.map(id => {
+          if (id === fromMemberId) return toMemberId;
+          if (id === toMemberId) return fromMemberId;
+          return id;
+        }),
+        pairB: court.pairB.map(id => {
+          if (id === fromMemberId) return toMemberId;
+          if (id === toMemberId) return fromMemberId;
+          return id;
+        }),
+      }));
+
+      // Update rests - swap fromMemberId and toMemberId
+      updatedRound.rests = latestRound.rests.map(id => {
+        if (id === fromMemberId) return toMemberId;
+        if (id === toMemberId) return fromMemberId;
+        return id;
+      });
+
+      // Clean up duplicates and ensure proper placement
+      // Remove any duplicates that might have occurred during swapping
+      const allCourtPlayers = updatedRound.courts.flatMap(court => [...court.pairA, ...court.pairB]);
+      
+      // Remove court players from rests
+      updatedRound.rests = updatedRound.rests.filter(id => !allCourtPlayers.includes(id));
+      
+      // Ensure both players are somewhere (either in court or in rests)
+      if (!allCourtPlayers.includes(fromMemberId) && !updatedRound.rests.includes(fromMemberId)) {
+        updatedRound.rests.push(fromMemberId);
+      }
+      if (!allCourtPlayers.includes(toMemberId) && !updatedRound.rests.includes(toMemberId)) {
+        updatedRound.rests.push(toMemberId);
+      }
+
+      // Update database
+      await db.rounds.put(updatedRound);
+
+      // Update state
+      const updatedRounds = [...state.rounds];
+      updatedRounds[updatedRounds.length - 1] = updatedRound;
+      set({ rounds: updatedRounds });
+
+    } catch (e: any) {
+      set({ error: e?.message ?? 'Failed to substitute player' });
     }
   },
 
