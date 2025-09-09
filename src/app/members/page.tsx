@@ -2,10 +2,12 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useMemberStore } from '@/lib/stores/memberStore';
+import { usePracticeStore } from '@/lib/stores/practiceStore';
 
 export default function MembersPage() {
   const { members, isLoading, error, load, add, update, remove, clearError } =
     useMemberStore();
+  const { players } = usePracticeStore();
   const [name, setName] = useState('');
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [flashingId, setFlashingId] = useState<number | null>(null);
@@ -14,6 +16,7 @@ export default function MembersPage() {
     name: string;
     isActive: boolean;
   } | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
     load();
@@ -71,6 +74,18 @@ export default function MembersPage() {
     });
     setTimeout(() => setFlashingId(null), 1000);
     closeEditModal();
+  };
+
+  const handleDelete = async (id: number) => {
+    // Check if member is currently in practice
+    const isInPractice = players.some(p => p.memberId === id);
+    if (isInPractice) {
+      setToast('練習に参加中の選手は削除できません');
+      setTimeout(() => setToast(null), 3000);
+      return;
+    }
+    
+    await remove(id);
   };
 
   return (
@@ -135,6 +150,7 @@ export default function MembersPage() {
             </button>
           </div>
         )}
+        
 
         {/* List */}
         <ul className="space-y-2">
@@ -218,7 +234,7 @@ export default function MembersPage() {
                   </button>
                   <button
                     className="px-2 py-2 rounded-lg border bg-white hover:bg-red-50 text-red-600 min-h-[40px] min-w-[40px] flex items-center justify-center"
-                    onClick={() => remove(m.id!)}
+                    onClick={() => handleDelete(m.id!)}
                     title="削除"
                   >
                     <svg
@@ -353,6 +369,13 @@ export default function MembersPage() {
                 </form>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Toast */}
+        {toast && (
+          <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-pulse">
+            {toast}
           </div>
         )}
       </div>

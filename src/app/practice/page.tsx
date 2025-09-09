@@ -18,7 +18,11 @@ export default function PracticePage() {
   }, []);
 
   useEffect(() => {
-    if (!settings) return;
+    if (!settings) {
+      // practice is not active, clear selection
+      setSelected([]);
+      return;
+    }
     // keep selected list in sync with players when practice is active
     setSelected(players.map(p => p.memberId));
   }, [settings, players]);
