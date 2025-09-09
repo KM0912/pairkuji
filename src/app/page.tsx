@@ -1,24 +1,22 @@
+'use client';
+
+import React, { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+
 export default function Home() {
+  const router = useRouter();
+
+  useEffect(() => {
+    // Redirect to practice screen immediately
+    router.replace('/practice');
+  }, [router]);
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <div className="z-10 w-full max-w-3xl items-center justify-between text-center">
-        <h1 className="text-4xl font-bold mb-4">pairkuji</h1>
-        <p className="text-lg mb-8">ダブルス練習試合の組み合わせ管理PWA</p>
-        <div className="flex items-center justify-center gap-4">
-          <a
-            href="/members"
-            className="inline-block rounded bg-blue-600 text-white px-5 py-3 hover:bg-blue-700"
-          >
-            選手登録へ
-          </a>
-          <a
-            href="/practice"
-            className="inline-block rounded bg-emerald-600 text-white px-5 py-3 hover:bg-emerald-700"
-          >
-            練習を作成
-          </a>
-        </div>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p className="text-gray-600">読み込み中...</p>
       </div>
-    </main>
+    </div>
   );
 }

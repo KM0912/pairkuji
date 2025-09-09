@@ -33,10 +33,10 @@ export default function MembersPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">
-          選手マスター管理
+    <main className="bg-gray-50 min-h-screen">
+      <div className="max-w-md mx-auto px-4 py-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">
+          選手管理
         </h1>
 
         {/* Add form */}
@@ -53,7 +53,7 @@ export default function MembersPage() {
           />
           <button
             type="submit"
-            className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+            className="px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 font-medium min-h-[48px]"
             disabled={!name.trim()}
           >
             追加
@@ -111,7 +111,7 @@ export default function MembersPage() {
                 }}
               />
               <button
-                className={`px-3 py-1 rounded text-sm border ${
+                className={`px-3 py-2 rounded-lg text-sm border min-h-[40px] ${
                   m.isActive
                     ? 'bg-green-50 border-green-400 text-green-700'
                     : 'bg-gray-50 border-gray-300 text-gray-600'
@@ -122,7 +122,7 @@ export default function MembersPage() {
                 {m.isActive ? 'アクティブ' : '非アクティブ'}
               </button>
               <button
-                className="px-3 py-1 rounded text-sm border bg-white hover:bg-red-50 text-red-600"
+                className="px-3 py-2 rounded-lg text-sm border bg-white hover:bg-red-50 text-red-600 min-h-[40px]"
                 onClick={() => remove(m.id!)}
               >
                 削除

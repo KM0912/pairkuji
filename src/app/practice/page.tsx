@@ -40,12 +40,21 @@ export default function PracticePage() {
   const initialOf = (name?: string) => (name ? name.trim().slice(0, 1) : '?');
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 max-w-5xl">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">練習</h1>
+    <main className="bg-gray-50 min-h-screen">
+      <div className="max-w-md mx-auto px-4 py-6">
+        {/* Header */}
+        <div className="text-center mb-8 pt-4">
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">pairkuji</h1>
+          <p className="text-gray-600 text-sm">ダブルス練習管理</p>
           {settings && (
-            <button className="text-sm text-red-600 underline" onClick={() => resetPractice()}>リセット</button>
+            <div className="mt-4">
+              <button 
+                className="text-sm bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors" 
+                onClick={() => resetPractice()}
+              >
+                練習をリセット
+              </button>
+            </div>
           )}
         </div>
 
@@ -100,10 +109,10 @@ export default function PracticePage() {
               </div>
             </div>
 
-            <div className="mt-4">
+            <div className="mt-6">
               <button
                 type="submit"
-                className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                className="w-full py-3 px-4 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 font-medium min-h-[48px]"
                 disabled={selected.length < 4}
               >
                 練習を開始
@@ -148,10 +157,12 @@ export default function PracticePage() {
 
             {/* Generate and show round */}
             <section className="bg-white p-6 rounded-xl border shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">組み合わせ</h2>
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold">組み合わせ</h2>
+                </div>
                 <button
-                  className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                  className="w-full py-3 px-4 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 font-medium min-h-[48px]"
                   onClick={() => generateNextRound()}
                   disabled={players.filter(p => p.status === 'active').length < 4}
                 >
