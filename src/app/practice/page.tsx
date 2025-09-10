@@ -279,7 +279,7 @@ export default function PracticePage() {
                         </div>
                         <div className="flex items-center gap-2">
                           {/* Team A */}
-                          <div className="flex-1 rounded-lg border border-indigo-100 bg-indigo-50/60 p-2">
+                          <div className="flex-1 rounded-lg border border-indigo-100 bg-indigo-50/60 p-2 min-w-0">
                             <div className="text-xs font-semibold uppercase tracking-wide text-indigo-700 mb-1">Team A</div>
                             <div className="space-y-1">
                               {cm.pairA.map((id) => {
@@ -290,7 +290,7 @@ export default function PracticePage() {
                                 return (
                                   <button 
                                     key={id} 
-                                    className={`flex items-center gap-1 rounded-full px-2 py-1 transition-colors ${
+                                    className={`flex items-center gap-1 rounded-full px-2 py-1 transition-colors w-full min-w-0 ${
                                       substituting === id
                                         ? 'bg-yellow-100 border border-yellow-400 ring-2 ring-yellow-300'
                                         : 'bg-white border border-indigo-100 hover:bg-indigo-50'
@@ -300,7 +300,9 @@ export default function PracticePage() {
                                     <div className="h-4 w-4 shrink-0 rounded-full bg-indigo-600 text-white grid place-items-center text-xs font-semibold">
                                       {number}
                                     </div>
-                                    <div className="text-xs truncate">{name}</div>
+                                    <div className="text-xs truncate min-w-0 flex-1" title={name}>
+                                      {name.length > 6 ? name.substring(0, 6) + '...' : name}
+                                    </div>
                                   </button>
                                 );
                               })}
@@ -313,7 +315,7 @@ export default function PracticePage() {
                           </div>
 
                           {/* Team B */}
-                          <div className="flex-1 rounded-lg border border-rose-100 bg-rose-50/60 p-2">
+                          <div className="flex-1 rounded-lg border border-rose-100 bg-rose-50/60 p-2 min-w-0">
                             <div className="text-xs font-semibold uppercase tracking-wide text-rose-700 mb-1">Team B</div>
                             <div className="space-y-1">
                               {cm.pairB.map((id) => {
@@ -324,7 +326,7 @@ export default function PracticePage() {
                                 return (
                                   <button 
                                     key={id} 
-                                    className={`flex items-center gap-1 rounded-full px-2 py-1 transition-colors ${
+                                    className={`flex items-center gap-1 rounded-full px-2 py-1 transition-colors w-full min-w-0 ${
                                       substituting === id
                                         ? 'bg-yellow-100 border border-yellow-400 ring-2 ring-yellow-300'
                                         : 'bg-white border border-rose-100 hover:bg-rose-50'
@@ -334,7 +336,9 @@ export default function PracticePage() {
                                     <div className="h-4 w-4 shrink-0 rounded-full bg-rose-600 text-white grid place-items-center text-xs font-semibold">
                                       {number}
                                     </div>
-                                    <div className="text-xs truncate">{name}</div>
+                                    <div className="text-xs truncate min-w-0 flex-1" title={name}>
+                                      {name.length > 6 ? name.substring(0, 6) + '...' : name}
+                                    </div>
                                   </button>
                                 );
                               })}
@@ -344,35 +348,46 @@ export default function PracticePage() {
                       </div>
                     ))}
                   </div>
-                  {latestRound.rests.length > 0 && (
-                    <div className="rounded-lg border bg-white p-3 text-sm text-gray-700">
-                      <div className="mb-2 font-medium">休憩</div>
-                      <div className="flex flex-wrap gap-2">
-                        {latestRound.rests.map(id => {
-                          const member = memberMap.get(id);
-                          const player = playerMap.get(id);
-                          const name = member?.name ?? '???';
-                          const number = player?.playerNumber ?? '?';
-                          return (
-                            <button 
-                              key={id} 
-                              className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-sm transition-colors ${
-                                substituting === id
-                                  ? 'bg-yellow-100 border-yellow-400 text-yellow-800 ring-2 ring-yellow-300'
-                                  : 'bg-gray-50 border-gray-200 text-gray-800 hover:bg-gray-100'
-                              }`}
-                              onClick={() => onPlayerClick(id)}
-                            >
-                              <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-semibold text-white bg-gray-500 rounded-full">
-                                {number}
-                              </span>
-                              {name}
-                            </button>
-                          );
-                        })}
+                  {(() => {
+                    // Get all players currently in courts
+                    const playersInCourts = latestRound.courts.flatMap(court => [...court.pairA, ...court.pairB]);
+                    // Get all active players not in courts
+                    const restingPlayers = players
+                      .filter(p => p.status === 'active' && !playersInCourts.includes(p.memberId))
+                      .map(p => p.memberId);
+                    
+                    return restingPlayers.length > 0 && (
+                      <div className="rounded-lg border bg-white p-3 text-sm text-gray-700">
+                        <div className="mb-2 font-medium">休憩</div>
+                        <div className="flex flex-wrap gap-2">
+                          {restingPlayers.map(id => {
+                            const member = memberMap.get(id);
+                            const player = playerMap.get(id);
+                            const name = member?.name ?? '???';
+                            const number = player?.playerNumber ?? '?';
+                            return (
+                              <button 
+                                key={id} 
+                                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-sm transition-colors ${
+                                  substituting === id
+                                    ? 'bg-yellow-100 border-yellow-400 text-yellow-800 ring-2 ring-yellow-300'
+                                    : 'bg-gray-50 border-gray-200 text-gray-800 hover:bg-gray-100'
+                                }`}
+                                onClick={() => onPlayerClick(id)}
+                              >
+                                <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-semibold text-white bg-gray-500 rounded-full">
+                                  {number}
+                                </span>
+                                <span title={name}>
+                                  {name.length > 8 ? name.substring(0, 8) + '...' : name}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
                 </div>
               ) : (
                 <div className="text-gray-500">まだ組み合わせがありません。ボタンで生成してください。</div>
