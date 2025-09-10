@@ -151,7 +151,7 @@ export default function PracticePage() {
                 <div className="text-sm text-gray-500">{selected.length} 名</div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-auto border rounded p-2">
-                {members.filter(m => m.isActive).map(m => {
+                {members.filter(m => m.isActive).sort((a, b) => a.name.localeCompare(b.name)).map(m => {
                   const isSelected = selected.includes(m.id!);
                   const selectionIndex = selected.indexOf(m.id!);
                   const playerNumber = selectionIndex !== -1 ? selectionIndex + 1 : null;
