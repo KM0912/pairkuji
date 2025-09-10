@@ -13,6 +13,7 @@ export default function PracticePage() {
   const [showAddParticipant, setShowAddParticipant] = useState(false);
   const [substituting, setSubstituting] = useState<number | null>(null);
   const [showPairStats, setShowPairStats] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     loadMembers();
@@ -85,8 +86,18 @@ export default function PracticePage() {
     return counts;
   }, [rounds]);
 
-  const availableMembers = members.filter(m => 
+  const availableMembers = members.filter(m =>
     m.isActive && !players.some(p => p.memberId === m.id)
+  );
+
+  const filteredMembers = useMemo(
+    () =>
+      members
+        .filter(
+          m => m.isActive && m.name.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    [members, searchTerm]
   );
 
   const onAddParticipant = async (memberId: number) => {
@@ -148,10 +159,17 @@ export default function PracticePage() {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm text-gray-700">参加者を選択</label>
-                <div className="text-sm text-gray-500">{selected.length} 名</div>
+                <div className="text-sm text-gray-500">{selected.length} 名選択中</div>
               </div>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                placeholder="名前で検索"
+                className="w-full mb-2 px-3 py-2 border rounded"
+              />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-auto border rounded p-2">
-                {members.filter(m => m.isActive).sort((a, b) => a.name.localeCompare(b.name)).map(m => {
+                {filteredMembers.map(m => {
                   const isSelected = selected.includes(m.id!);
                   const selectionIndex = selected.indexOf(m.id!);
                   const playerNumber = selectionIndex !== -1 ? selectionIndex + 1 : null;
@@ -178,6 +196,11 @@ export default function PracticePage() {
                     </button>
                   );
                 })}
+              </div>
+              <div className="text-xs text-gray-500 text-right mt-1">
+                {selected.length < 4
+                  ? `あと${4 - selected.length}名選択してください`
+                  : '開始できます'}
               </div>
             </div>
 
