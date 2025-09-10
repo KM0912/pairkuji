@@ -123,8 +123,8 @@ export default function PracticePage() {
     <main className="bg-gray-50 min-h-screen">
       <div className="max-w-md mx-auto px-4 py-6">
         {/* Header */}
-        <div className="text-center mb-8 pt-4">
-          <h1 className="text-2xl font-bold mb-1">pairkuji</h1>
+        <div className="text-center mb-8 pt-6">
+          <h1 className="text-4xl font-extrabold mb-2 bg-gradient-to-r from-blue-600 to-teal-400 bg-clip-text text-transparent">ペアくじ</h1>
           <p className="text-gray-600 text-sm">ダブルス練習管理</p>
           {settings && (
             <div className="mt-4">

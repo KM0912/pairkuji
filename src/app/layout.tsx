@@ -6,7 +6,7 @@ import { BottomNavigation } from '../components/BottomNavigation';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'pairkuji - ダブルス練習試合管理',
+  title: 'ペアくじ - ダブルス練習試合管理',
   description: 'ダブルス練習試合の組み合わせ管理PWA',
 };
 
