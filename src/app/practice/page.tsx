@@ -148,7 +148,7 @@ export default function PracticePage() {
               <select
                 value={courts}
                 onChange={e => setCourts(Number(e.target.value))}
-                className="border rounded px-3 py-2 bg-white border-gray-300"
+                className="border rounded-lg px-4 py-3 bg-white border-gray-300 text-base min-h-[48px] focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
               >
                 {Array.from({length: 10}, (_, i) => i + 1).map(n => (
                   <option key={n} value={n}>{n}</option>
@@ -166,7 +166,7 @@ export default function PracticePage() {
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
                 placeholder="名前で検索"
-                className="w-full mb-2 px-3 py-2 border rounded"
+                className="w-full mb-3 px-4 py-3 border rounded-lg text-base min-h-[48px] border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
               />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-auto border rounded p-2">
                 {filteredMembers.map(m => {
@@ -178,10 +178,10 @@ export default function PracticePage() {
                       key={m.id}
                       type="button"
                       onClick={() => onToggleSelect(m.id!)}
-                      className={`flex items-center justify-between rounded px-3 py-2 border text-left transition ${
+                      className={`flex items-center justify-between rounded-lg px-4 py-3 border text-left transition-all duration-200 min-h-[48px] active:scale-95 ${
                         isSelected
-                          ? 'bg-blue-50 border-blue-400 text-blue-700'
-                          : 'bg-white border-gray-200 hover:bg-gray-50'
+                          ? 'bg-blue-50 border-blue-400 text-blue-700 shadow-sm'
+                          : 'bg-white border-gray-200 hover:bg-gray-50 hover:shadow-sm'
                       }`}
                     >
                       <div className="flex items-center space-x-2">
@@ -224,7 +224,7 @@ export default function PracticePage() {
                   <select
                     value={settings.courts}
                     onChange={e => updateCourts(Number(e.target.value))}
-                    className="border rounded px-2 py-1 bg-white border-gray-300 text-sm font-semibold"
+                    className="border rounded-lg px-3 py-2 bg-white border-gray-300 text-sm font-semibold min-h-[40px] focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
                   >
                     {Array.from({length: 10}, (_, i) => i + 1).map(n => (
                       <option key={n} value={n}>{n}</option>
@@ -267,7 +267,7 @@ export default function PracticePage() {
                 {/* Add participant button */}
                 <div className="flex justify-center pt-2">
                   <button
-                    className="text-sm text-blue-600 hover:text-blue-700 border border-blue-300 hover:border-blue-400 px-4 py-2 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
+                    className="text-sm text-blue-600 hover:text-blue-700 border border-blue-300 hover:border-blue-400 px-6 py-3 rounded-lg bg-blue-50 hover:bg-blue-100 transition-all duration-200 min-h-[48px] active:scale-95 shadow-sm hover:shadow-md"
                     onClick={() => setShowAddParticipant(true)}
                   >
                     + 参加者を追加
@@ -289,7 +289,7 @@ export default function PracticePage() {
                   </button>
                 </div>
                 <button
-                  className="w-full py-3 px-4 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 font-medium min-h-[48px]"
+                  className="w-full py-4 px-4 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 font-medium min-h-[52px] active:scale-95 transition-all duration-200 shadow-md hover:shadow-lg"
                   onClick={() => generateNextRound()}
                   disabled={players.filter(p => p.status === 'active').length < 4}
                 >
@@ -303,19 +303,30 @@ export default function PracticePage() {
                     {latestRound.courts.map(cm => (
                       <div
                         key={cm.courtNo}
-                        className="rounded-xl border bg-white p-4 shadow-sm transition hover:shadow-md"
+                        className="rounded-xl border bg-white p-5 shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-1 border-gray-200"
                       >
-                        <div className="flex items-center justify-between mb-3">
-                          <span className="inline-flex items-center gap-2 text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
-                            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                            Court {cm.courtNo}
-                          </span>
+                        <div className="flex items-center justify-center mb-4">
+                          <div className="relative">
+                            <div className="w-16 h-16 rounded-full bg-gradient-to-r from-emerald-500 to-blue-500 flex items-center justify-center shadow-lg">
+                              <span className="text-white font-bold text-xl">
+                                {cm.courtNo}
+                              </span>
+                            </div>
+                            <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2">
+                              <span className="text-xs font-medium text-gray-600 bg-white px-2 py-0.5 rounded-full border shadow-sm">
+                                COURT
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
                           {/* Team A */}
-                          <div className="flex-1 rounded-lg border border-indigo-100 bg-indigo-50/60 p-2 min-w-0">
-                            <div className="text-xs font-semibold uppercase tracking-wide text-indigo-700 mb-1">Team A</div>
-                            <div className="space-y-1">
+                          <div className="flex-1 rounded-lg border border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100/80 p-2 min-w-0 shadow-sm">
+                            <div className="text-xs font-bold uppercase tracking-wide text-blue-800 mb-1 flex items-center gap-1">
+                              <div className="w-2 h-2 rounded-full bg-blue-600"></div>
+                              TEAM A
+                            </div>
+                            <div className="space-y-2">
                               {cm.pairA.map((id) => {
                                 const member = memberMap.get(id);
                                 const player = playerMap.get(id);
@@ -324,18 +335,18 @@ export default function PracticePage() {
                                 return (
                                   <button 
                                     key={id} 
-                                    className={`flex items-center gap-1 rounded-full px-2 py-1 transition-colors w-full min-w-0 ${
+                                    className={`flex items-center gap-2 rounded-lg px-2.5 py-2.5 transition-all duration-200 w-full min-w-0 min-h-[48px] active:scale-95 shadow-sm border-2 ${
                                       substituting === id
-                                        ? 'bg-yellow-100 border border-yellow-400 ring-2 ring-yellow-300'
-                                        : 'bg-white border border-indigo-100 hover:bg-indigo-50'
+                                        ? 'bg-yellow-50 border-yellow-400 ring-2 ring-yellow-300 shadow-md'
+                                        : 'bg-white border-blue-200 hover:bg-blue-50 hover:border-blue-300 hover:shadow-md'
                                     }`}
                                     onClick={() => onPlayerClick(id)}
                                   >
-                                    <div className="h-4 w-4 shrink-0 rounded-full bg-indigo-600 text-white grid place-items-center text-xs font-semibold">
+                                    <div className="h-7 w-7 shrink-0 rounded-full bg-blue-600 text-white grid place-items-center text-sm font-bold shadow-md">
                                       {number}
                                     </div>
-                                    <div className="text-xs truncate min-w-0 flex-1" title={name}>
-                                      {name.length > 6 ? name.substring(0, 6) + '...' : name}
+                                    <div className="text-sm font-medium text-left flex-1 min-w-0" title={name}>
+                                      {name}
                                     </div>
                                   </button>
                                 );
@@ -343,15 +354,13 @@ export default function PracticePage() {
                             </div>
                           </div>
 
-                          {/* VS */}
-                          <div className="flex-shrink-0">
-                            <div className="h-6 w-6 rounded-full bg-gray-100 grid place-items-center text-xs font-semibold text-gray-500">VS</div>
-                          </div>
-
                           {/* Team B */}
-                          <div className="flex-1 rounded-lg border border-rose-100 bg-rose-50/60 p-2 min-w-0">
-                            <div className="text-xs font-semibold uppercase tracking-wide text-rose-700 mb-1">Team B</div>
-                            <div className="space-y-1">
+                          <div className="flex-1 rounded-lg border border-red-200 bg-gradient-to-br from-red-50 to-red-100/80 p-2 min-w-0 shadow-sm">
+                            <div className="text-xs font-bold uppercase tracking-wide text-red-800 mb-1 flex items-center gap-1">
+                              <div className="w-2 h-2 rounded-full bg-red-600"></div>
+                              TEAM B
+                            </div>
+                            <div className="space-y-2">
                               {cm.pairB.map((id) => {
                                 const member = memberMap.get(id);
                                 const player = playerMap.get(id);
@@ -360,18 +369,18 @@ export default function PracticePage() {
                                 return (
                                   <button 
                                     key={id} 
-                                    className={`flex items-center gap-1 rounded-full px-2 py-1 transition-colors w-full min-w-0 ${
+                                    className={`flex items-center gap-2 rounded-lg px-2.5 py-2.5 transition-all duration-200 w-full min-w-0 min-h-[48px] active:scale-95 shadow-sm border-2 ${
                                       substituting === id
-                                        ? 'bg-yellow-100 border border-yellow-400 ring-2 ring-yellow-300'
-                                        : 'bg-white border border-rose-100 hover:bg-rose-50'
+                                        ? 'bg-yellow-50 border-yellow-400 ring-2 ring-yellow-300 shadow-md'
+                                        : 'bg-white border-red-200 hover:bg-red-50 hover:border-red-300 hover:shadow-md'
                                     }`}
                                     onClick={() => onPlayerClick(id)}
                                   >
-                                    <div className="h-4 w-4 shrink-0 rounded-full bg-rose-600 text-white grid place-items-center text-xs font-semibold">
+                                    <div className="h-7 w-7 shrink-0 rounded-full bg-red-600 text-white grid place-items-center text-sm font-bold shadow-md">
                                       {number}
                                     </div>
-                                    <div className="text-xs truncate min-w-0 flex-1" title={name}>
-                                      {name.length > 6 ? name.substring(0, 6) + '...' : name}
+                                    <div className="text-sm font-medium text-left flex-1 min-w-0" title={name}>
+                                      {name}
                                     </div>
                                   </button>
                                 );
@@ -402,10 +411,10 @@ export default function PracticePage() {
                             return (
                               <button 
                                 key={id} 
-                                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-sm transition-colors ${
+                                className={`inline-flex items-center gap-2 rounded-full border px-4 py-3 text-sm transition-all duration-200 min-h-[48px] active:scale-95 ${
                                   substituting === id
-                                    ? 'bg-yellow-100 border-yellow-400 text-yellow-800 ring-2 ring-yellow-300'
-                                    : 'bg-gray-50 border-gray-200 text-gray-800 hover:bg-gray-100'
+                                    ? 'bg-yellow-100 border-yellow-400 text-yellow-800 ring-2 ring-yellow-300 shadow-md'
+                                    : 'bg-gray-50 border-gray-200 text-gray-800 hover:bg-gray-100 hover:shadow-sm'
                                 }`}
                                 onClick={() => onPlayerClick(id)}
                               >
