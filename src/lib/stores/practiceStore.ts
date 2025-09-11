@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { db } from '@/lib/db';
 import type { PracticePlayer, PracticeSettings } from '@/types/practice';
 import type { Round, CourtMatch } from '@/types/round';
+import { generateFairRound } from '@/lib/fairnessAlgorithm';
 
 const SETTINGS_ID = 1;
 
@@ -25,16 +26,6 @@ type Actions = {
   clearError: () => void;
 };
 
-function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    const tmp = a[i]!;
-    a[i] = a[j]!;
-    a[j] = tmp;
-  }
-  return a;
-}
 
 export const usePracticeStore = create<State & Actions>((set, get) => ({
   settings: null,
@@ -104,23 +95,15 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
     const s = state.settings;
     if (!s) return;
     try {
-      const activeMemberIds = state.players.filter(p => p.status === 'active').map(p => p.memberId);
-      const shuffled = shuffle(activeMemberIds);
-      const courtsToUse = Math.min(s.courts, Math.floor(shuffled.length / 4));
-      const courts: CourtMatch[] = [];
-      let idx = 0;
-      for (let c = 1; c <= courtsToUse; c++) {
-        const a1 = shuffled[idx++];
-        const a2 = shuffled[idx++];
-        const b1 = shuffled[idx++];
-        const b2 = shuffled[idx++];
-        if ([a1, a2, b1, b2].some(v => v === undefined)) break;
-        courts.push({ courtNo: c, pairA: [a1!, a2!], pairB: [b1!, b2!] });
+      const activePlayers = state.players.filter(p => p.status === 'active');
+      
+      if (activePlayers.length < 4) {
+        set({ error: '参加者が4名未満のため組み合わせを生成できません' });
+        return;
       }
-      const used = courts.flatMap(cm => [...cm.pairA, ...cm.pairB]);
-      const rests = state.players
-        .filter(p => p.status === 'active' && !used.includes(p.memberId))
-        .map(p => p.memberId);
+
+      // 新しい公平性アルゴリズムを使用
+      const { courts, rests } = generateFairRound(activePlayers, s.courts, state.rounds);
 
       const nextNo = s.currentRound + 1;
       const round: Round = { roundNo: nextNo, courts, rests };
