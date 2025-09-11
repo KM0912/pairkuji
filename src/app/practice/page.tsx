@@ -120,35 +120,46 @@ export default function PracticePage() {
   };
 
   return (
-    <main className="bg-gray-50 min-h-screen">
+    <main className="bg-slate-50 min-h-screen">
       <div className="max-w-md mx-auto px-4 py-6">
         {/* Header */}
         <div className="text-center mb-8 pt-6">
-          <h1 className="text-4xl font-extrabold mb-2 bg-gradient-to-r from-blue-600 to-teal-400 bg-clip-text text-transparent">ペアくじ</h1>
-          <p className="text-gray-600 text-sm">ダブルス練習管理</p>
-          {settings && (
-            <div className="mt-4">
-              <button 
-                className="text-sm bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors" 
-                onClick={() => {
-                  setSubstituting(null);
-                  resetPractice();
-                }}
-              >
-                練習をリセット
-              </button>
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+            <div className="flex items-center justify-center gap-3 mb-3">
+              {/* Clean Badminton Icon */}
+              <div className="w-12 h-12 bg-slate-700 rounded-xl flex items-center justify-center shadow-lg">
+                <div className="text-2xl">🏸</div>
+              </div>
+              <div className="text-left">
+                <h1 className="text-3xl font-bold text-slate-700">ペアくじ</h1>
+                <p className="text-slate-500 text-sm font-medium">ダブルス練習管理</p>
+              </div>
             </div>
-          )}
+            
+            {settings && (
+              <div className="mt-4 pt-3 border-t border-slate-200">
+                <button 
+                  className="text-sm bg-slate-100 text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-200 transition-colors font-medium" 
+                  onClick={() => {
+                    setSubstituting(null);
+                    resetPractice();
+                  }}
+                >
+                  練習をリセット
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {!settings ? (
-          <form onSubmit={onStart} className="bg-white p-6 rounded-xl border shadow-sm mb-8 space-y-6">
+          <form onSubmit={onStart} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-lg mb-8 space-y-6">
             <div className="mb-4">
               <label className="block text-sm text-gray-700 mb-1">コート数</label>
               <select
                 value={courts}
                 onChange={e => setCourts(Number(e.target.value))}
-                className="border rounded-lg px-4 py-3 bg-white border-gray-300 text-base min-h-[48px] focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                className="bg-white border border-slate-300 rounded-lg px-4 py-3 text-base min-h-[48px] focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors"
               >
                 {Array.from({length: 10}, (_, i) => i + 1).map(n => (
                   <option key={n} value={n}>{n}</option>
@@ -207,7 +218,7 @@ export default function PracticePage() {
             <div className="mt-6">
               <button
                 type="submit"
-                className="w-full py-3 px-4 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 font-medium min-h-[48px]"
+                className="w-full py-3 px-4 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50 disabled:bg-slate-400 font-medium min-h-[48px] shadow-lg hover:shadow-xl transition-all duration-200"
                 disabled={selected.length < 4}
               >
                 練習を開始
@@ -217,14 +228,14 @@ export default function PracticePage() {
         ) : (
           <div className="space-y-8">
             {/* Settings and participants */}
-            <section className="bg-white p-6 rounded-xl border shadow-sm">
+            <section className="bg-white p-6 rounded-2xl border border-slate-200 shadow-lg">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2 text-gray-700">
                   コート数: 
                   <select
                     value={settings.courts}
                     onChange={e => updateCourts(Number(e.target.value))}
-                    className="border rounded-lg px-3 py-2 bg-white border-gray-300 text-sm font-semibold min-h-[40px] focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                    className="bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold min-h-[40px] focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors"
                   >
                     {Array.from({length: 10}, (_, i) => i + 1).map(n => (
                       <option key={n} value={n}>{n}</option>
@@ -267,7 +278,7 @@ export default function PracticePage() {
                 {/* Add participant button */}
                 <div className="flex justify-center pt-2">
                   <button
-                    className="text-sm text-blue-600 hover:text-blue-700 border border-blue-300 hover:border-blue-400 px-6 py-3 rounded-lg bg-blue-50 hover:bg-blue-100 transition-all duration-200 min-h-[48px] active:scale-95 shadow-sm hover:shadow-md"
+                    className="text-sm text-emerald-600 hover:text-emerald-700 border border-emerald-300 hover:border-emerald-400 px-6 py-3 rounded-lg bg-emerald-50 hover:bg-emerald-100 transition-colors min-h-[48px] font-medium"
                     onClick={() => setShowAddParticipant(true)}
                   >
                     + 参加者を追加
@@ -277,19 +288,19 @@ export default function PracticePage() {
             </section>
 
             {/* Generate and show round */}
-            <section className="bg-white p-6 rounded-xl border shadow-sm">
+            <section className="bg-white p-6 rounded-2xl border border-slate-200 shadow-lg">
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-semibold">組み合わせ</h2>
                   <button
                     onClick={() => setShowPairStats(true)}
-                    className="text-sm text-blue-600 hover:text-blue-700 underline"
+                    className="text-sm text-slate-600 hover:text-slate-700 underline-offset-4 hover:underline transition-colors font-medium"
                   >
                     ペア統計
                   </button>
                 </div>
                 <button
-                  className="w-full py-4 px-4 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 font-medium min-h-[52px] active:scale-95 transition-all duration-200 shadow-md hover:shadow-lg"
+                  className="w-full py-3 px-4 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50 disabled:bg-slate-400 font-medium min-h-[48px] shadow-lg hover:shadow-xl transition-all duration-200"
                   onClick={() => generateNextRound()}
                   disabled={players.filter(p => p.status === 'active').length < 4}
                 >
@@ -303,11 +314,11 @@ export default function PracticePage() {
                     {latestRound.courts.map(cm => (
                       <div
                         key={cm.courtNo}
-                        className="rounded-xl border bg-white p-5 shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-1 border-gray-200"
+                        className="rounded-2xl border bg-white p-5 shadow-lg hover:shadow-xl transition-all duration-200 border-slate-200"
                       >
                         <div className="flex items-center justify-center mb-4">
                           <div className="relative">
-                            <div className="w-16 h-16 rounded-full bg-gradient-to-r from-emerald-500 to-blue-500 flex items-center justify-center shadow-lg">
+                            <div className="w-16 h-16 rounded-full bg-slate-700 flex items-center justify-center shadow-lg">
                               <span className="text-white font-bold text-xl">
                                 {cm.courtNo}
                               </span>
