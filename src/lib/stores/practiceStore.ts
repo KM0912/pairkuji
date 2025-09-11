@@ -21,6 +21,7 @@ type Actions = {
   resetPractice: () => Promise<void>;
   addParticipant: (memberId: number) => Promise<void>;
   substitutePlayer: (fromMemberId: number, toMemberId: number) => Promise<void>;
+  updateCourts: (courts: number) => Promise<void>;
   clearError: () => void;
 };
 
@@ -235,6 +236,24 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
 
     } catch (e: any) {
       set({ error: e?.message ?? 'Failed to substitute player' });
+    }
+  },
+
+  updateCourts: async (courts) => {
+    const state = get();
+    if (!state.settings) return;
+    
+    try {
+      const updatedSettings = { 
+        ...state.settings, 
+        courts, 
+        updatedAt: new Date().toISOString() 
+      };
+      
+      await db.practiceSettings.put(updatedSettings);
+      set({ settings: updatedSettings });
+    } catch (e: any) {
+      set({ error: e?.message ?? 'Failed to update courts' });
     }
   },
 

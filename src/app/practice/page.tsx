@@ -6,7 +6,7 @@ import { usePracticeStore } from '@/lib/stores/practiceStore';
 
 export default function PracticePage() {
   const { members, load: loadMembers } = useMemberStore();
-  const { settings, players, rounds, load, startPractice, toggleStatus, generateNextRound, resetPractice, addParticipant, substitutePlayer } = usePracticeStore();
+  const { settings, players, rounds, load, startPractice, toggleStatus, generateNextRound, resetPractice, addParticipant, substitutePlayer, updateCourts } = usePracticeStore();
 
   const [courts, setCourts] = useState(2);
   const [selected, setSelected] = useState<number[]>([]);
@@ -219,7 +219,18 @@ export default function PracticePage() {
             {/* Settings and participants */}
             <section className="bg-white p-6 rounded-xl border shadow-sm">
               <div className="flex items-center justify-between mb-4">
-                <div className="text-gray-700">コート数: <strong>{settings.courts}</strong></div>
+                <div className="flex items-center gap-2 text-gray-700">
+                  コート数: 
+                  <select
+                    value={settings.courts}
+                    onChange={e => updateCourts(Number(e.target.value))}
+                    className="border rounded px-2 py-1 bg-white border-gray-300 text-sm font-semibold"
+                  >
+                    {Array.from({length: 10}, (_, i) => i + 1).map(n => (
+                      <option key={n} value={n}>{n}</option>
+                    ))}
+                  </select>
+                </div>
                 <div className="text-gray-700">ラウンド: <strong>{settings.currentRound}</strong></div>
               </div>
               <div className="space-y-3">
