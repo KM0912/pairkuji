@@ -145,37 +145,30 @@ export default function PracticePage() {
     <main className="bg-slate-50 min-h-screen">
       <div className="max-w-md mx-auto px-4 py-6">
         {/* Header */}
-        <div className="text-center mb-6 pt-4">
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
-            <div className="flex items-center justify-center gap-4 mb-4">
-              {/* Clean Badminton Icon */}
-              <div className="w-14 h-14 bg-slate-700 rounded-xl flex items-center justify-center shadow-lg">
-                <div className="text-3xl">🏸</div>
-              </div>
-              <div className="text-left">
-                <h1 className="text-3xl font-bold text-slate-700 leading-tight">
-                  ペアくじ
-                </h1>
-                <p className="text-slate-500 text-sm font-medium mt-0.5">
-                  ダブルス練習管理
-                </p>
-              </div>
-            </div>
-
-            {settings && (
-              <div className="mt-4 pt-3 border-t border-slate-200">
-                <button
-                  className="text-sm bg-slate-100 text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-200 transition-colors font-medium"
-                  onClick={() => {
-                    setSubstituting(null);
-                    resetPractice();
-                  }}
-                >
-                  練習をリセット
-                </button>
-              </div>
-            )}
+        <div className="text-center mb-8 pt-6">
+          <div className="relative inline-block">
+            <h1 className="text-4xl font-bold text-slate-800 mb-2 relative">
+              ペアくじ
+              <div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full"></div>
+            </h1>
           </div>
+          <p className="text-slate-600 text-base mb-4">
+            ダブルス練習管理
+          </p>
+          
+          {settings && (
+            <div className="mt-6">
+              <button
+                className="text-sm bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700 px-6 py-3 rounded-full hover:from-slate-200 hover:to-slate-300 transition-all duration-200 font-medium shadow-sm hover:shadow-md border border-slate-200"
+                onClick={() => {
+                  setSubstituting(null);
+                  resetPractice();
+                }}
+              >
+                練習をリセット
+              </button>
+            </div>
+          )}
         </div>
 
         {!settings ? (
