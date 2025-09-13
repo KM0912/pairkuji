@@ -55,7 +55,9 @@ export function ParticipantSelection({
       <div>
         <div className="flex items-center justify-between mb-2">
           <label className="block text-sm text-gray-700">参加者を選択</label>
-          <div className="text-sm text-gray-500">{selected.length} 名選択中</div>
+          <div className="text-sm text-gray-500">
+            {selected.length} 名選択中
+          </div>
         </div>
         <div className="relative mb-3">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -85,7 +87,8 @@ export function ParticipantSelection({
           {filteredMembers.map((m) => {
             const isSelected = selected.includes(m.id!);
             const selectionIndex = selected.indexOf(m.id!);
-            const playerNumber = selectionIndex !== -1 ? selectionIndex + 1 : null;
+            const playerNumber =
+              selectionIndex !== -1 ? selectionIndex + 1 : null;
             return (
               <button
                 key={m.id}
@@ -109,32 +112,15 @@ export function ParticipantSelection({
             );
           })}
         </div>
-        <div className="text-sm font-medium text-center mt-3 p-4 rounded-xl border-2">
-          {selected.length === 0 ? (
-            <div className="bg-gradient-to-r from-slate-50 to-slate-100 border-slate-200 text-slate-600">
-              参加者を選択してください
-            </div>
-          ) : selected.length < 4 ? (
-            <div className="bg-gradient-to-r from-orange-50 to-amber-50 border-orange-200 text-orange-700">
-              <span className="text-orange-500">⚠️</span>{' '}
-              {selected.length}名選択中 - あと{4 - selected.length}名必要です
-            </div>
-          ) : (
-            <div className="bg-gradient-to-r from-emerald-50 to-green-50 border-emerald-200 text-emerald-700 flex items-center justify-center gap-2">
-              <span className="text-emerald-500">✅</span>
-              <span>{selected.length}名そろいました！開始できます</span>
-            </div>
-          )}
-        </div>
       </div>
 
       <div className="mt-6">
         <button
           type="submit"
-          className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-blue-500 text-white hover:from-emerald-600 hover:to-blue-600 disabled:opacity-50 disabled:from-slate-400 disabled:to-slate-400 font-semibold min-h-[48px] shadow-lg hover:shadow-xl transition-all duration-200 border border-emerald-400"
+          className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-blue-500 text-white hover:from-emerald-600 hover:to-blue-600 disabled:opacity-50 disabled:from-slate-400 disabled:to-slate-400 font-semibold min-h-[48px] shadow-lg hover:shadow-xl transition-all duration-200 border"
           disabled={selected.length < 4}
         >
-          練習を開始
+          {selected.length < 4 ? '⚠️ 4人以上選択してください' : '練習を開始'}
         </button>
       </div>
     </form>
