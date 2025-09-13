@@ -254,8 +254,8 @@ export function generateFairRound(
   for (let attempt = 0; attempt < 200; attempt++) {
     try {
       // プレイヤーをシャッフル（ランダム性を保持）
-      const shuffledPlayers =
-        attempt === 0 ? sortedPlayers : shuffle(sortedPlayers);
+      // 統計が同じプレイヤー間でのペア偏りを防ぐため、常にシャッフルを適用
+      const shuffledPlayers = shuffle(sortedPlayers);
 
       const courts: CourtMatch[] = [];
       let playerIndex = 0;
@@ -306,11 +306,18 @@ export function generateFairRound(
     const courts: CourtMatch[] = [];
 
     for (let i = 0; i < courtsToUse && i * 4 + 3 < shuffledIds.length; i++) {
-      courts.push({
-        courtNo: i + 1,
-        pairA: [shuffledIds[i * 4]!, shuffledIds[i * 4 + 1]!],
-        pairB: [shuffledIds[i * 4 + 2]!, shuffledIds[i * 4 + 3]!],
-      });
+      const p1 = shuffledIds[i * 4];
+      const p2 = shuffledIds[i * 4 + 1];
+      const p3 = shuffledIds[i * 4 + 2];
+      const p4 = shuffledIds[i * 4 + 3];
+      
+      if (p1 !== undefined && p2 !== undefined && p3 !== undefined && p4 !== undefined) {
+        courts.push({
+          courtNo: i + 1,
+          pairA: [p1, p2],
+          pairB: [p3, p4],
+        });
+      }
     }
 
     const usedPlayers = courts.flatMap((court) => [
