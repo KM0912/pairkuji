@@ -1,4 +1,4 @@
-import { generateFairRound, calculatePlayerStats } from '../src/lib/fairnessAlgorithm';
+import { generateFairRound, calculatePlayerStats } from './fairnessAlgorithm';
 import type { PracticePlayer } from '@/types/practice';
 import type { Round } from '@/types/round';
 
@@ -134,7 +134,7 @@ describe('Fairness Algorithm Tests', () => {
         const result = generateFairRound(players, courts, []);
         
         const expectedCourts = Math.min(courts, Math.floor(playerCount / 4));
-        const playersInCourts = result.courts.reduce((sum, court) => 
+        const playersInCourts = result.courts.reduce((sum: number, court) =>
           sum + court.pairA.length + court.pairB.length, 0);
         
         expect(result.courts).toHaveLength(expectedCourts);
@@ -222,7 +222,7 @@ describe('Fairness Algorithm Tests', () => {
       const stats = calculatePlayerStats(playerIds, rounds);
       
       let totalConsecutiveRestPenalty = 0;
-      stats.forEach(stat => {
+      stats.forEach((stat) => {
         totalConsecutiveRestPenalty += Math.max(0, stat.consecRest - 1);
       });
       
@@ -280,7 +280,7 @@ describe('Fairness Algorithm Tests', () => {
       const result = generateFairRound(players, 2, existingRounds);
       
       // 前回休憩だった選手が優先的に試合に参加することを確認
-      const playingPlayers = result.courts.flatMap(court => [...court.pairA, ...court.pairB]);
+      const playingPlayers = result.courts.flatMap((court) => [...court.pairA, ...court.pairB]);
       expect(playingPlayers).toContain(5);
       expect(playingPlayers).toContain(6);
       expect(playingPlayers).toContain(7);
