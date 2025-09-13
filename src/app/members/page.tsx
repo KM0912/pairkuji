@@ -17,6 +17,10 @@ export default function MembersPage() {
     name: string;
     isActive: boolean;
   } | null>(null);
+  const [deletingMember, setDeletingMember] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
@@ -77,7 +81,7 @@ export default function MembersPage() {
     closeEditModal();
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDeleteClick = (id: number, name: string) => {
     // Check if member is currently in practice
     const isInPractice = players.some(p => p.memberId === id);
     if (isInPractice) {
@@ -86,7 +90,18 @@ export default function MembersPage() {
       return;
     }
     
-    await remove(id);
+    setDeletingMember({ id, name });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletingMember) return;
+    
+    await remove(deletingMember.id);
+    setDeletingMember(null);
+  };
+
+  const handleCancelDelete = () => {
+    setDeletingMember(null);
   };
 
   return (
@@ -211,7 +226,7 @@ export default function MembersPage() {
                   </button>
                   <button
                     className="px-2 py-2 rounded-lg border bg-white hover:bg-red-50 text-red-600 min-h-[40px] min-w-[40px] flex items-center justify-center"
-                    onClick={() => handleDelete(m.id!)}
+                    onClick={() => handleDeleteClick(m.id!, m.name)}
                     title="削除"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -308,6 +323,45 @@ export default function MembersPage() {
                     </button>
                   </div>
                 </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {deletingMember && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl w-full max-w-sm mx-4 shadow-2xl">
+              <div className="p-6">
+                <div className="text-center mb-6">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                    <Trash2 className="w-8 h-8 text-red-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    選手を削除しますか？
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-2">
+                    <span className="font-medium text-gray-900">「{deletingMember.name}」</span>を削除します。
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    この操作は元に戻すことができません。
+                  </p>
+                </div>
+                
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleCancelDelete}
+                    className="flex-1 px-4 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                  >
+                    キャンセル
+                  </button>
+                  <button
+                    onClick={handleConfirmDelete}
+                    className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-medium"
+                  >
+                    削除
+                  </button>
+                </div>
               </div>
             </div>
           </div>
