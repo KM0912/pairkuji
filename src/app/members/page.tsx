@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { Check, X, Trash2 } from 'lucide-react';
 import { useMemberStore } from '@/lib/stores/memberStore';
 import { usePracticeStore } from '@/lib/stores/practiceStore';
 
@@ -198,36 +199,12 @@ export default function MembersPage() {
                   >
                     {m.isActive ? (
                       <>
-                        <svg
-                          className="w-3 h-3"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
+                        <Check className="w-3 h-3" />
                         有効
                       </>
                     ) : (
                       <>
-                        <svg
-                          className="w-3 h-3"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M6 18L18 6M6 6l12 12"
-                          />
-                        </svg>
+                        <X className="w-3 h-3" />
                         無効
                       </>
                     )}
@@ -237,19 +214,7 @@ export default function MembersPage() {
                     onClick={() => handleDelete(m.id!)}
                     title="削除"
                   >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </li>
@@ -304,19 +269,7 @@ export default function MembersPage() {
                             : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
                         }`}
                       >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
+                        <Check className="w-4 h-4" />
                         有効
                       </button>
                       <button
@@ -333,19 +286,7 @@ export default function MembersPage() {
                             : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
                         }`}
                       >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M6 18L18 6M6 6l12 12"
-                          />
-                        </svg>
+                        <X className="w-4 h-4" />
                         無効
                       </button>
                     </div>
