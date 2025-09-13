@@ -19,7 +19,7 @@ export function Header({ settings, onReset }: HeaderProps) {
       {settings && (
         <div className="mt-6">
           <button
-            className="text-sm bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700 px-6 py-3 rounded-full hover:from-slate-200 hover:to-slate-300 transition-all duration-200 font-medium shadow-sm hover:shadow-md border border-slate-200"
+            className="text-sm bg-gradient-to-r from-red-100 to-red-50 text-red-700 px-6 py-3 rounded-full hover:from-red-100 hover:to-pink-100 hover:text-red-800 transition-all duration-200 font-medium shadow-sm hover:shadow-md border border-red-200 hover:border-red-300"
             onClick={onReset}
           >
             練習をリセット
