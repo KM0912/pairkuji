@@ -152,10 +152,8 @@ export default function PracticePage() {
               <div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full"></div>
             </h1>
           </div>
-          <p className="text-slate-600 text-base mb-4">
-            ダブルス練習管理
-          </p>
-          
+          <p className="text-slate-600 text-base mb-4">ダブルス練習管理</p>
+
           {settings && (
             <div className="mt-6">
               <button
@@ -237,15 +235,15 @@ export default function PracticePage() {
                       key={m.id}
                       type="button"
                       onClick={() => onToggleSelect(m.id!)}
-                      className={`flex items-center rounded-lg px-4 py-3 border text-left transition-all duration-200 min-h-[48px] active:scale-95 ${
+                      className={`flex items-center rounded-lg px-4 py-3 border-2 text-left transition-all duration-200 min-h-[48px] active:scale-95 ${
                         isSelected
-                          ? 'bg-blue-50 border-blue-400 text-blue-700 shadow-sm'
-                          : 'bg-white border-gray-200 hover:bg-gray-50 hover:shadow-sm'
+                          ? 'bg-gradient-to-r from-blue-50 to-emerald-50 border-blue-400 text-blue-700 shadow-md ring-1 ring-blue-200'
+                          : 'bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300 hover:shadow-sm'
                       }`}
                     >
                       <div className="flex items-center space-x-2">
                         {playerNumber && (
-                          <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-semibold text-white bg-blue-600 rounded-full">
+                          <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-semibold text-white bg-gradient-to-r from-blue-600 to-emerald-600 rounded-full shadow-sm">
                             {playerNumber}
                           </span>
                         )}
@@ -257,21 +255,22 @@ export default function PracticePage() {
                   );
                 })}
               </div>
-              <div className="text-sm font-medium text-center mt-3 p-3 rounded-lg bg-slate-50 border">
+              <div className="text-sm font-medium text-center mt-3 p-4 rounded-xl border-2">
                 {selected.length === 0 ? (
-                  <span className="text-gray-500">
+                  <div className="bg-gradient-to-r from-slate-50 to-slate-100 border-slate-200 text-slate-600">
                     参加者を選択してください
-                  </span>
+                  </div>
                 ) : selected.length < 4 ? (
-                  <span className="text-orange-600">
+                  <div className="bg-gradient-to-r from-orange-50 to-amber-50 border-orange-200 text-orange-700">
+                    <span className="text-orange-500">⚠️</span>{' '}
                     {selected.length}名選択中 - あと{4 - selected.length}
                     名必要です
-                  </span>
+                  </div>
                 ) : (
-                  <span className="text-emerald-600 flex items-center justify-center gap-2">
-                    <span>✓</span>
+                  <div className="bg-gradient-to-r from-emerald-50 to-green-50 border-emerald-200 text-emerald-700 flex items-center justify-center gap-2">
+                    <span className="text-emerald-500">✅</span>
                     <span>{selected.length}名そろいました！開始できます</span>
-                  </span>
+                  </div>
                 )}
               </div>
             </div>
@@ -279,7 +278,7 @@ export default function PracticePage() {
             <div className="mt-6">
               <button
                 type="submit"
-                className="w-full py-3 px-4 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50 disabled:bg-slate-400 font-medium min-h-[48px] shadow-lg hover:shadow-xl transition-all duration-200"
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-blue-500 text-white hover:from-emerald-600 hover:to-blue-600 disabled:opacity-50 disabled:from-slate-400 disabled:to-slate-400 font-semibold min-h-[48px] shadow-lg hover:shadow-xl transition-all duration-200 border border-emerald-400"
                 disabled={selected.length < 4}
               >
                 練習を開始
@@ -331,10 +330,10 @@ export default function PracticePage() {
                             </span>
                           </div>
                           <button
-                            className={`text-sm px-3 py-1 rounded-full border transition flex-shrink-0 ${
+                            className={`text-sm px-3 py-1 rounded-full border-2 transition flex-shrink-0 font-medium ${
                               p.status === 'active'
-                                ? 'bg-green-50 border-green-400 text-green-700 hover:bg-green-100'
-                                : 'bg-gray-50 border-gray-300 text-gray-600 hover:bg-gray-100'
+                                ? 'bg-gradient-to-r from-emerald-50 to-green-50 border-emerald-400 text-emerald-700 hover:from-emerald-100 hover:to-green-100 shadow-sm'
+                                : 'bg-gradient-to-r from-orange-50 to-amber-50 border-orange-300 text-orange-600 hover:from-orange-100 hover:to-amber-100 shadow-sm'
                             }`}
                             onClick={() => toggleStatus(p.memberId)}
                           >
@@ -370,13 +369,13 @@ export default function PracticePage() {
                   </button>
                 </div>
                 <button
-                  className="w-full py-3 px-4 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50 disabled:bg-slate-400 font-medium min-h-[48px] shadow-lg hover:shadow-xl transition-all duration-200"
+                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-500 to-emerald-500 text-white hover:from-blue-600 hover:to-emerald-600 disabled:opacity-50 disabled:from-slate-400 disabled:to-slate-400 font-semibold min-h-[48px] shadow-lg hover:shadow-xl transition-all duration-200 border border-blue-400"
                   onClick={() => generateNextRound()}
                   disabled={
                     players.filter((p) => p.status === 'active').length < 4
                   }
                 >
-                  次の組み合わせを生成
+                  🎲 次の組み合わせを生成
                 </button>
               </div>
               {latestRound ? (
@@ -406,10 +405,10 @@ export default function PracticePage() {
                         </div>
                         <div className="flex items-center gap-1">
                           {/* Team A */}
-                          <div className="flex-1 rounded-lg border border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100/80 p-2 min-w-0 shadow-sm">
-                            <div className="text-xs font-bold uppercase tracking-wide text-blue-800 mb-1 flex items-center gap-1">
-                              <div className="w-2 h-2 rounded-full bg-blue-600"></div>
-                              TEAM A
+                          <div className="flex-1 rounded-xl border-2 border-blue-400 bg-gradient-to-br from-blue-100 to-blue-200/80 p-3 min-w-0 shadow-lg">
+                            <div className="text-xs font-bold uppercase tracking-wide text-blue-800 mb-2 flex items-center gap-2">
+                              <div className="w-3 h-3 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 shadow-sm"></div>
+                              <span className="text-blue-700">TEAM A</span>
                             </div>
                             <div className="space-y-2">
                               {cm.pairA.map((id) => {
@@ -427,7 +426,7 @@ export default function PracticePage() {
                                     }`}
                                     onClick={() => onPlayerClick(id)}
                                   >
-                                    <div className="h-7 w-7 shrink-0 rounded-full bg-blue-600 text-white grid place-items-center text-sm font-bold shadow-md">
+                                    <div className="h-7 w-7 shrink-0 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 text-white grid place-items-center text-sm font-bold shadow-md">
                                       {number}
                                     </div>
                                     <div
@@ -443,10 +442,10 @@ export default function PracticePage() {
                           </div>
 
                           {/* Team B */}
-                          <div className="flex-1 rounded-lg border border-red-200 bg-gradient-to-br from-red-50 to-red-100/80 p-2 min-w-0 shadow-sm">
-                            <div className="text-xs font-bold uppercase tracking-wide text-red-800 mb-1 flex items-center gap-1">
-                              <div className="w-2 h-2 rounded-full bg-red-600"></div>
-                              TEAM B
+                          <div className="flex-1 rounded-xl border-2 border-emerald-400 bg-gradient-to-br from-emerald-100 to-emerald-200/80 p-3 min-w-0 shadow-lg">
+                            <div className="text-xs font-bold uppercase tracking-wide text-emerald-800 mb-2 flex items-center gap-2">
+                              <div className="w-3 h-3 rounded-full bg-gradient-to-r from-emerald-600 to-emerald-700 shadow-sm"></div>
+                              <span className="text-emerald-700">TEAM B</span>
                             </div>
                             <div className="space-y-2">
                               {cm.pairB.map((id) => {
@@ -460,11 +459,11 @@ export default function PracticePage() {
                                     className={`flex items-center gap-2 rounded-lg px-2.5 py-2.5 transition-all duration-200 w-full min-w-0 min-h-[48px] active:scale-95 shadow-sm border-2 ${
                                       substituting === id
                                         ? 'bg-yellow-50 border-yellow-400 ring-2 ring-yellow-300 shadow-md'
-                                        : 'bg-white border-red-200 hover:bg-red-50 hover:border-red-300 hover:shadow-md'
+                                        : 'bg-white border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300 hover:shadow-md'
                                     }`}
                                     onClick={() => onPlayerClick(id)}
                                   >
-                                    <div className="h-7 w-7 shrink-0 rounded-full bg-red-600 text-white grid place-items-center text-sm font-bold shadow-md">
+                                    <div className="h-7 w-7 shrink-0 rounded-full bg-gradient-to-r from-emerald-600 to-emerald-700 text-white grid place-items-center text-sm font-bold shadow-md">
                                       {number}
                                     </div>
                                     <div
