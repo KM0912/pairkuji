@@ -197,11 +197,12 @@ export function calculateFairnessScore(
     });
   });
 
-  // スコア関数: score = 4 * Var(playedCount) + 4 * Var(restCount) + 6 * Σ max(0, consecRest[p] - 1) + 2 * Σ duplicatePair + 1 * Σ duplicateMatch
+  // スコア関数: 試合数バランスを最重要視
+  // score = 10 * Var(playedCount) + 2 * Var(restCount) + 4 * Σ max(0, consecRest[p] - 1) + 2 * Σ duplicatePair + 1 * Σ duplicateMatch
   const totalScore =
-    4 * playedVariance +
-    4 * restVariance +
-    6 * consecutiveRestPenalty +
+    10 * playedVariance + // 試合数分散を最重要視（4→10に増加）
+    2 * restVariance + // 休憩分散の重要度を下げる（4→2に減少）
+    4 * consecutiveRestPenalty + // 連続休憩ペナルティを適度に（6→4に減少）
     2 * duplicatePairCount +
     1 * duplicateMatchCount;
 
@@ -234,28 +235,81 @@ export function generateFairRound(
   let bestCombination: { courts: CourtMatch[]; rests: number[] } | null = null;
   let bestScore = Infinity;
 
-  // 候補者を休憩優先でソート（restCount ASC, playedCount DESC）
+  // 試合数バランス優先でソート
   const sortedPlayers = [...activePlayers].sort((a, b) => {
     const statA = playerStats.get(a.memberId);
     const statB = playerStats.get(b.memberId);
 
+    const playedA = statA?.playedCount || 0;
+    const playedB = statB?.playedCount || 0;
     const restA = statA?.restCount || 0;
     const restB = statB?.restCount || 0;
 
-    if (restA !== restB) return restA - restB; // 休憩少ない順
+    // 1. 試合数少ない人を優先（試合数バランスが最優先）
+    if (playedA !== playedB) return playedA - playedB;
 
-    const playedA = statA?.playedCount || 0;
-    const playedB = statB?.playedCount || 0;
+    // 2. 試合数が同じ場合は休憩多い人を優先
+    if (restA !== restB) return restB - restA;
 
-    return playedB - playedA; // 試合回数多い順
+    // 3. 連続休憩を避ける
+    const consecA = statA?.consecRest || 0;
+    const consecB = statB?.consecRest || 0;
+    return consecB - consecA;
   });
 
-  // 200回試行して最適解を探す
+  // より柔軟な参加者選択アルゴリズム
+  const totalPlayersNeeded = courtsToUse * 4;
+  
+  // 試合数の統計を分析
+  const playedCounts = sortedPlayers.map(p => playerStats.get(p.memberId)?.playedCount || 0);
+  const minPlayed = Math.min(...playedCounts);
+  const maxPlayed = Math.max(...playedCounts);
+  
+  // 試合数差が大きい場合は厳格に、小さい場合は柔軟に選択
+  const strictSelection = (maxPlayed - minPlayed) >= 2;
+  
+  let selectedForPlay: PracticePlayer[] = [];
+  let restPlayers: number[] = [];
+  
+  if (strictSelection) {
+    // 厳格モード: 試合数最少の人を必ず参加
+    for (let i = 0; i < totalPlayersNeeded && i < sortedPlayers.length; i++) {
+      const player = sortedPlayers[i];
+      if (player) {
+        selectedForPlay.push(player);
+      }
+    }
+    restPlayers = playerIds.filter(id => 
+      !selectedForPlay.some(p => p.memberId === id)
+    );
+  } else {
+    // 柔軟モード: 試合数バランスを保ちつつ多様性確保
+    const candidates = sortedPlayers.filter(p => {
+      const played = playerStats.get(p.memberId)?.playedCount || 0;
+      return played <= minPlayed + 1; // 最少+1まで許容
+    });
+    
+    if (candidates.length >= totalPlayersNeeded) {
+      // 候補者をシャッフルして多様性確保
+      const shuffledCandidates = shuffle(candidates);
+      selectedForPlay = shuffledCandidates.slice(0, totalPlayersNeeded);
+    } else {
+      // 候補者不足の場合は全候補者 + 追加選択
+      selectedForPlay = [...candidates];
+      const remaining = totalPlayersNeeded - candidates.length;
+      const others = sortedPlayers.filter(p => !candidates.includes(p));
+      selectedForPlay.push(...others.slice(0, remaining));
+    }
+    
+    restPlayers = playerIds.filter(id => 
+      !selectedForPlay.some(p => p.memberId === id)
+    );
+  }
+
+  // 選択された試合参加者内で最適な組み合わせを200回試行
   for (let attempt = 0; attempt < 200; attempt++) {
     try {
-      // プレイヤーをシャッフル（ランダム性を保持）
-      // 統計が同じプレイヤー間でのペア偏りを防ぐため、常にシャッフルを適用
-      const shuffledPlayers = shuffle(sortedPlayers);
+      const shuffledPlayers = attempt === 0 ? selectedForPlay : shuffle(selectedForPlay);
 
       const courts: CourtMatch[] = [];
       let playerIndex = 0;
@@ -280,12 +334,12 @@ export function generateFairRound(
         playerIndex += 4;
       }
 
-      // 残りのプレイヤーは休憩
+      // 休憩者は事前に決定済み
       const usedPlayers = courts.flatMap((court) => [
         ...court.pairA,
         ...court.pairB,
       ]);
-      const rests = playerIds.filter((id) => !usedPlayers.includes(id));
+      const rests = restPlayers;
 
       // スコアを計算
       const score = calculateFairnessScore(courts, playerStats);
@@ -300,33 +354,33 @@ export function generateFairRound(
     }
   }
 
-  // 最適解が見つからなかった場合のフォールバック
+  // 最適解が見つからなかった場合のフォールバック（試合数優先）
   if (!bestCombination) {
-    const shuffledIds = shuffle(playerIds);
     const courts: CourtMatch[] = [];
+    let playerIndex = 0;
 
-    for (let i = 0; i < courtsToUse && i * 4 + 3 < shuffledIds.length; i++) {
-      const p1 = shuffledIds[i * 4];
-      const p2 = shuffledIds[i * 4 + 1];
-      const p3 = shuffledIds[i * 4 + 2];
-      const p4 = shuffledIds[i * 4 + 3];
-      
-      if (p1 !== undefined && p2 !== undefined && p3 !== undefined && p4 !== undefined) {
-        courts.push({
-          courtNo: i + 1,
-          pairA: [p1, p2],
-          pairB: [p3, p4],
-        });
+    // 試合数最少順に配置
+    for (let courtNo = 1; courtNo <= courtsToUse; courtNo++) {
+      if (playerIndex + 3 >= selectedForPlay.length) break;
+
+      const p1 = selectedForPlay[playerIndex];
+      const p2 = selectedForPlay[playerIndex + 1];
+      const p3 = selectedForPlay[playerIndex + 2];
+      const p4 = selectedForPlay[playerIndex + 3];
+
+      if (p1 && p2 && p3 && p4) {
+        const court: CourtMatch = {
+          courtNo,
+          pairA: [p1.memberId, p2.memberId],
+          pairB: [p3.memberId, p4.memberId],
+        };
+
+        courts.push(court);
+        playerIndex += 4;
       }
     }
 
-    const usedPlayers = courts.flatMap((court) => [
-      ...court.pairA,
-      ...court.pairB,
-    ]);
-    const rests = playerIds.filter((id) => !usedPlayers.includes(id));
-
-    bestCombination = { courts, rests };
+    bestCombination = { courts, rests: restPlayers };
   }
 
   return bestCombination;
