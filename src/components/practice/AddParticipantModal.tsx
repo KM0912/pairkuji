@@ -86,8 +86,11 @@ export function AddParticipantModal({
           </div>
           <div className="mt-4">
             <p className="text-xs text-slate-600 mb-4">
-              途中参加者は、最も試合数が少ない選手(出場可)と同じ試合数として追加されます。
-              組み合わせを公平にするためです。
+              途中参加者は、
+              <span className="font-bold">
+                最も試合数が少ない選手(出場可)の 試合数 - 1
+              </span>
+              として追加されます。 組み合わせを公平にするためです。
             </p>
           </div>
           <div className="flex gap-3 pt-4 mt-4 border-t">
