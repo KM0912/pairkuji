@@ -1,6 +1,6 @@
 import { type Member } from '@/types/member';
 import { useState, useMemo } from 'react';
-import { Search, X, Users, LayoutGrid } from 'lucide-react';
+import { Search, X, Users, LayoutGrid, AlertTriangle } from 'lucide-react';
 
 interface ParticipantSelectionProps {
   members: Member[];
@@ -195,7 +195,14 @@ export function ParticipantSelection({
           className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-blue-500 text-white hover:from-emerald-600 hover:to-blue-600 disabled:opacity-50 disabled:from-slate-400 disabled:to-slate-400 font-semibold min-h-[48px] shadow-lg hover:shadow-xl transition-all duration-200 border"
           disabled={selected.length < 4}
         >
-          {selected.length < 4 ? '⚠️ 4人以上選択してください' : '練習を開始'}
+          {selected.length < 4 ? (
+            <span className="inline-flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" />
+              4人以上選択してください
+            </span>
+          ) : (
+            '練習を開始'
+          )}
         </button>
       </div>
     </form>

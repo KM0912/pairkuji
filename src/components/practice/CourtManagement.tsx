@@ -1,6 +1,7 @@
 import { type Member } from '@/types/member';
 import { type PracticePlayer } from '@/types/practice';
 import { type Round } from '@/types/round';
+import { Shuffle } from 'lucide-react';
 
 interface CourtManagementProps {
   players: PracticePlayer[];
@@ -40,7 +41,10 @@ export function CourtManagement({
           onClick={onGenerateNextRound}
           disabled={players.filter((p) => p.status === 'active').length < 4}
         >
-          🎲 次の組み合わせを生成
+          <span className="inline-flex items-center gap-2">
+            <Shuffle className="w-4 h-4" />
+            次の組み合わせを生成
+          </span>
         </button>
       </div>
       {latestRound ? (
