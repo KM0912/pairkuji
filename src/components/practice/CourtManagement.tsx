@@ -1,7 +1,7 @@
 import { type Member } from '@/types/member';
 import { type PracticePlayer } from '@/types/practice';
 import { type Round } from '@/types/round';
-import { Shuffle } from 'lucide-react';
+import { Shuffle, BarChart3, LayoutGrid, Layers } from 'lucide-react';
 
 interface CourtManagementProps {
   players: PracticePlayer[];
@@ -25,19 +25,26 @@ export function CourtManagement({
   onShowPairStats,
 }: CourtManagementProps) {
   return (
-    <section className="bg-white p-6 rounded-2xl border border-slate-200 shadow-lg">
+    <section className="bg-white px-4 py-6 rounded-2xl border border-slate-200 shadow-lg">
       <div className="mb-4">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">組み合わせ</h2>
+          <h2 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-blue-700 border border-blue-200">
+              <Layers className="w-4 h-4" />
+            </span>
+            組み合わせ
+          </h2>
           <button
             onClick={onShowPairStats}
-            className="text-sm text-slate-600 hover:text-slate-700 underline-offset-4 hover:underline transition-colors font-medium"
+            className="inline-flex items-center gap-1.5 text-sm text-slate-700 hover:text-slate-900 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
+            aria-label="ペア統計を表示"
           >
+            <BarChart3 className="w-4 h-4" />
             ペア統計
           </button>
         </div>
         <button
-          className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-500 to-emerald-500 text-white hover:from-blue-600 hover:to-emerald-600 disabled:opacity-50 disabled:from-slate-400 disabled:to-slate-400 font-semibold min-h-[48px] shadow-lg hover:shadow-xl transition-all duration-200 border border-blue-400"
+          className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-500 to-emerald-500 text-white hover:from-blue-600 hover:to-emerald-600 disabled:opacity-50 disabled:from-slate-400 disabled:to-slate-400 font-semibold min-h-[48px] shadow-lg hover:shadow-xl transition-all duration-200 border"
           onClick={onGenerateNextRound}
           disabled={players.filter((p) => p.status === 'active').length < 4}
         >
@@ -49,7 +56,12 @@ export function CourtManagement({
       </div>
       {latestRound ? (
         <div className="space-y-4">
-          <div className="text-sm text-gray-500">Round {latestRound.roundNo}</div>
+          <div>
+            <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+              ラウンド
+              <strong className="ml-1">{latestRound.roundNo}</strong>
+            </span>
+          </div>
           <div className="grid grid-cols-1 gap-4 sm:gap-6">
             {latestRound.courts.map((cm, index) => (
               <div
@@ -58,11 +70,11 @@ export function CourtManagement({
                   index % 2 === 0 ? 'bg-slate-50' : 'bg-white'
                 }`}
               >
-                <div className="flex items-center justify-center mb-2">
-                  <div className="inline-flex items-center gap-2 text-slate-600 font-semibold">
-                    <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center">
-                      <span className="text-white font-bold text-sm">{cm.courtNo}</span>
-                    </div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="inline-flex items-center gap-2 text-slate-700 font-medium">
+                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-slate-800 text-white">
+                      <LayoutGrid className="w-4 h-4" />
+                    </span>
                     <span className="text-sm">COURT {cm.courtNo}</span>
                   </div>
                 </div>
@@ -97,7 +109,9 @@ export function CourtManagement({
                                 className="text-sm font-medium text-left truncate"
                                 title={name}
                               >
-                                {name.length > 10 ? name.substring(0, 10) + '...' : name}
+                                {name.length > 10
+                                  ? name.substring(0, 10) + '...'
+                                  : name}
                               </div>
                             </div>
                           </button>
@@ -136,7 +150,9 @@ export function CourtManagement({
                                 className="text-sm font-medium text-left truncate"
                                 title={name}
                               >
-                                {name.length > 10 ? name.substring(0, 10) + '...' : name}
+                                {name.length > 10
+                                  ? name.substring(0, 10) + '...'
+                                  : name}
                               </div>
                             </div>
                           </button>
@@ -164,8 +180,8 @@ export function CourtManagement({
 
             return (
               restingPlayers.length > 0 && (
-                <div className="rounded-lg border bg-slate-50 p-3 text-sm text-gray-700">
-                  <div className="mb-2 font-medium text-slate-600">休憩</div>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+                  <div className="mb-2 font-medium text-slate-700">休憩</div>
                   <div className="flex flex-wrap gap-1.5 sm:gap-2">
                     {restingPlayers.map((id) => {
                       const member = memberMap.get(id);
@@ -178,14 +194,14 @@ export function CourtManagement({
                           className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1.5 text-sm transition-all duration-200 min-h-[32px] active:scale-95 ${
                             substituting === id
                               ? 'bg-yellow-100 border-yellow-400 text-yellow-800 ring-2 ring-yellow-300 shadow-md'
-                              : 'bg-gray-50 border-gray-200 text-gray-800 hover:bg-gray-100 hover:shadow-sm'
+                              : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50 hover:shadow-sm'
                           }`}
                           onClick={() => onPlayerClick(id)}
                         >
                           <span className="inline-flex items-center justify-center w-4 h-4 text-xs font-semibold text-white bg-gray-500 rounded-full">
                             {number}
                           </span>
-                          <span 
+                          <span
                             className="truncate max-w-[130px] text-left"
                             title={name}
                           >
@@ -201,7 +217,7 @@ export function CourtManagement({
           })()}
         </div>
       ) : (
-        <div className="text-gray-500">
+        <div className="text-slate-600 text-sm">
           まだ組み合わせがありません。ボタンで生成してください。
         </div>
       )}
