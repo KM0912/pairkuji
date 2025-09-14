@@ -179,8 +179,10 @@ export default function PracticePage() {
     (m) => m.isActive && !players.some((p) => p.memberId === m.id)
   );
 
-  const onAddParticipant = async (memberId: number) => {
-    await addParticipant(memberId);
+  const onAddParticipants = async (memberIds: number[]) => {
+    for (const id of memberIds) {
+      await addParticipant(id);
+    }
     setShowAddParticipant(false);
   };
 
@@ -321,7 +323,7 @@ export default function PracticePage() {
         <AddParticipantModal
           isOpen={showAddParticipant}
           availableMembers={availableMembers}
-          onAddParticipant={onAddParticipant}
+          onAddParticipants={onAddParticipants}
           onClose={() => setShowAddParticipant(false)}
         />
 
