@@ -25,15 +25,17 @@ function shuffle<T>(arr: T[]): T[] {
 // 過去のラウンドから統計を計算
 export function calculatePlayerStats(
   playerIds: number[],
-  rounds: Round[]
+  rounds: Round[],
+  playedOffsets?: Map<number, number>
 ): Map<number, PlayerStats> {
   const stats = new Map<number, PlayerStats>();
 
   // 初期化
   playerIds.forEach((id) => {
+    const offset = playedOffsets?.get(id) ?? 0;
     stats.set(id, {
       playerId: id,
-      playedCount: 0,
+      playedCount: offset,
       restCount: 0,
       consecRest: 0,
       recentPartners: [],
@@ -227,7 +229,12 @@ export function generateFairRound(
   }
 
   const playerIds = activePlayers.map((p) => p.memberId);
-  const playerStats = calculatePlayerStats(playerIds, rounds);
+  const offsets = new Map<number, number>();
+  activePlayers.forEach((p) => {
+    const off = p.playedOffset ?? 0;
+    offsets.set(p.memberId, off > 0 ? off - 1 : 0);
+  });
+  const playerStats = calculatePlayerStats(playerIds, rounds, offsets);
 
   // 使用可能なコート数を決定
   const courtsToUse = Math.min(maxCourts, Math.floor(activePlayers.length / 4));

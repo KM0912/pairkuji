@@ -135,7 +135,7 @@ export default function PracticePage() {
 
   const latestRound = rounds[rounds.length - 1];
 
-  // Calculate match counts for each player
+  // Calculate match counts for each player (include playedOffset, with -1 bias for joiners)
   const matchCounts = useMemo(() => {
     const counts = new Map<number, number>();
 
@@ -147,8 +147,17 @@ export default function PracticePage() {
       });
     });
 
+    // Add each player's playedOffset, and subtract 1 if they have an offset (prioritize next round)
+    players.forEach((p) => {
+      const base = counts.get(p.memberId) || 0;
+      const offset = p.playedOffset || 0;
+      const bias = offset > 0 ? 1 : 0;
+      const value = base + offset - bias;
+      counts.set(p.memberId, Math.max(0, value));
+    });
+
     return counts;
-  }, [rounds]);
+  }, [rounds, players]);
 
   // Calculate pair counts from all rounds
   const pairCounts = useMemo(() => {

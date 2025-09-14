@@ -15,5 +15,6 @@ export interface PracticePlayer {
   playerNumber: number; // 選択順に振られる番号（1から開始）
   status: PlayerStatus;
   createdAt: string;
+  // 途中参加時に公平性を担保するための初期試合数補正
+  playedOffset?: number; // デフォルト 0（DBには任意フィールドとして保存）
 }
-

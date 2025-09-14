@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { db } from '@/lib/db';
 import type { PracticePlayer, PracticeSettings } from '@/types/practice';
 import type { Round, CourtMatch } from '@/types/round';
-import { generateFairRound } from '@/lib/fairnessAlgorithm';
+import { generateFairRound, calculatePlayerStats } from '@/lib/fairnessAlgorithm';
 
 const SETTINGS_ID = 1;
 
@@ -102,7 +102,7 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
         return;
       }
 
-      // 新しい公平性アルゴリズムを使用
+      // 新しい公平性アルゴリズムを使用（各プレイヤーの playedOffset を内部で加味）
       const { courts, rests } = generateFairRound(activePlayers, s.courts, state.rounds);
 
       const nextNo = s.currentRound + 1;
@@ -147,11 +147,24 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
       const now = new Date().toISOString();
       const nextPlayerNumber = Math.max(...state.players.map(p => p.playerNumber), 0) + 1;
       
+      // 現在の出場可（active）における「有効な試合数（既存の playedOffset を含む）」の最小値を算出
+      const activePlayers = state.players.filter(p => p.status === 'active');
+      const activeIds = activePlayers.map(p => p.memberId);
+      let minPlayed = 0;
+      if (activeIds.length > 0) {
+        const offsets = new Map<number, number>();
+        activePlayers.forEach(p => offsets.set(p.memberId, p.playedOffset ?? 0));
+        const stats = calculatePlayerStats(activeIds, state.rounds, offsets);
+        const values = activeIds.map(id => stats.get(id)?.playedCount ?? 0);
+        minPlayed = values.length ? Math.min(...values) : 0;
+      }
+      
       const newPlayer: PracticePlayer = {
         memberId,
         playerNumber: nextPlayerNumber,
         status: 'active',
         createdAt: now,
+        playedOffset: minPlayed,
       };
 
       await db.practicePlayers.put(newPlayer);

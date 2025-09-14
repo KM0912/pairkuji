@@ -34,7 +34,7 @@ export function AddParticipantModal({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg w-full max-w-sm mx-4">
         <div className="p-6">
-          <h2 className="text-lg font-semibold mb-4">参加者を追加</h2>
+          <h2 className="text-lg font-semibold mb-2">参加者を追加</h2>
           {availableMembers.length === 0 ? (
             <div className="text-center text-gray-500 py-4">
               追加できる選手がいません
@@ -83,6 +83,12 @@ export function AddParticipantModal({
                   : '全て選択'}
               </button>
             )}
+          </div>
+          <div className="mt-4">
+            <p className="text-xs text-slate-600 mb-4">
+              途中参加者は、最も試合数が少ない選手(出場可)と同じ試合数として追加されます。
+              組み合わせを公平にするためです。
+            </p>
           </div>
           <div className="flex gap-3 pt-4 mt-4 border-t">
             <button
