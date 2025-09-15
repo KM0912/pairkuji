@@ -32,7 +32,7 @@ export function CourtManagement({
       <div className="mb-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
-            <IconBadge icon={Layers} />
+            <IconBadge icon={Layers} size="md" />
             組み合わせ
           </h2>
           <button
@@ -73,7 +73,7 @@ export function CourtManagement({
               >
                 <div className="flex items-center justify-between mb-3">
                   <div className="inline-flex items-center gap-2 text-slate-700 font-medium">
-                    <IconBadge icon={LayoutGrid} />
+                    <IconBadge icon={LayoutGrid} size="md" />
                     <span className="text-sm">COURT {cm.courtNo}</span>
                   </div>
                 </div>
@@ -100,7 +100,11 @@ export function CourtManagement({
                             }`}
                             onClick={() => onPlayerClick(id)}
                           >
-                            <PlayerNumber number={number} variant="team-a" size="sm" />
+                            <PlayerNumber
+                              number={number}
+                              variant="team-a"
+                              size="sm"
+                            />
                             <div className="flex-1 min-w-0">
                               <div
                                 className="text-sm font-medium text-left truncate"
@@ -139,7 +143,11 @@ export function CourtManagement({
                             }`}
                             onClick={() => onPlayerClick(id)}
                           >
-                            <PlayerNumber number={number} variant="team-b" size="sm" />
+                            <PlayerNumber
+                              number={number}
+                              variant="team-b"
+                              size="sm"
+                            />
                             <div className="flex-1 min-w-0">
                               <div
                                 className="text-sm font-medium text-left truncate"
@@ -193,7 +201,11 @@ export function CourtManagement({
                           }`}
                           onClick={() => onPlayerClick(id)}
                         >
-                          <PlayerNumber number={number} variant="neutral" size="xs" />
+                          <PlayerNumber
+                            number={number}
+                            variant="neutral"
+                            size="xs"
+                          />
                           <span
                             className="truncate max-w-[130px] text-left"
                             title={name}

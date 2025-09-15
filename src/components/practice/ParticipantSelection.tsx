@@ -65,7 +65,7 @@ export function ParticipantSelection({
           <section className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <IconBadge icon={LayoutGrid} />
+                <IconBadge icon={LayoutGrid} size="md" />
                 <h3 className="text-base font-semibold text-slate-800">
                   コート数
                 </h3>
@@ -93,7 +93,7 @@ export function ParticipantSelection({
         <section className="md:col-span-3 rounded-xl border border-slate-200 bg-white p-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <IconBadge icon={Users} />
+              <IconBadge icon={Users} size="md" />
               <h3 className="text-base font-semibold text-slate-800">
                 参加者選択
               </h3>
@@ -119,7 +119,11 @@ export function ParticipantSelection({
                           className="inline-flex items-center gap-1 rounded-full bg-gray-50 text-slate-800 border border-gray-200 px-2 py-1 text-xs shadow-sm"
                           title={member.name}
                         >
-                          <PlayerNumber number={playerNumber} variant="primary" size="xs" />
+                          <PlayerNumber
+                            number={playerNumber}
+                            variant="primary"
+                            size="xs"
+                          />
                           <span className="font-medium text-slate-800 max-w-[70px] truncate">
                             {member.name}
                           </span>

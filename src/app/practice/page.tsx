@@ -249,7 +249,7 @@ export default function PracticePage() {
                       className="w-full flex items-center justify-between px-4 py-3"
                     >
                       <div className="flex items-center gap-2">
-                        <IconBadge icon={Users} />
+                        <IconBadge icon={Users} size="md" />
                         <div className="text-left">
                           <div className="text-sm text-slate-700">
                             参加者{' '}
@@ -297,7 +297,7 @@ export default function PracticePage() {
                 </div>
                 <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
                   <div className="flex items-center gap-2">
-                    <IconBadge icon={LayoutGrid} />
+                    <IconBadge icon={LayoutGrid} size="md" />
                     <div className="text-sm text-slate-700">コート数</div>
                   </div>
                   <select
