@@ -4,6 +4,7 @@ import { type Round } from '@/types/round';
 import { Shuffle, BarChart3, LayoutGrid, Layers } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { IconBadge } from '../ui/IconBadge';
+import { PlayerNumber } from '../ui/PlayerNumber';
 
 interface CourtManagementProps {
   players: PracticePlayer[];
@@ -99,9 +100,7 @@ export function CourtManagement({
                             }`}
                             onClick={() => onPlayerClick(id)}
                           >
-                            <div className="h-5 w-5 shrink-0 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 text-white grid place-items-center text-xs font-bold shadow-sm">
-                              {number}
-                            </div>
+                            <PlayerNumber number={number} variant="team-a" size="sm" />
                             <div className="flex-1 min-w-0">
                               <div
                                 className="text-sm font-medium text-left truncate"
@@ -140,9 +139,7 @@ export function CourtManagement({
                             }`}
                             onClick={() => onPlayerClick(id)}
                           >
-                            <div className="h-5 w-5 shrink-0 rounded-full bg-gradient-to-r from-emerald-600 to-emerald-700 text-white grid place-items-center text-xs font-bold shadow-sm">
-                              {number}
-                            </div>
+                            <PlayerNumber number={number} variant="team-b" size="sm" />
                             <div className="flex-1 min-w-0">
                               <div
                                 className="text-sm font-medium text-left truncate"
@@ -196,9 +193,7 @@ export function CourtManagement({
                           }`}
                           onClick={() => onPlayerClick(id)}
                         >
-                          <span className="inline-flex items-center justify-center w-4 h-4 text-xs font-semibold text-white bg-slate-600 rounded-full">
-                            {number}
-                          </span>
+                          <PlayerNumber number={number} variant="neutral" size="xs" />
                           <span
                             className="truncate max-w-[130px] text-left"
                             title={name}

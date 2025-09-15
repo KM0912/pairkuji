@@ -3,6 +3,7 @@ import { useState, useMemo } from 'react';
 import { Search, X, Users, LayoutGrid, AlertTriangle } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { IconBadge } from '../ui/IconBadge';
+import { PlayerNumber } from '../ui/PlayerNumber';
 
 interface ParticipantSelectionProps {
   members: Member[];
@@ -118,9 +119,7 @@ export function ParticipantSelection({
                           className="inline-flex items-center gap-1 rounded-full bg-gray-50 text-slate-800 border border-gray-200 px-2 py-1 text-xs shadow-sm"
                           title={member.name}
                         >
-                          <span className="inline-flex items-center justify-center w-4 h-4 text-[10px] font-bold bg-blue-100 text-blue-700 rounded-full active:bg-blue-200">
-                            {playerNumber}
-                          </span>
+                          <PlayerNumber number={playerNumber} variant="primary" size="xs" />
                           <span className="font-medium text-slate-800 max-w-[70px] truncate">
                             {member.name}
                           </span>

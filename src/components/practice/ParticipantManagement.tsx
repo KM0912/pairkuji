@@ -1,6 +1,7 @@
 import { type Member } from '@/types/member';
 import { type PracticePlayer, type PracticeSettings } from '@/types/practice';
 import { Button } from '../ui/Button';
+import { PlayerNumber } from '../ui/PlayerNumber';
 
 interface ParticipantManagementProps {
   settings: PracticeSettings;
@@ -35,9 +36,11 @@ export function ParticipantManagement({
                 className="flex items-center justify-between rounded-lg border bg-white px-3 py-2 shadow-sm"
               >
                 <div className="flex items-center space-x-2 flex-1 min-w-0">
-                  <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-semibold text-white bg-blue-600 rounded-full">
-                    {p.playerNumber}
-                  </span>
+                  <PlayerNumber
+                    number={p.playerNumber}
+                    variant="primary"
+                    size="sm"
+                  />
                   <span className="truncate">{m.name}</span>
                   <span className="text-xs text-slate-500 flex-shrink-0">
                     {matchCounts.get(p.memberId) || 0}試合
