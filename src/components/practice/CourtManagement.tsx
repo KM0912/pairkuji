@@ -3,6 +3,7 @@ import { type PracticePlayer } from '@/types/practice';
 import { type Round } from '@/types/round';
 import { Shuffle, BarChart3, LayoutGrid, Layers } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { IconBadge } from '../ui/IconBadge';
 
 interface CourtManagementProps {
   players: PracticePlayer[];
@@ -30,9 +31,7 @@ export function CourtManagement({
       <div className="mb-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-blue-700 border border-blue-200">
-              <Layers className="w-4 h-4" />
-            </span>
+            <IconBadge icon={Layers} />
             組み合わせ
           </h2>
           <button
@@ -73,9 +72,7 @@ export function CourtManagement({
               >
                 <div className="flex items-center justify-between mb-3">
                   <div className="inline-flex items-center gap-2 text-slate-700 font-medium">
-                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-slate-700 text-white">
-                      <LayoutGrid className="w-4 h-4" />
-                    </span>
+                    <IconBadge icon={LayoutGrid} />
                     <span className="text-sm">COURT {cm.courtNo}</span>
                   </div>
                 </div>

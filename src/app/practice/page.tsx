@@ -10,6 +10,7 @@ import { CourtManagement } from '@/components/practice/CourtManagement';
 import { AddParticipantModal } from '@/components/practice/AddParticipantModal';
 import { PairStatsModal } from '@/components/practice/PairStatsModal';
 import { SubstitutionHint } from '@/components/practice/SubstitutionHint';
+import { IconBadge } from '@/components/ui/IconBadge';
 import { Users, LayoutGrid, ChevronDown } from 'lucide-react';
 
 export default function PracticePage() {
@@ -248,15 +249,20 @@ export default function PracticePage() {
                       className="w-full flex items-center justify-between px-4 py-3"
                     >
                       <div className="flex items-center gap-2">
-                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-blue-100 text-blue-700 border border-blue-200">
-                          <Users className="h-4 w-4" />
-                        </span>
+                        <IconBadge icon={Users} />
                         <div className="text-left">
                           <div className="text-sm text-slate-700">
-                            参加者 <span className="font-semibold">{players.length}</span>
+                            参加者{' '}
+                            <span className="font-semibold">
+                              {players.length}
+                            </span>
                           </div>
                           <div className="text-[11px] text-slate-500">
-                            出場可 {players.filter((p) => p.status === 'active').length}
+                            出場可{' '}
+                            {
+                              players.filter((p) => p.status === 'active')
+                                .length
+                            }
                           </div>
                         </div>
                       </div>
@@ -281,7 +287,9 @@ export default function PracticePage() {
                           matchCounts={matchCounts}
                           updateCourts={updateCourts}
                           toggleStatus={toggleStatus}
-                          onShowAddParticipant={() => setShowAddParticipant(true)}
+                          onShowAddParticipant={() =>
+                            setShowAddParticipant(true)
+                          }
                         />
                       </div>
                     </div>
@@ -289,9 +297,7 @@ export default function PracticePage() {
                 </div>
                 <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-emerald-100 text-emerald-700 border border-emerald-200">
-                      <LayoutGrid className="h-4 w-4" />
-                    </span>
+                    <IconBadge icon={LayoutGrid} />
                     <div className="text-sm text-slate-700">コート数</div>
                   </div>
                   <select
@@ -307,7 +313,6 @@ export default function PracticePage() {
                     ))}
                   </select>
                 </div>
-                
               </div>
             </section>
 
