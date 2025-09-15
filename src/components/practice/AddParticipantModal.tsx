@@ -15,9 +15,9 @@ export function AddParticipantModal({
   onAddParticipants,
   onClose,
 }: AddParticipantModalProps) {
-  if (!isOpen) return null;
-
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+
+  if (!isOpen) return null;
 
   const toggle = (id: number) => {
     setSelectedIds((prev) =>
