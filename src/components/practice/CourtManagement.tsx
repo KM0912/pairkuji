@@ -79,9 +79,9 @@ export function CourtManagement({
                 </div>
                 <div className="flex items-stretch gap-2">
                   {/* Team A */}
-                  <div className="flex-1 rounded-lg border-2 border-blue-500 bg-gradient-to-br from-blue-100 to-blue-200/80 p-1.5 min-w-0 shadow-lg">
+                  <div className="flex-1 rounded-lg border-2 border-sky-500 bg-gradient-to-br from-sky-50 to-blue-100/80 p-1.5 min-w-0 shadow-lg">
                     <div className="text-xs font-bold uppercase tracking-wide text-blue-800 mb-1 flex items-center gap-1">
-                      <div className="w-2 h-2 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 shadow-sm"></div>
+                      <div className="w-2 h-2 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 shadow-sm"></div>
                       <span className="text-blue-700">TEAM A</span>
                     </div>
                     <div className="space-y-1">
@@ -118,9 +118,9 @@ export function CourtManagement({
                   </div>
 
                   {/* Team B */}
-                  <div className="flex-1 rounded-lg border-2 border-emerald-500 bg-gradient-to-br from-emerald-100 to-emerald-200/80 p-1.5 min-w-0 shadow-lg">
+                  <div className="flex-1 rounded-lg border-2 border-emerald-500 bg-gradient-to-br from-emerald-50 to-teal-100/80 p-1.5 min-w-0 shadow-lg">
                     <div className="text-xs font-bold uppercase tracking-wide text-emerald-800 mb-1 flex items-center gap-1">
-                      <div className="w-2 h-2 rounded-full bg-gradient-to-r from-emerald-600 to-emerald-700 shadow-sm"></div>
+                      <div className="w-2 h-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 shadow-sm"></div>
                       <span className="text-emerald-700">TEAM B</span>
                     </div>
                     <div className="space-y-1">

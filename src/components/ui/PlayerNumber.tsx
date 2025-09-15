@@ -11,8 +11,8 @@ const variantStyles = {
   primary: 'bg-blue-100 text-blue-700',
   secondary: 'bg-emerald-100 text-emerald-700',
   neutral: 'bg-slate-600 text-white',
-  'team-a': 'bg-gradient-to-r from-blue-600 to-blue-700 text-white',
-  'team-b': 'bg-gradient-to-r from-emerald-600 to-emerald-700 text-white',
+  'team-a': 'bg-gradient-to-r from-sky-500 to-blue-600 text-white',
+  'team-b': 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white',
 };
 
 const sizeStyles = {
