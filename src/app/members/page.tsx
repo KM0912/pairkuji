@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Check, X, Trash2 } from 'lucide-react';
 import { useMemberStore } from '@/lib/stores/memberStore';
 import { usePracticeStore } from '@/lib/stores/practiceStore';
+import { Button } from '@/components/ui/Button';
 
 export default function MembersPage() {
   const { members, isLoading, error, load, add, update, remove, clearError } =
@@ -83,19 +84,19 @@ export default function MembersPage() {
 
   const handleDeleteClick = (id: number, name: string) => {
     // Check if member is currently in practice
-    const isInPractice = players.some(p => p.memberId === id);
+    const isInPractice = players.some((p) => p.memberId === id);
     if (isInPractice) {
       setToast('練習に参加中の選手は削除できません');
       setTimeout(() => setToast(null), 3000);
       return;
     }
-    
+
     setDeletingMember({ id, name });
   };
 
   const handleConfirmDelete = async () => {
     if (!deletingMember) return;
-    
+
     await remove(deletingMember.id);
     setDeletingMember(null);
   };
@@ -121,13 +122,14 @@ export default function MembersPage() {
             placeholder="選手名を入力"
             className="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white border-gray-300 placeholder:text-gray-400"
           />
-          <button
+          <Button
+            variant="primary"
             type="submit"
-            className="px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 font-medium min-h-[48px]"
             disabled={!name.trim()}
+            className="px-6 flex-shrink-0 w-auto"
           >
             追加
-          </button>
+          </Button>
         </form>
 
         {/* Filters */}
@@ -166,7 +168,6 @@ export default function MembersPage() {
             </button>
           </div>
         )}
-        
 
         {/* List */}
         <ul className="space-y-2">
@@ -247,9 +248,7 @@ export default function MembersPage() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg w-full max-w-sm mx-4">
               <div className="p-6">
-                <h2 className="text-lg font-semibold mb-4">
-                  選手情報を編集
-                </h2>
+                <h2 className="text-lg font-semibold mb-4">選手情報を編集</h2>
                 <form onSubmit={saveEdit} className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -341,13 +340,16 @@ export default function MembersPage() {
                     選手を削除しますか？
                   </h3>
                   <p className="text-sm text-gray-600 mb-2">
-                    <span className="font-medium text-gray-900">「{deletingMember.name}」</span>を削除します。
+                    <span className="font-medium text-gray-900">
+                      「{deletingMember.name}」
+                    </span>
+                    を削除します。
                   </p>
                   <p className="text-sm text-gray-600">
                     この操作は元に戻すことができません。
                   </p>
                 </div>
-                
+
                 <div className="flex gap-3">
                   <button
                     onClick={handleCancelDelete}

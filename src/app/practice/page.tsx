@@ -297,7 +297,7 @@ export default function PracticePage() {
                   <select
                     value={settings.courts}
                     onChange={(e) => updateCourts(Number(e.target.value))}
-                    className="bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold min-h-[36px] focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors"
+                    className="bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold min-h-[36px] focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 transition-colors"
                     aria-label="コート数を変更"
                   >
                     {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (

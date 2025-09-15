@@ -27,7 +27,7 @@ export function Header({ settings, onReset }: HeaderProps) {
       <div className="relative inline-block">
         <h1 className="text-4xl font-bold text-slate-800 mb-2 relative">
           ペアくじ
-          <div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full"></div>
+          <div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"></div>
         </h1>
       </div>
       <p className="text-slate-600 text-base mb-4">ダブルス練習管理</p>
@@ -59,7 +59,7 @@ export function Header({ settings, onReset }: HeaderProps) {
                   すべてのラウンドデータが削除され、元に戻すことはできません。
                 </p>
               </div>
-              
+
               <div className="flex gap-3">
                 <button
                   onClick={handleCancelReset}

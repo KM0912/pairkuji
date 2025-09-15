@@ -1,5 +1,6 @@
 import { type Member } from '@/types/member';
 import { type PracticePlayer, type PracticeSettings } from '@/types/practice';
+import { Button } from '../ui/Button';
 
 interface ParticipantManagementProps {
   settings: PracticeSettings;
@@ -38,15 +39,15 @@ export function ParticipantManagement({
                     {p.playerNumber}
                   </span>
                   <span className="truncate">{m.name}</span>
-                  <span className="text-xs text-gray-500 flex-shrink-0">
+                  <span className="text-xs text-slate-500 flex-shrink-0">
                     {matchCounts.get(p.memberId) || 0}試合
                   </span>
                 </div>
                 <button
                   className={`text-sm px-3 py-1 rounded-full border-2 transition flex-shrink-0 font-medium ${
                     p.status === 'active'
-                      ? 'bg-gradient-to-r from-emerald-50 to-green-50 border-emerald-400 text-emerald-700 hover:from-emerald-100 hover:to-green-100 shadow-sm'
-                      : 'bg-gradient-to-r from-orange-50 to-amber-50 border-orange-300 text-orange-600 hover:from-orange-100 hover:to-amber-100 shadow-sm'
+                      ? 'bg-gradient-to-r from-emerald-50 to-emerald-100 border-emerald-400 text-emerald-700 hover:from-emerald-100 hover:to-emerald-200 shadow-sm'
+                      : 'bg-gradient-to-r from-amber-50 to-amber-100 border-amber-400 text-amber-700 hover:from-amber-100 hover:to-amber-200 shadow-sm'
                   }`}
                   onClick={() => toggleStatus(p.memberId)}
                 >
@@ -59,12 +60,9 @@ export function ParticipantManagement({
 
       {/* Add participant button */}
       <div className="flex justify-center pt-2">
-        <button
-          className="text-sm text-emerald-600 hover:text-emerald-700 border border-emerald-300 hover:border-emerald-400 px-6 py-3 rounded-lg bg-emerald-50 hover:bg-emerald-100 transition-colors min-h-[48px] font-medium"
-          onClick={onShowAddParticipant}
-        >
+        <Button variant="secondary" onClick={onShowAddParticipant}>
           + 参加者を追加
-        </button>
+        </Button>
       </div>
     </div>
   );

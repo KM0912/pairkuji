@@ -1,6 +1,7 @@
 import { type Member } from '@/types/member';
 import { useState, useMemo } from 'react';
 import { Search, X, Users, LayoutGrid, AlertTriangle } from 'lucide-react';
+import { Button } from '../ui/Button';
 
 interface ParticipantSelectionProps {
   members: Member[];
@@ -62,16 +63,18 @@ export function ParticipantSelection({
           <section className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 border border-emerald-200">
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-600 border border-gray-200">
                   <LayoutGrid className="h-4 w-4" />
                 </span>
-                <h3 className="text-base font-semibold text-slate-800">コート数</h3>
+                <h3 className="text-base font-semibold text-slate-800">
+                  コート数
+                </h3>
               </div>
             </div>
             <select
               value={courts}
               onChange={(e) => setCourts(Number(e.target.value))}
-              className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-base min-h-[48px] focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-colors"
+              className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-base min-h-[48px] focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 transition-colors"
               aria-label="コート数を選択"
             >
               {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
@@ -80,7 +83,9 @@ export function ParticipantSelection({
                 </option>
               ))}
             </select>
-            <p className="mt-2 text-xs text-slate-500">同時に使用するコート数を選んでください。</p>
+            <p className="mt-2 text-xs text-slate-500">
+              同時に使用するコート数を選んでください。
+            </p>
           </section>
         </div>
 
@@ -88,10 +93,12 @@ export function ParticipantSelection({
         <section className="md:col-span-3 rounded-xl border border-slate-200 bg-white p-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-blue-700 border border-blue-200">
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-600 border border-gray-200">
                 <Users className="h-4 w-4" />
               </span>
-              <h3 className="text-base font-semibold text-slate-800">参加者選択</h3>
+              <h3 className="text-base font-semibold text-slate-800">
+                参加者選択
+              </h3>
             </div>
             <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 text-xs font-medium">
               <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
@@ -104,17 +111,17 @@ export function ParticipantSelection({
             <div className="lg:col-span-1">
               <p className="text-xs text-slate-600 mb-2">確定済み</p>
               {selectedMembers.length > 0 ? (
-                <div className="bg-gradient-to-r from-blue-50 to-emerald-50 border border-blue-200 rounded-xl p-3 min-h-[90px]">
+                <div className="rounded-2xl bg-white border border-slate-200 px-4 py-3 shadow-sm active:scale-[0.997] transition-transform">
                   <div className="flex flex-wrap gap-2">
                     {selectedMembers.map((member) => {
                       const playerNumber = selected.indexOf(member.id!) + 1;
                       return (
                         <div
                           key={member.id}
-                          className="inline-flex items-center gap-1 bg-white border border-blue-300 rounded-full px-2 py-1 text-xs shadow-sm"
+                          className="inline-flex items-center gap-1 rounded-full bg-gray-50 text-slate-800 border border-gray-200 px-2 py-1 text-xs shadow-sm"
                           title={member.name}
                         >
-                          <span className="inline-flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-gradient-to-r from-blue-600 to-emerald-600 rounded-full">
+                          <span className="inline-flex items-center justify-center w-4 h-4 text-[10px] font-bold bg-blue-100 text-blue-700 rounded-full active:bg-blue-200">
                             {playerNumber}
                           </span>
                           <span className="font-medium text-slate-800 max-w-[70px] truncate">
@@ -123,7 +130,7 @@ export function ParticipantSelection({
                           <button
                             type="button"
                             onClick={() => removeParticipant(member.id!)}
-                            className="p-0.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors"
+                            className="p-0.5 text-slate-400 rounded-full transition-colors active:text-red-500 active:bg-red-50"
                             aria-label={`参加を取り消す: ${member.name}`}
                             title="参加を取り消す"
                           >
@@ -136,7 +143,9 @@ export function ParticipantSelection({
                 </div>
               ) : (
                 <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-8 text-center min-h-[90px] flex items-center justify-center">
-                  <p className="text-slate-500 text-sm">一覧から選手を選んで追加してください</p>
+                  <p className="text-slate-500 text-sm">
+                    一覧から選手を選んで追加してください
+                  </p>
                 </div>
               )}
             </div>
@@ -145,21 +154,21 @@ export function ParticipantSelection({
             <div className="lg:col-span-2 lg:border-l lg:pl-4 border-slate-200">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-xs text-slate-600">選手一覧</p>
-                <span className="inline-flex items-center gap-1 rounded-full bg-slate-50 text-slate-700 border border-slate-200 px-2 py-0.5 text-[11px]">
+                <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 text-blue-600 border border-blue-200 px-2 py-0.5 text-[11px]">
                   {filteredMembers.length} 名
                 </span>
               </div>
 
               <div className="relative mb-3">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="w-5 h-5 text-gray-400" />
+                  <Search className="w-5 h-5 text-slate-400" />
                 </div>
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="名前で検索"
-                  className="w-full pl-10 pr-4 py-3 border rounded-lg text-base min-h-[48px] border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                  className="w-full pl-10 pr-4 py-3 border rounded-lg text-base min-h-[48px] border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
                   aria-label="選手検索"
                 />
               </div>
@@ -171,16 +180,20 @@ export function ParticipantSelection({
                       key={member.id}
                       type="button"
                       onClick={() => addParticipant(member.id!)}
-                      className="flex items-center justify-center rounded-lg px-3 py-2 border text-center transition-all duration-200 min-h-[36px] active:scale-95 bg-white border-slate-200 hover:bg-emerald-50 hover:border-emerald-300 hover:shadow-sm text-sm"
+                      className="flex items-center justify-center rounded-lg px-3 py-2 border text-center transition-all duration-200 min-h-[36px] bg-white border-slate-300 active:scale-95 active:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 text-sm"
                       aria-label={`参加者に追加: ${member.name}`}
                       title={member.name}
                     >
-                      <span className="font-medium text-slate-800 truncate">{member.name}</span>
+                      <span className="font-medium text-slate-800 truncate">
+                        {member.name}
+                      </span>
                     </button>
                   ))
                 ) : (
                   <div className="col-span-full text-center py-8 text-slate-500 text-sm">
-                    {searchTerm ? '検索条件に一致する選手がいません' : '選択可能な選手がいません'}
+                    {searchTerm
+                      ? '検索条件に一致する選手がいません'
+                      : '選択可能な選手がいません'}
                   </div>
                 )}
               </div>
@@ -190,11 +203,7 @@ export function ParticipantSelection({
       </div>
 
       <div className="pt-2">
-        <button
-          type="submit"
-          className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-blue-500 text-white hover:from-emerald-600 hover:to-blue-600 disabled:opacity-50 disabled:from-slate-400 disabled:to-slate-400 font-semibold min-h-[48px] shadow-lg hover:shadow-xl transition-all duration-200 border"
-          disabled={selected.length < 4}
-        >
+        <Button type="submit" variant="primary" disabled={selected.length < 4}>
           {selected.length < 4 ? (
             <span className="inline-flex items-center gap-2">
               <AlertTriangle className="w-4 h-4" />
@@ -203,7 +212,7 @@ export function ParticipantSelection({
           ) : (
             '練習を開始'
           )}
-        </button>
+        </Button>
       </div>
     </form>
   );

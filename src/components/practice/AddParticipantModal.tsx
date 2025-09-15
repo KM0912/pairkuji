@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { type Member } from '@/types/member';
+import { Button } from '../ui/Button';
 
 interface AddParticipantModalProps {
   isOpen: boolean;
@@ -94,21 +95,19 @@ export function AddParticipantModal({
             </p>
           </div>
           <div className="flex gap-3 pt-4 mt-4 border-t">
-            <button
-              onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-            >
+            <Button onClick={onClose} className="flex-1" variant="default">
               キャンセル
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={handleAdd}
               disabled={selectedIds.length === 0}
-              className="flex-1 px-4 py-2 rounded-xl text-white bg-gradient-to-r from-emerald-500 to-blue-500 hover:from-emerald-600 hover:to-blue-600 disabled:opacity-50 disabled:from-slate-400 disabled:to-slate-400 shadow-sm"
+              className="flex-1"
+              variant="primary"
             >
               {selectedIds.length > 0
                 ? `追加する (${selectedIds.length})`
                 : '追加する'}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@ import { type Member } from '@/types/member';
 import { type PracticePlayer } from '@/types/practice';
 import { type Round } from '@/types/round';
 import { Shuffle, BarChart3, LayoutGrid, Layers } from 'lucide-react';
+import { Button } from '../ui/Button';
 
 interface CourtManagementProps {
   players: PracticePlayer[];
@@ -43,8 +44,8 @@ export function CourtManagement({
             ペア統計
           </button>
         </div>
-        <button
-          className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-500 to-emerald-500 text-white hover:from-blue-600 hover:to-emerald-600 disabled:opacity-50 disabled:from-slate-400 disabled:to-slate-400 font-semibold min-h-[48px] shadow-lg hover:shadow-xl transition-all duration-200 border"
+        <Button
+          variant="primary"
           onClick={onGenerateNextRound}
           disabled={players.filter((p) => p.status === 'active').length < 4}
         >
@@ -52,7 +53,7 @@ export function CourtManagement({
             <Shuffle className="w-4 h-4" />
             次の組み合わせを生成
           </span>
-        </button>
+        </Button>
       </div>
       {latestRound ? (
         <div className="space-y-4">
@@ -72,7 +73,7 @@ export function CourtManagement({
               >
                 <div className="flex items-center justify-between mb-3">
                   <div className="inline-flex items-center gap-2 text-slate-700 font-medium">
-                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-slate-800 text-white">
+                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-slate-700 text-white">
                       <LayoutGrid className="w-4 h-4" />
                     </span>
                     <span className="text-sm">COURT {cm.courtNo}</span>
@@ -80,7 +81,7 @@ export function CourtManagement({
                 </div>
                 <div className="flex items-stretch gap-2">
                   {/* Team A */}
-                  <div className="flex-1 rounded-lg border-2 border-blue-400 bg-gradient-to-br from-blue-100 to-blue-200/80 p-1.5 min-w-0 shadow-lg">
+                  <div className="flex-1 rounded-lg border-2 border-blue-500 bg-gradient-to-br from-blue-100 to-blue-200/80 p-1.5 min-w-0 shadow-lg">
                     <div className="text-xs font-bold uppercase tracking-wide text-blue-800 mb-1 flex items-center gap-1">
                       <div className="w-2 h-2 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 shadow-sm"></div>
                       <span className="text-blue-700">TEAM A</span>
@@ -97,7 +98,7 @@ export function CourtManagement({
                             className={`flex items-center gap-1.5 rounded-lg px-2 py-1.5 transition-all duration-200 w-full min-w-0 min-h-[36px] active:scale-95 shadow-sm border-2 ${
                               substituting === id
                                 ? 'bg-yellow-50 border-yellow-400 ring-2 ring-yellow-300 shadow-md'
-                                : 'bg-white border-blue-200 hover:bg-blue-50 hover:border-blue-300 hover:shadow-md'
+                                : 'bg-white border-blue-300 hover:bg-blue-50 hover:border-blue-400 hover:shadow-md'
                             }`}
                             onClick={() => onPlayerClick(id)}
                           >
@@ -121,7 +122,7 @@ export function CourtManagement({
                   </div>
 
                   {/* Team B */}
-                  <div className="flex-1 rounded-lg border-2 border-emerald-400 bg-gradient-to-br from-emerald-100 to-emerald-200/80 p-1.5 min-w-0 shadow-lg">
+                  <div className="flex-1 rounded-lg border-2 border-emerald-500 bg-gradient-to-br from-emerald-100 to-emerald-200/80 p-1.5 min-w-0 shadow-lg">
                     <div className="text-xs font-bold uppercase tracking-wide text-emerald-800 mb-1 flex items-center gap-1">
                       <div className="w-2 h-2 rounded-full bg-gradient-to-r from-emerald-600 to-emerald-700 shadow-sm"></div>
                       <span className="text-emerald-700">TEAM B</span>
@@ -138,7 +139,7 @@ export function CourtManagement({
                             className={`flex items-center gap-1.5 rounded-lg px-2 py-1.5 transition-all duration-200 w-full min-w-0 min-h-[36px] active:scale-95 shadow-sm border-2 ${
                               substituting === id
                                 ? 'bg-yellow-50 border-yellow-400 ring-2 ring-yellow-300 shadow-md'
-                                : 'bg-white border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300 hover:shadow-md'
+                                : 'bg-white border-emerald-300 hover:bg-emerald-50 hover:border-emerald-400 hover:shadow-md'
                             }`}
                             onClick={() => onPlayerClick(id)}
                           >
@@ -194,11 +195,11 @@ export function CourtManagement({
                           className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1.5 text-sm transition-all duration-200 min-h-[32px] active:scale-95 ${
                             substituting === id
                               ? 'bg-yellow-100 border-yellow-400 text-yellow-800 ring-2 ring-yellow-300 shadow-md'
-                              : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50 hover:shadow-sm'
+                              : 'bg-white border-slate-300 text-slate-800 hover:bg-slate-50 hover:shadow-sm'
                           }`}
                           onClick={() => onPlayerClick(id)}
                         >
-                          <span className="inline-flex items-center justify-center w-4 h-4 text-xs font-semibold text-white bg-gray-500 rounded-full">
+                          <span className="inline-flex items-center justify-center w-4 h-4 text-xs font-semibold text-white bg-slate-600 rounded-full">
                             {number}
                           </span>
                           <span
