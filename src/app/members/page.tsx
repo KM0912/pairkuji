@@ -122,12 +122,7 @@ export default function MembersPage() {
             placeholder="選手名を入力"
             className="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white border-gray-300 placeholder:text-gray-400"
           />
-          <Button
-            variant="primary"
-            type="submit"
-            disabled={!name.trim()}
-            className="px-6 flex-shrink-0 w-auto"
-          >
+          <Button variant="primary" type="submit" disabled={!name.trim()}>
             追加
           </Button>
         </form>
