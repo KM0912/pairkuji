@@ -10,6 +10,7 @@ import { CourtManagement } from '@/components/practice/CourtManagement';
 import { AddParticipantModal } from '@/components/practice/AddParticipantModal';
 import { PairStatsModal } from '@/components/practice/PairStatsModal';
 import { SubstitutionHint } from '@/components/practice/SubstitutionHint';
+import { Card } from '@/components/ui/Card';
 import { IconBadge } from '@/components/ui/IconBadge';
 import { Users, LayoutGrid, ChevronDown } from 'lucide-react';
 
@@ -240,7 +241,7 @@ export default function PracticePage() {
             <section className="mb-3 sm:mb-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className={`${isParticipantsOpen ? 'sm:col-span-2' : ''}`}>
-                  <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+                  <Card shadow="sm" padding="none">
                     <button
                       type="button"
                       onClick={toggleParticipantsAccordion}
@@ -293,9 +294,13 @@ export default function PracticePage() {
                         />
                       </div>
                     </div>
-                  </div>
+                  </Card>
                 </div>
-                <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                <Card
+                  shadow="sm"
+                  padding="none"
+                  className="flex items-center justify-between px-4 py-3"
+                >
                   <div className="flex items-center gap-2">
                     <IconBadge icon={LayoutGrid} size="md" />
                     <div className="text-sm text-slate-700">コート数</div>
@@ -312,7 +317,7 @@ export default function PracticePage() {
                       </option>
                     ))}
                   </select>
-                </div>
+                </Card>
               </div>
             </section>
 

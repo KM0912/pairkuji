@@ -2,6 +2,7 @@ import { type Member } from '@/types/member';
 import { useState, useMemo } from 'react';
 import { Search, X, Users, LayoutGrid, AlertTriangle } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
 import { IconBadge } from '../ui/IconBadge';
 import { PlayerNumber } from '../ui/PlayerNumber';
 
@@ -59,7 +60,7 @@ export function ParticipantSelection({
         {/* 左カラム: コート数のみ */}
         <div className="md:col-span-2 space-y-6">
           {/* コート数カード */}
-          <section className="bg-white rounded-xl border border-slate-200 p-4">
+          <Card as="section">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <IconBadge icon={LayoutGrid} size="md" />
@@ -83,11 +84,11 @@ export function ParticipantSelection({
             <p className="mt-2 text-xs text-slate-500">
               同時に使用するコート数を選んでください。
             </p>
-          </section>
+          </Card>
         </div>
 
         {/* 右カラム: 参加者選択（確定済み + 選手一覧） */}
-        <section className="md:col-span-3 rounded-xl border border-slate-200 bg-white p-4">
+        <Card as="section" className="md:col-span-3">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <IconBadge icon={Users} size="md" />
@@ -106,7 +107,12 @@ export function ParticipantSelection({
             <div className="lg:col-span-1">
               <p className="text-xs text-slate-600 mb-2">確定済み</p>
               {selectedMembers.length > 0 ? (
-                <div className="rounded-2xl bg-white border border-slate-200 px-4 py-3 shadow-sm active:scale-[0.997] transition-transform">
+                <Card
+                  radius="lg"
+                  shadow="sm"
+                  padding="none"
+                  className="px-4 py-3 active:scale-[0.997] transition-transform"
+                >
                   <div className="flex flex-wrap gap-2">
                     {selectedMembers.map((member) => {
                       const playerNumber = selected.indexOf(member.id!) + 1;
@@ -137,7 +143,7 @@ export function ParticipantSelection({
                       );
                     })}
                   </div>
-                </div>
+                </Card>
               ) : (
                 <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-8 text-center min-h-[90px] flex items-center justify-center">
                   <p className="text-slate-500 text-sm">
@@ -196,7 +202,7 @@ export function ParticipantSelection({
               </div>
             </div>
           </div>
-        </section>
+        </Card>
       </div>
 
       <div className="pt-2">

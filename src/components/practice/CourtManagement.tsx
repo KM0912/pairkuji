@@ -3,6 +3,7 @@ import { type PracticePlayer } from '@/types/practice';
 import { type Round } from '@/types/round';
 import { Shuffle, BarChart3, LayoutGrid, Layers } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
 import { IconBadge } from '../ui/IconBadge';
 import { PlayerNumber } from '../ui/PlayerNumber';
 
@@ -28,7 +29,13 @@ export function CourtManagement({
   onShowPairStats,
 }: CourtManagementProps) {
   return (
-    <section className="bg-white px-4 py-6 rounded-2xl border border-slate-200 shadow-lg">
+    <Card
+      as="section"
+      radius="lg"
+      shadow="lg"
+      padding="none"
+      className="px-4 py-6"
+    >
       <div className="mb-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
@@ -226,6 +233,6 @@ export function CourtManagement({
           まだ組み合わせがありません。ボタンで生成してください。
         </div>
       )}
-    </section>
+    </Card>
   );
 }
