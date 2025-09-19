@@ -54,15 +54,12 @@ export function ParticipantSelection({
   };
 
   return (
-    <form
-      onSubmit={onStart}
-      className="bg-white p-6 rounded-2xl border border-slate-200 shadow-lg mb-8 space-y-6"
-    >
+    <form onSubmit={onStart} className="">
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
         {/* 左カラム: コート数のみ */}
         <div className="md:col-span-2 space-y-6">
           {/* コート数カード */}
-          <section className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+          <section className="bg-white rounded-xl border border-slate-200 p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <IconBadge icon={LayoutGrid} size="md" />
