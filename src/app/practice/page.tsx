@@ -10,10 +10,8 @@ import { CourtManagement } from '@/components/practice/CourtManagement';
 import { AddParticipantModal } from '@/components/practice/AddParticipantModal';
 import { PairStatsPanel } from '@/components/practice/PairStatsPanel';
 import { SubstitutionHint } from '@/components/practice/SubstitutionHint';
-import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { IconBadge } from '@/components/ui/IconBadge';
-import { Users, LayoutGrid, ChevronDown, Layers } from 'lucide-react';
+import { Users, LayoutGrid, Layers } from 'lucide-react';
 
 export default function PracticePage() {
   const { members, load: loadMembers } = useMemberStore();
@@ -35,63 +33,24 @@ export default function PracticePage() {
   const [selected, setSelected] = useState<number[]>([]);
   const [showAddParticipant, setShowAddParticipant] = useState(false);
   const [substituting, setSubstituting] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<'combos' | 'manage' | 'stats'>(
+  const [activeTab, setActiveTab] = useState<'combos' | 'stats'>(
     () => {
       if (typeof window === 'undefined') return 'combos';
       const saved = window.localStorage.getItem('practiceActiveTab');
-      return saved === 'manage' || saved === 'stats' ? saved : 'combos';
+      return saved === 'stats' ? 'stats' : 'combos';
     }
   );
-  const [isParticipantsOpen, setIsParticipantsOpen] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    const saved = window.localStorage.getItem('participantsAccordionOpen');
-    return saved === 'true';
-  });
-  const participantsAccordionRef = useRef<HTMLDivElement | null>(null);
   const combosRef = useRef<HTMLDivElement | null>(null);
-  const [accordionMaxHeight, setAccordionMaxHeight] = useState<string>('0px');
   const [showRoundSummary, setShowRoundSummary] = useState(false);
   const [showCourtModal, setShowCourtModal] = useState(false);
   const [pendingCourts, setPendingCourts] = useState<number>(courts);
+  const [showParticipantModal, setShowParticipantModal] = useState(false);
 
   useEffect(() => {
     loadMembers();
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // Persist accordion state
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      window.localStorage.setItem(
-        'participantsAccordionOpen',
-        String(isParticipantsOpen)
-      );
-    } catch {}
-  }, [isParticipantsOpen]);
-
-  // Smooth accordion animation: set max-height to scrollHeight when open
-  useEffect(() => {
-    const el = participantsAccordionRef.current;
-    if (!el) return;
-    if (isParticipantsOpen) {
-      setAccordionMaxHeight(el.scrollHeight + 'px');
-    } else {
-      setAccordionMaxHeight('0px');
-    }
-  }, [isParticipantsOpen, players.length, showAddParticipant]);
-
-  useEffect(() => {
-    if (!isParticipantsOpen) return;
-    const onResize = () => {
-      const el = participantsAccordionRef.current;
-      if (!el) return;
-      setAccordionMaxHeight(el.scrollHeight + 'px');
-    };
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, [isParticipantsOpen]);
 
   // Persist active tab
   useEffect(() => {
@@ -106,27 +65,13 @@ export default function PracticePage() {
     if (settings) setActiveTab('combos');
   }, [settings]);
 
-  // Smooth accordion animation: set max-height to scrollHeight when open
   useEffect(() => {
-    const el = participantsAccordionRef.current;
-    if (!el) return;
-    if (isParticipantsOpen) {
-      setAccordionMaxHeight(el.scrollHeight + 'px');
-    } else {
-      setAccordionMaxHeight('0px');
+    if (!settings) {
+      setShowRoundSummary(false);
+      setShowCourtModal(false);
+      setShowParticipantModal(false);
     }
-  }, [isParticipantsOpen, players.length, showAddParticipant]);
-
-  useEffect(() => {
-    if (!isParticipantsOpen) return;
-    const onResize = () => {
-      const el = participantsAccordionRef.current;
-      if (!el) return;
-      setAccordionMaxHeight(el.scrollHeight + 'px');
-    };
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, [isParticipantsOpen]);
+  }, [settings]);
 
   useEffect(() => {
     if (!settings) {
@@ -256,24 +201,12 @@ export default function PracticePage() {
   }, [settings, showCourtModal]);
 
   const handleOpenParticipants = () => {
-    setActiveTab('manage');
-    setIsParticipantsOpen(true);
-    requestAnimationFrame(() => {
-      participantsAccordionRef.current?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      });
-    });
+    setShowParticipantModal(true);
   };
 
   const handleConfirmCourts = () => {
     updateCourts(pendingCourts);
     setShowCourtModal(false);
-  };
-
-  const toggleParticipantsAccordion = () => {
-    const next = !isParticipantsOpen;
-    setIsParticipantsOpen(next);
   };
 
   return (
@@ -297,7 +230,7 @@ export default function PracticePage() {
               <div
                 role="tablist"
                 aria-label="表示切替"
-                className="grid grid-cols-3 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm"
+                className="grid grid-cols-2 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm"
               >
                 <button
                   role="tab"
@@ -313,18 +246,6 @@ export default function PracticePage() {
                 </button>
                 <button
                   role="tab"
-                  aria-selected={activeTab === 'manage'}
-                  className={`text-sm font-medium py-2.5 ${
-                    activeTab === 'manage'
-                      ? 'bg-emerald-50 text-emerald-700'
-                      : 'text-slate-600 hover:bg-slate-50'
-                  }`}
-                  onClick={() => setActiveTab('manage')}
-                >
-                  参加者・設定
-                </button>
-                <button
-                  role="tab"
                   aria-selected={activeTab === 'stats'}
                   className={`text-sm font-medium py-2.5 ${
                     activeTab === 'stats'
@@ -337,94 +258,6 @@ export default function PracticePage() {
                 </button>
               </div>
             </div>
-
-            {/* ステータスバー（参加者・設定タブで表示） */}
-            {activeTab === 'manage' && (
-              <section className="mb-3 sm:mb-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div
-                    className={`${isParticipantsOpen ? 'sm:col-span-2' : ''}`}
-                  >
-                    <Card shadow="sm" padding="none">
-                      <button
-                        type="button"
-                        onClick={toggleParticipantsAccordion}
-                        aria-controls="participants-accordion-content"
-                        aria-expanded={isParticipantsOpen}
-                        className="w-full flex items-center justify-between px-4 py-3"
-                      >
-                        <div className="flex items-center gap-2">
-                          <IconBadge icon={Users} size="md" />
-                          <div className="text-left">
-                            <div className="text-sm text-slate-700">
-                              参加者{' '}
-                              <span className="font-semibold">
-                                {players.length}
-                              </span>
-                            </div>
-                            <div className="text-[11px] text-slate-500">
-                              出場可{' '}
-                              {
-                                players.filter((p) => p.status === 'active')
-                                  .length
-                              }
-                            </div>
-                          </div>
-                        </div>
-                        <ChevronDown
-                          className={`h-4 w-4 text-slate-500 transition-transform duration-200 ${
-                            isParticipantsOpen ? 'rotate-180' : ''
-                          }`}
-                          aria-hidden="true"
-                        />
-                      </button>
-                      <div
-                        id="participants-accordion-content"
-                        ref={participantsAccordionRef}
-                        className={`overflow-hidden transition-[max-height] duration-300 ease-in-out`}
-                        style={{ maxHeight: accordionMaxHeight }}
-                      >
-                        <div className="p-4">
-                          <ParticipantManagement
-                            settings={settings}
-                            players={players}
-                            memberMap={memberMap}
-                            matchCounts={matchCounts}
-                            updateCourts={updateCourts}
-                            toggleStatus={toggleStatus}
-                            onShowAddParticipant={() =>
-                              setShowAddParticipant(true)
-                            }
-                          />
-                        </div>
-                      </div>
-                    </Card>
-                  </div>
-                  <Card
-                    shadow="sm"
-                    padding="none"
-                    className="flex items-center justify-between px-4 py-3"
-                  >
-                    <div className="flex items-center gap-2">
-                      <IconBadge icon={LayoutGrid} size="md" />
-                      <div className="text-sm text-slate-700">コート数</div>
-                    </div>
-                    <select
-                      value={settings.courts}
-                      onChange={(e) => updateCourts(Number(e.target.value))}
-                      className="bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold min-h-[36px] focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 transition-colors"
-                      aria-label="コート数を変更"
-                    >
-                      {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-                        <option key={n} value={n}>
-                          {n}
-                        </option>
-                      ))}
-                    </select>
-                  </Card>
-                </div>
-              </section>
-            )}
 
             {/* 組み合わせ（組み合わせタブで表示） */}
             {activeTab === 'combos' && (
@@ -604,6 +437,45 @@ export default function PracticePage() {
               >
                 更新
               </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Participant management modal */}
+      {showParticipantModal && settings && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-3xl rounded-2xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b px-5 py-4">
+              <div>
+                <h2 className="text-base font-semibold text-slate-800">
+                  参加者の管理
+                </h2>
+                <p className="text-xs text-slate-500">
+                  出場可 {players.filter((p) => p.status === 'active').length} / 全体 {players.length}
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="default"
+                size="sm"
+                onClick={() => setShowParticipantModal(false)}
+                className="w-auto px-2 py-1 text-slate-400 hover:text-slate-600 shadow-none hover:shadow-none border-transparent"
+                aria-label="閉じる"
+              >
+                ✕
+              </Button>
+            </div>
+            <div className="max-h-[70vh] overflow-auto px-5 py-4">
+              <ParticipantManagement
+                settings={settings}
+                players={players}
+                memberMap={memberMap}
+                matchCounts={matchCounts}
+                updateCourts={updateCourts}
+                toggleStatus={toggleStatus}
+                onShowAddParticipant={() => setShowAddParticipant(true)}
+              />
             </div>
           </div>
         </div>
