@@ -1,6 +1,14 @@
 import { type Member } from '@/types/member';
 import { useState, useMemo } from 'react';
-import { Search, X, Users, LayoutGrid, AlertTriangle } from 'lucide-react';
+import {
+  Search,
+  X,
+  Users,
+  LayoutGrid,
+  AlertTriangle,
+  Minus,
+  Plus,
+} from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { IconBadge } from '../ui/IconBadge';
@@ -24,27 +32,39 @@ export function ParticipantSelection({
   onStart,
 }: ParticipantSelectionProps) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [viewFilter, setViewFilter] = useState<
+    'all' | 'selected' | 'unselected'
+  >('all');
+  const minToStart = 4;
+  const runnableCourts = Math.min(courts, Math.floor(selected.length / 4));
+  const needMore = Math.max(minToStart - selected.length, 0);
 
-  const filteredMembers = useMemo(
+  const activeMembers = useMemo(
     () =>
       members
-        .filter(
-          (m) =>
-            m.isActive &&
-            !selected.includes(m.id!) &&
-            m.name.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+        .filter((m) => m.isActive)
         .sort((a, b) => a.name.localeCompare(b.name)),
-    [members, searchTerm, selected]
+    [members]
   );
-
-  const selectedMembers = useMemo(
-    () =>
-      selected
-        .map((id) => members.find((m) => m.id === id))
-        .filter((m): m is Member => m !== undefined),
-    [selected, members]
+  const selectedSet = useMemo(() => new Set(selected), [selected]);
+  const counts = useMemo(
+    () => ({
+      all: activeMembers.length,
+      selected: selected.length,
+      unselected: activeMembers.length - selected.length,
+    }),
+    [activeMembers.length, selected.length]
   );
+  const visibleMembers = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    let list = activeMembers;
+    if (viewFilter === 'selected')
+      list = list.filter((m) => selectedSet.has(m.id!));
+    if (viewFilter === 'unselected')
+      list = list.filter((m) => !selectedSet.has(m.id!));
+    if (term) list = list.filter((m) => m.name.toLowerCase().includes(term));
+    return list;
+  }, [activeMembers, viewFilter, selectedSet, searchTerm]);
 
   const addParticipant = (memberId: number) => {
     onToggleSelect(memberId);
@@ -69,25 +89,35 @@ export function ParticipantSelection({
                 </h3>
               </div>
             </div>
-            <select
-              value={courts}
-              onChange={(e) => setCourts(Number(e.target.value))}
-              className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-base min-h-[48px] focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 transition-colors"
-              aria-label="コート数を選択"
-            >
-              {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
-            <p className="mt-2 text-xs text-slate-500">
-              同時に使用するコート数を選んでください。
-            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="default"
+                onClick={() => setCourts(Math.max(1, courts - 1))}
+                className="w-auto px-3 py-2 text-slate-700"
+                aria-label="コート数を減らす"
+              >
+                <Minus className="w-4 h-4" />
+              </Button>
+              <div className="flex-1 text-center font-semibold text-slate-800 text-lg">
+                {courts}
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="default"
+                onClick={() => setCourts(Math.min(10, courts + 1))}
+                className="w-auto px-3 py-2 text-slate-700"
+                aria-label="コート数を増やす"
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
           </Card>
         </div>
 
-        {/* 右カラム: 参加者選択（確定済み + 選手一覧） */}
+        {/* 右カラム: 参加者選択（単一リスト + フィルタ） */}
         <Card as="section" className="md:col-span-3">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -96,126 +126,133 @@ export function ParticipantSelection({
                 参加者選択
               </h3>
             </div>
-            <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 text-xs font-medium">
-              <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-              選択中 {selected.length} 名
-            </span>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {/* 確定済み参加者（同カード内） */}
-            <div className="lg:col-span-1">
-              <p className="text-xs text-slate-600 mb-2">確定済み</p>
-              {selectedMembers.length > 0 ? (
-                <Card
-                  radius="lg"
-                  shadow="sm"
-                  padding="none"
-                  className="px-4 py-3 active:scale-[0.997] transition-transform"
+          <div className="space-y-3">
+            {/* フィルタ（セグメント） */}
+            <div className="grid grid-cols-3 gap-2 text-xs">
+              <button
+                type="button"
+                onClick={() => setViewFilter('all')}
+                className={`rounded-lg px-3 py-2 border ${
+                  viewFilter === 'all'
+                    ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                    : 'bg-white border-slate-300 text-slate-600'
+                }`}
+              >
+                全員 {counts.all}
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewFilter('selected')}
+                className={`rounded-lg px-3 py-2 border ${
+                  viewFilter === 'selected'
+                    ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                    : 'bg-white border-slate-300 text-slate-600'
+                }`}
+              >
+                参加 {counts.selected}
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewFilter('unselected')}
+                className={`rounded-lg px-3 py-2 border ${
+                  viewFilter === 'unselected'
+                    ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                    : 'bg-white border-slate-300 text-slate-600'
+                }`}
+              >
+                未参加 {counts.unselected}
+              </button>
+            </div>
+
+            {/* 検索 */}
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="w-5 h-5 text-slate-400" />
+              </div>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="名前で検索"
+                className="w-full pl-10 pr-4 py-3 border rounded-lg text-base min-h-[48px] border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                aria-label="選手検索"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm('')}
+                  className="absolute inset-y-0 right-0 px-3 text-slate-400 hover:text-slate-600"
+                  aria-label="検索をクリア"
                 >
-                  <div className="flex flex-wrap gap-2">
-                    {selectedMembers.map((member) => {
-                      const playerNumber = selected.indexOf(member.id!) + 1;
-                      return (
-                        <div
-                          key={member.id}
-                          className="inline-flex items-center gap-1 rounded-full bg-gray-50 text-slate-800 border border-gray-200 px-2 py-1 text-xs shadow-sm"
-                          title={member.name}
-                        >
-                          <PlayerNumber
-                            number={playerNumber}
-                            variant="primary"
-                            size="xs"
-                          />
-                          <span className="font-medium text-slate-800 max-w-[70px] truncate">
-                            {member.name}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => removeParticipant(member.id!)}
-                            className="p-0.5 text-slate-400 rounded-full transition-colors active:text-red-500 active:bg-red-50"
-                            aria-label={`参加を取り消す: ${member.name}`}
-                            title="参加を取り消す"
-                          >
-                            <X className="w-2.5 h-2.5" />
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </Card>
-              ) : (
-                <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-8 text-center min-h-[90px] flex items-center justify-center">
-                  <p className="text-slate-500 text-sm">
-                    一覧から選手を選んで追加してください
-                  </p>
-                </div>
+                  <X className="w-4 h-4" />
+                </button>
               )}
             </div>
 
-            {/* 選手一覧（同カード内） */}
-            <div className="lg:col-span-2 lg:border-l lg:pl-4 border-slate-200">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-xs text-slate-600">選手一覧</p>
-                <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 text-blue-600 border border-blue-200 px-2 py-0.5 text-[11px]">
-                  {filteredMembers.length} 名
-                </span>
-              </div>
-
-              <div className="relative mb-3">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="w-5 h-5 text-slate-400" />
-                </div>
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="名前で検索"
-                  className="w-full pl-10 pr-4 py-3 border rounded-lg text-base min-h-[48px] border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
-                  aria-label="選手検索"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-72 overflow-auto bg-slate-50 rounded-xl p-2 border border-slate-200">
-                {filteredMembers.length > 0 ? (
-                  filteredMembers.map((member) => (
+            {/* リスト */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-80 overflow-auto bg-slate-50 rounded-xl p-2 border border-slate-200">
+              {visibleMembers.length > 0 ? (
+                visibleMembers.map((member) => {
+                  const isSelected = selectedSet.has(member.id!);
+                  const order = isSelected
+                    ? selected.indexOf(member.id!) + 1
+                    : null;
+                  return (
                     <button
                       key={member.id}
                       type="button"
-                      onClick={() => addParticipant(member.id!)}
-                      className="flex items-center justify-center rounded-lg px-3 py-2 border text-center transition-all duration-200 min-h-[36px] bg-white border-slate-300 active:scale-95 active:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 text-sm"
-                      aria-label={`参加者に追加: ${member.name}`}
+                      onClick={() => onToggleSelect(member.id!)}
+                      aria-pressed={isSelected}
+                      className={`flex items-center justify-center gap-1 rounded-lg px-3 py-2 border text-center transition-all duration-200 min-h-[44px] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 text-sm ${
+                        isSelected
+                          ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                          : 'bg-white border-slate-300 text-slate-800 active:bg-slate-100'
+                      }`}
+                      aria-label={`${isSelected ? '参加者から外す' : '参加者に追加'}: ${member.name}`}
                       title={member.name}
                     >
-                      <span className="font-medium text-slate-800 truncate">
+                      {isSelected && (
+                        <PlayerNumber
+                          number={order ?? ''}
+                          variant="neutral"
+                          size="xs"
+                        />
+                      )}
+                      <span className="font-medium truncate">
                         {member.name}
                       </span>
                     </button>
-                  ))
-                ) : (
-                  <div className="col-span-full text-center py-8 text-slate-500 text-sm">
-                    {searchTerm
-                      ? '検索条件に一致する選手がいません'
-                      : '選択可能な選手がいません'}
-                  </div>
-                )}
-              </div>
+                  );
+                })
+              ) : (
+                <div className="col-span-full text-center py-8 text-slate-500 text-sm">
+                  {searchTerm
+                    ? '検索条件に一致する選手がいません'
+                    : '表示できる選手がいません'}
+                </div>
+              )}
             </div>
           </div>
         </Card>
-      </div>
 
-      <div className="pt-2">
-        <Button type="submit" variant="primary" disabled={selected.length < 4}>
-          {selected.length < 4 ? (
-            <span className="inline-flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4" />
-              4人以上選択してください
-            </span>
-          ) : (
-            '練習を開始'
-          )}
-        </Button>
+        <div className="sticky bottom-2">
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={selected.length < minToStart}
+          >
+            {selected.length < minToStart ? (
+              <span className="inline-flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4" />
+                あと {needMore} 人選択してください
+              </span>
+            ) : (
+              '練習を開始'
+            )}
+          </Button>
+        </div>
       </div>
     </form>
   );
