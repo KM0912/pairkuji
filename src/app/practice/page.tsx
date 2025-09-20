@@ -266,13 +266,13 @@ export default function PracticePage() {
                 className="grid grid-cols-1 md:grid-cols-5 gap-6"
               >
                 <div className="md:col-span-5">
-                  <div className="flex flex-wrap gap-2 mb-2">
+                  <div className="flex gap-2 mb-2 overflow-x-auto">
                     <Button
                       type="button"
                       variant="default"
                       size="sm"
                       onClick={() => setShowRoundSummary(true)}
-                      className="w-auto flex items-center gap-2 px-3 py-2 text-xs text-slate-600 shadow-none hover:shadow-none border-slate-200 hover:border-emerald-400 hover:bg-emerald-50 hover:text-slate-700"
+                      className="w-auto flex items-center gap-2 px-3 py-2 text-xs text-slate-600 shadow-none hover:shadow-none border-slate-200 hover:border-emerald-400 hover:bg-emerald-50 hover:text-slate-700 whitespace-nowrap"
                     >
                       <Layers className="h-4 w-4 text-emerald-600" />
                       <span className="font-medium text-slate-800">ラウンド</span>
@@ -283,7 +283,7 @@ export default function PracticePage() {
                       variant="default"
                       size="sm"
                       onClick={() => setShowCourtModal(true)}
-                      className="w-auto flex items-center gap-2 px-3 py-2 text-xs text-slate-600 shadow-none hover:shadow-none border-slate-200 hover:border-sky-400 hover:bg-sky-50 hover:text-slate-700"
+                      className="w-auto flex items-center gap-2 px-3 py-2 text-xs text-slate-600 shadow-none hover:shadow-none border-slate-200 hover:border-sky-400 hover:bg-sky-50 hover:text-slate-700 whitespace-nowrap"
                     >
                       <LayoutGrid className="h-4 w-4 text-sky-600" />
                       <span className="font-medium text-slate-800">コート</span>
@@ -294,7 +294,7 @@ export default function PracticePage() {
                       variant="default"
                       size="sm"
                       onClick={handleOpenParticipants}
-                      className="w-auto flex items-center gap-2 px-3 py-2 text-xs text-slate-600 shadow-none hover:shadow-none border-slate-200 hover:border-indigo-400 hover:bg-indigo-50 hover:text-slate-700"
+                      className="w-auto flex items-center gap-2 px-3 py-2 text-xs text-slate-600 shadow-none hover:shadow-none border-slate-200 hover:border-indigo-400 hover:bg-indigo-50 hover:text-slate-700 whitespace-nowrap"
                     >
                       <Users className="h-4 w-4 text-indigo-600" />
                       <span className="font-medium text-slate-800">参加者</span>
