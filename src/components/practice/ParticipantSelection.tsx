@@ -13,6 +13,7 @@ import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { IconBadge } from '../ui/IconBadge';
 import { PlayerNumber } from '../ui/PlayerNumber';
+import { SelectTile } from '../ui/SelectTile';
 
 interface ParticipantSelectionProps {
   members: Member[];
@@ -130,40 +131,31 @@ export function ParticipantSelection({
 
           <div className="space-y-3">
             {/* フィルタ（セグメント） */}
-            <div className="grid grid-cols-3 gap-2 text-xs">
-              <button
-                type="button"
+            <div className="grid grid-cols-3 gap-2">
+              <SelectTile
+                size="sm"
+                selected={viewFilter === 'all'}
                 onClick={() => setViewFilter('all')}
-                className={`rounded-lg px-3 py-2 border ${
-                  viewFilter === 'all'
-                    ? 'bg-gradient-to-r from-blue-50 to-emerald-50 border-blue-200 shadow-sm'
-                    : 'bg-white border-slate-300 text-slate-600'
-                }`}
+                className="text-xs"
               >
                 全員 {counts.all}
-              </button>
-              <button
-                type="button"
+              </SelectTile>
+              <SelectTile
+                size="sm"
+                selected={viewFilter === 'selected'}
                 onClick={() => setViewFilter('selected')}
-                className={`rounded-lg px-3 py-2 border ${
-                  viewFilter === 'selected'
-                    ? 'bg-gradient-to-r from-blue-50 to-emerald-50 border-blue-200 shadow-sm'
-                    : 'bg-white border-slate-300 text-slate-600'
-                }`}
+                className="text-xs"
               >
                 参加 {counts.selected}
-              </button>
-              <button
-                type="button"
+              </SelectTile>
+              <SelectTile
+                size="sm"
+                selected={viewFilter === 'unselected'}
                 onClick={() => setViewFilter('unselected')}
-                className={`rounded-lg px-3 py-2 border ${
-                  viewFilter === 'unselected'
-                    ? 'bg-gradient-to-r from-blue-50 to-emerald-50 border-blue-200 shadow-sm'
-                    : 'bg-white border-slate-300 text-slate-600'
-                }`}
+                className="text-xs"
               >
                 未参加 {counts.unselected}
-              </button>
+              </SelectTile>
             </div>
 
             {/* 検索 */}
@@ -200,30 +192,24 @@ export function ParticipantSelection({
                     ? selected.indexOf(member.id!) + 1
                     : null;
                   return (
-                    <button
+                    <SelectTile
                       key={member.id}
-                      type="button"
+                      selected={isSelected}
                       onClick={() => onToggleSelect(member.id!)}
-                      aria-pressed={isSelected}
-                      className={`flex items-center justify-center gap-1 rounded-lg px-3 py-2 border text-center transition-all duration-200 min-h-[44px] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 text-sm ${
-                        isSelected
-                          ? 'bg-gradient-to-r from-blue-50 to-emerald-50 border-blue-200 shadow-sm'
-                          : 'bg-white border-slate-300 text-slate-800 active:bg-slate-100'
-                      }`}
                       aria-label={`${isSelected ? '参加者から外す' : '参加者に追加'}: ${member.name}`}
                       title={member.name}
+                      left={
+                        isSelected ? (
+                          <PlayerNumber
+                            number={order ?? ''}
+                            variant="neutral"
+                            size="xs"
+                          />
+                        ) : undefined
+                      }
                     >
-                      {isSelected && (
-                        <PlayerNumber
-                          number={order ?? ''}
-                          variant="neutral"
-                          size="xs"
-                        />
-                      )}
-                      <span className="font-medium truncate">
-                        {member.name}
-                      </span>
-                    </button>
+                      {member.name}
+                    </SelectTile>
                   );
                 })
               ) : (
