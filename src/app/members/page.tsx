@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Check, X, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { useMemberStore } from '@/lib/stores/memberStore';
 import { usePracticeStore } from '@/lib/stores/practiceStore';
 import { Button } from '@/components/ui/Button';
@@ -12,12 +12,11 @@ export default function MembersPage() {
     useMemberStore();
   const { players } = usePracticeStore();
   const [name, setName] = useState('');
-  const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  // 有効/無効の切替機能は一旦廃止（DB上のカラムは維持）
   const [flashingId, setFlashingId] = useState<number | null>(null);
   const [editingMember, setEditingMember] = useState<{
     id: number;
     name: string;
-    isActive: boolean;
   } | null>(null);
   const [deletingMember, setDeletingMember] = useState<{
     id: number;
@@ -31,19 +30,8 @@ export default function MembersPage() {
   }, []);
 
   const filtered = useMemo(() => {
-    let result;
-    switch (filter) {
-      case 'active':
-        result = members.filter((m) => m.isActive);
-        break;
-      case 'inactive':
-        result = members.filter((m) => !m.isActive);
-        break;
-      default:
-        result = members;
-    }
-    return result.sort((a, b) => a.name.localeCompare(b.name, 'ja'));
-  }, [members, filter]);
+    return [...members].sort((a, b) => a.name.localeCompare(b.name, 'ja'));
+  }, [members]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,17 +40,9 @@ export default function MembersPage() {
     setName('');
   };
 
-  const onToggleActive = async (id: number, isActive: boolean) => {
-    setFlashingId(id);
-    await update(id, { isActive: !isActive });
-    setTimeout(() => setFlashingId(null), 1000);
-  };
+  // 有効/無効切り替え機能はUIから削除
 
-  const openEditModal = (member: {
-    id: number;
-    name: string;
-    isActive: boolean;
-  }) => {
+  const openEditModal = (member: { id: number; name: string }) => {
     setEditingMember(member);
   };
 
@@ -75,10 +55,7 @@ export default function MembersPage() {
     if (!editingMember) return;
 
     setFlashingId(editingMember.id);
-    await update(editingMember.id, {
-      name: editingMember.name,
-      isActive: editingMember.isActive,
-    });
+    await update(editingMember.id, { name: editingMember.name });
     setTimeout(() => setFlashingId(null), 1000);
     closeEditModal();
   };
@@ -107,51 +84,36 @@ export default function MembersPage() {
   };
 
   return (
-    <main className="bg-gray-50 min-h-screen">
-      <div className="max-w-md mx-auto px-4 py-6">
-        <h1 className="text-2xl font-bold mb-6">選手管理</h1>
+    <main className="bg-slate-50 min-h-screen">
+      <div className="max-w-6xl mx-auto px-4 py-6">
+        {/* Sticky page header for consistency with practice UI */}
+        <div className="sticky top-0 z-10 -mx-4 px-4 pb-3 bg-slate-50/80 backdrop-blur supports-[backdrop-filter]:bg-slate-50/60">
+              <div className="bg-white border border-slate-200 rounded-xl px-4 py-2 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-semibold text-slate-800">選手管理</div>
+                  <div className="text-xs text-slate-500">{members.length} 名</div>
+                </div>
+              </div>
+            </div>
 
         {/* Add form */}
         <form
           onSubmit={onSubmit}
-          className="bg-white p-4 rounded-lg shadow flex gap-2 mb-6"
+          className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex gap-2 mb-6"
         >
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="選手名を入力"
-            className="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white border-gray-300 placeholder:text-gray-400"
+            className="flex-1 rounded-lg px-3 py-2 bg-white border border-slate-300 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-600"
           />
           <Button variant="primary" type="submit" disabled={!name.trim()}>
             追加
           </Button>
         </form>
 
-        {/* Filters */}
-        <div className="mb-4">
-          <div className="flex flex-wrap items-center gap-2 mb-2">
-            <span className="text-sm text-gray-600 flex-shrink-0">
-              フィルター:
-            </span>
-            {(['all', 'active', 'inactive'] as const).map((key) => (
-              <SelectTile
-                key={key}
-                size="sm"
-                selected={filter === key}
-                onClick={() => setFilter(key)}
-                className="flex-shrink-0"
-              >
-                {key === 'all' ? 'すべて' : key === 'active' ? '有効' : '無効'}
-              </SelectTile>
-            ))}
-          </div>
-          <div className="text-sm text-gray-500">
-            {isLoading
-              ? '読み込み中…'
-              : `${filtered.length} / ${members.length} 名`}
-          </div>
-        </div>
+        {/* Count removed as requested */}
 
         {/* Error */}
         {error && (
@@ -168,61 +130,36 @@ export default function MembersPage() {
           {filtered.map((m) => {
             const isFlashing = flashingId === m.id;
             return (
-              <li
-                key={m.id}
-                className={`p-4 rounded-lg shadow flex items-center gap-3 transition-all duration-300 ${
-                  m.isActive
-                    ? 'bg-white border-l-4 border-l-green-400'
-                    : 'bg-gray-50 border-l-4 border-l-gray-300'
-                } ${
-                  isFlashing
-                    ? 'ring-2 ring-blue-400 ring-opacity-75 bg-blue-50'
-                    : ''
-                }`}
-              >
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <div
-                    className={`w-2 h-2 rounded-full flex-shrink-0 ${m.isActive ? 'bg-green-500' : 'bg-gray-400'}`}
-                  />
+              <li key={m.id} className="transition-all duration-300">
+                <SelectTile
+                  selected={false}
+                  onClick={() =>
+                    openEditModal({
+                      id: m.id!,
+                      name: m.name,
+                    })
+                  }
+                  className={`w-full justify-between ${
+                    isFlashing ? 'ring-2 ring-blue-400 ring-opacity-75' : ''
+                  }`}
+                >
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <span className="text-left flex-1 min-w-0 truncate font-medium">
+                      {m.name}
+                    </span>
+                  </div>
                   <button
-                    className="text-left flex-1 min-w-0 truncate font-medium"
-                    onClick={() =>
-                      openEditModal({
-                        id: m.id!,
-                        name: m.name,
-                        isActive: m.isActive,
-                      })
-                    }
-                  >
-                    {m.name}
-                  </button>
-                </div>
-                <div className="flex gap-2 flex-shrink-0">
-                  <SelectTile
-                    size="sm"
-                    selected={m.isActive}
-                    onClick={() => onToggleActive(m.id!, m.isActive)}
-                    title={m.isActive ? '無効にする' : '有効にする'}
-                    className="min-w-[68px]"
-                  >
-                    {m.isActive ? (
-                      <>
-                        <Check className="w-3 h-3" /> 有効
-                      </>
-                    ) : (
-                      <>
-                        <X className="w-3 h-3" /> 無効
-                      </>
-                    )}
-                  </SelectTile>
-                  <button
+                    type="button"
                     className="px-2 py-2 rounded-lg border bg-white hover:bg-red-50 text-red-600 min-h-[40px] min-w-[40px] flex items-center justify-center"
-                    onClick={() => handleDeleteClick(m.id!, m.name)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteClick(m.id!, m.name);
+                    }}
                     title="削除"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
-                </div>
+                </SelectTile>
               </li>
             );
           })}
@@ -256,44 +193,6 @@ export default function MembersPage() {
                       }
                       required
                     />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      ステータス
-                    </label>
-                    <div className="flex gap-3">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setEditingMember({ ...editingMember, isActive: true })
-                        }
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
-                          editingMember.isActive
-                            ? 'bg-green-50 border-green-400 text-green-700'
-                            : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
-                        }`}
-                      >
-                        <Check className="w-4 h-4" />
-                        有効
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setEditingMember({
-                            ...editingMember,
-                            isActive: false,
-                          })
-                        }
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
-                          !editingMember.isActive
-                            ? 'bg-gray-50 border-gray-300 text-gray-600'
-                            : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
-                        }`}
-                      >
-                        <X className="w-4 h-4" />
-                        無効
-                      </button>
-                    </div>
                   </div>
                   <div className="flex gap-3 pt-4">
                     <button
