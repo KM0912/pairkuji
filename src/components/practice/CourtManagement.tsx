@@ -26,15 +26,9 @@ export function CourtManagement({
   onPlayerClick,
 }: CourtManagementProps) {
   return (
-    <section className="px-4 py-6">
+    <section>
       {latestRound ? (
         <div className="space-y-4">
-          <div>
-            <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-              ラウンド
-              <strong className="ml-1">{latestRound.roundNo}</strong>
-            </span>
-          </div>
           <div className="grid grid-cols-1 gap-4 sm:gap-6">
             {latestRound.courts.map((cm, index) => (
               <div
