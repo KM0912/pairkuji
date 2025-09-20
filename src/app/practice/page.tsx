@@ -11,8 +11,9 @@ import { AddParticipantModal } from '@/components/practice/AddParticipantModal';
 import { PairStatsPanel } from '@/components/practice/PairStatsPanel';
 import { SubstitutionHint } from '@/components/practice/SubstitutionHint';
 import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
 import { IconBadge } from '@/components/ui/IconBadge';
-import { Users, LayoutGrid, ChevronDown } from 'lucide-react';
+import { Users, LayoutGrid, ChevronDown, Layers } from 'lucide-react';
 
 export default function PracticePage() {
   const { members, load: loadMembers } = useMemberStore();
@@ -49,6 +50,9 @@ export default function PracticePage() {
   const participantsAccordionRef = useRef<HTMLDivElement | null>(null);
   const combosRef = useRef<HTMLDivElement | null>(null);
   const [accordionMaxHeight, setAccordionMaxHeight] = useState<string>('0px');
+  const [showRoundSummary, setShowRoundSummary] = useState(false);
+  const [showCourtModal, setShowCourtModal] = useState(false);
+  const [pendingCourts, setPendingCourts] = useState<number>(courts);
 
   useEffect(() => {
     loadMembers();
@@ -245,6 +249,28 @@ export default function PracticePage() {
     });
   };
 
+  useEffect(() => {
+    if (!showCourtModal && settings) {
+      setPendingCourts(settings.courts);
+    }
+  }, [settings, showCourtModal]);
+
+  const handleOpenParticipants = () => {
+    setActiveTab('manage');
+    setIsParticipantsOpen(true);
+    requestAnimationFrame(() => {
+      participantsAccordionRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    });
+  };
+
+  const handleConfirmCourts = () => {
+    updateCourts(pendingCourts);
+    setShowCourtModal(false);
+  };
+
   const toggleParticipantsAccordion = () => {
     const next = !isParticipantsOpen;
     setIsParticipantsOpen(next);
@@ -407,6 +433,41 @@ export default function PracticePage() {
                 className="grid grid-cols-1 md:grid-cols-5 gap-6"
               >
                 <div className="md:col-span-5">
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    <Button
+                      type="button"
+                      variant="default"
+                      size="sm"
+                      onClick={() => setShowRoundSummary(true)}
+                      className="w-auto flex items-center gap-2 px-3 py-2 text-xs text-slate-600 shadow-none hover:shadow-none border-slate-200 hover:border-emerald-400 hover:bg-emerald-50 hover:text-slate-700"
+                    >
+                      <Layers className="h-4 w-4 text-emerald-600" />
+                      <span className="font-medium text-slate-800">ラウンド</span>
+                      <span className="text-slate-600">{rounds.length}</span>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="default"
+                      size="sm"
+                      onClick={() => setShowCourtModal(true)}
+                      className="w-auto flex items-center gap-2 px-3 py-2 text-xs text-slate-600 shadow-none hover:shadow-none border-slate-200 hover:border-sky-400 hover:bg-sky-50 hover:text-slate-700"
+                    >
+                      <LayoutGrid className="h-4 w-4 text-sky-600" />
+                      <span className="font-medium text-slate-800">コート</span>
+                      <span className="text-slate-600">{settings.courts}</span>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="default"
+                      size="sm"
+                      onClick={handleOpenParticipants}
+                      className="w-auto flex items-center gap-2 px-3 py-2 text-xs text-slate-600 shadow-none hover:shadow-none border-slate-200 hover:border-indigo-400 hover:bg-indigo-50 hover:text-slate-700"
+                    >
+                      <Users className="h-4 w-4 text-indigo-600" />
+                      <span className="font-medium text-slate-800">参加者</span>
+                      <span className="text-slate-600">{players.length}</span>
+                    </Button>
+                  </div>
                   <CourtManagement
                     players={players}
                     latestRound={latestRound}
@@ -444,6 +505,109 @@ export default function PracticePage() {
         />
 
       </div>
+
+      {/* Round summary modal */}
+      {showRoundSummary && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b px-4 py-3">
+              <h2 className="text-sm font-semibold text-slate-800">ラウンド履歴</h2>
+              <Button
+                type="button"
+                variant="default"
+                size="sm"
+                onClick={() => setShowRoundSummary(false)}
+                className="w-auto px-2 py-1 text-slate-400 hover:text-slate-600 shadow-none hover:shadow-none border-transparent"
+                aria-label="閉じる"
+              >
+                ✕
+              </Button>
+            </div>
+            <div className="max-h-72 overflow-auto px-4 py-3 space-y-2 text-sm">
+              {rounds.length === 0 ? (
+                <p className="text-slate-500">まだラウンドがありません。</p>
+              ) : (
+                rounds
+                  .slice()
+                  .reverse()
+                  .map((round) => (
+                    <div
+                      key={round.roundNo}
+                      className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
+                    >
+                      <div className="font-medium text-slate-700">
+                        ラウンド {round.roundNo}
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        コート {round.courts.length} / 休憩 {round.rests.length}
+                      </div>
+                    </div>
+                  ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Court count modal */}
+      {showCourtModal && settings && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl p-5 space-y-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-semibold text-slate-800">
+                コート数を変更
+              </h2>
+              <Button
+                type="button"
+                variant="default"
+                size="sm"
+                onClick={() => setShowCourtModal(false)}
+                className="w-auto px-2 py-1 text-slate-400 hover:text-slate-600 shadow-none hover:shadow-none border-transparent"
+                aria-label="閉じる"
+              >
+                ✕
+              </Button>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                コート数
+              </label>
+              <select
+                value={pendingCourts}
+                onChange={(e) => setPendingCourts(Number(e.target.value))}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+              >
+                {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button
+                type="button"
+                variant="default"
+                size="sm"
+                onClick={() => setShowCourtModal(false)}
+                className="w-auto px-4 py-2 text-sm text-slate-600 shadow-none hover:shadow-none border-slate-300 hover:bg-slate-50"
+              >
+                キャンセル
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                onClick={handleConfirmCourts}
+                className="w-auto px-4 py-2 text-sm"
+                disabled={pendingCourts === settings.courts}
+              >
+                更新
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
