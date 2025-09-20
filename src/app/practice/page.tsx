@@ -8,7 +8,7 @@ import { ParticipantSelection } from '@/components/practice/ParticipantSelection
 import { ParticipantManagement } from '@/components/practice/ParticipantManagement';
 import { CourtManagement } from '@/components/practice/CourtManagement';
 import { AddParticipantModal } from '@/components/practice/AddParticipantModal';
-import { PairStatsModal } from '@/components/practice/PairStatsModal';
+import { PairStatsPanel } from '@/components/practice/PairStatsPanel';
 import { SubstitutionHint } from '@/components/practice/SubstitutionHint';
 import { Card } from '@/components/ui/Card';
 import { IconBadge } from '@/components/ui/IconBadge';
@@ -34,13 +34,13 @@ export default function PracticePage() {
   const [selected, setSelected] = useState<number[]>([]);
   const [showAddParticipant, setShowAddParticipant] = useState(false);
   const [substituting, setSubstituting] = useState<number | null>(null);
-  const [showPairStats, setShowPairStats] = useState(false);
-  const [activeTab, setActiveTab] = useState<'combos' | 'manage'>(() => {
-    if (typeof window === 'undefined') return 'combos';
-    return (
-      (window.localStorage.getItem('practiceActiveTab') as any) || 'combos'
-    );
-  });
+  const [activeTab, setActiveTab] = useState<'combos' | 'manage' | 'stats'>(
+    () => {
+      if (typeof window === 'undefined') return 'combos';
+      const saved = window.localStorage.getItem('practiceActiveTab');
+      return saved === 'manage' || saved === 'stats' ? saved : 'combos';
+    }
+  );
   const [isParticipantsOpen, setIsParticipantsOpen] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
     const saved = window.localStorage.getItem('participantsAccordionOpen');
@@ -271,12 +271,16 @@ export default function PracticePage() {
               <div
                 role="tablist"
                 aria-label="表示切替"
-                className="grid grid-cols-2 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm"
+                className="grid grid-cols-3 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm"
               >
                 <button
                   role="tab"
                   aria-selected={activeTab === 'combos'}
-                  className={`text-sm font-medium py-2.5 ${activeTab === 'combos' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-50'}`}
+                  className={`text-sm font-medium py-2.5 ${
+                    activeTab === 'combos'
+                      ? 'bg-emerald-50 text-emerald-700'
+                      : 'text-slate-600 hover:bg-slate-50'
+                  }`}
                   onClick={() => setActiveTab('combos')}
                 >
                   組み合わせ
@@ -284,10 +288,26 @@ export default function PracticePage() {
                 <button
                   role="tab"
                   aria-selected={activeTab === 'manage'}
-                  className={`text-sm font-medium py-2.5 ${activeTab === 'manage' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-50'}`}
+                  className={`text-sm font-medium py-2.5 ${
+                    activeTab === 'manage'
+                      ? 'bg-emerald-50 text-emerald-700'
+                      : 'text-slate-600 hover:bg-slate-50'
+                  }`}
                   onClick={() => setActiveTab('manage')}
                 >
                   参加者・設定
+                </button>
+                <button
+                  role="tab"
+                  aria-selected={activeTab === 'stats'}
+                  className={`text-sm font-medium py-2.5 ${
+                    activeTab === 'stats'
+                      ? 'bg-emerald-50 text-emerald-700'
+                      : 'text-slate-600 hover:bg-slate-50'
+                  }`}
+                  onClick={() => setActiveTab('stats')}
+                >
+                  ペア統計
                 </button>
               </div>
             </div>
@@ -395,8 +415,16 @@ export default function PracticePage() {
                     substituting={substituting}
                     onGenerateNextRound={handleGenerateNextRound}
                     onPlayerClick={onPlayerClick}
-                    onShowPairStats={() => setShowPairStats(true)}
+                    onShowPairStats={() => setActiveTab('stats')}
                   />
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'stats' && (
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                <div className="md:col-span-5">
+                  <PairStatsPanel players={players} pairCounts={pairCounts} />
                 </div>
               </div>
             )}
@@ -416,12 +444,6 @@ export default function PracticePage() {
           playerMap={playerMap}
         />
 
-        <PairStatsModal
-          isOpen={showPairStats}
-          players={players}
-          pairCounts={pairCounts}
-          onClose={() => setShowPairStats(false)}
-        />
       </div>
     </main>
   );
