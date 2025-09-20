@@ -136,7 +136,7 @@ export function ParticipantSelection({
                 onClick={() => setViewFilter('all')}
                 className={`rounded-lg px-3 py-2 border ${
                   viewFilter === 'all'
-                    ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                    ? 'bg-gradient-to-r from-blue-50 to-emerald-50 border-blue-200 shadow-sm'
                     : 'bg-white border-slate-300 text-slate-600'
                 }`}
               >
@@ -147,7 +147,7 @@ export function ParticipantSelection({
                 onClick={() => setViewFilter('selected')}
                 className={`rounded-lg px-3 py-2 border ${
                   viewFilter === 'selected'
-                    ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                    ? 'bg-gradient-to-r from-blue-50 to-emerald-50 border-blue-200 shadow-sm'
                     : 'bg-white border-slate-300 text-slate-600'
                 }`}
               >
@@ -158,7 +158,7 @@ export function ParticipantSelection({
                 onClick={() => setViewFilter('unselected')}
                 className={`rounded-lg px-3 py-2 border ${
                   viewFilter === 'unselected'
-                    ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                    ? 'bg-gradient-to-r from-blue-50 to-emerald-50 border-blue-200 shadow-sm'
                     : 'bg-white border-slate-300 text-slate-600'
                 }`}
               >
@@ -207,7 +207,7 @@ export function ParticipantSelection({
                       aria-pressed={isSelected}
                       className={`flex items-center justify-center gap-1 rounded-lg px-3 py-2 border text-center transition-all duration-200 min-h-[44px] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 text-sm ${
                         isSelected
-                          ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                          ? 'bg-gradient-to-r from-blue-50 to-emerald-50 border-blue-200 shadow-sm'
                           : 'bg-white border-slate-300 text-slate-800 active:bg-slate-100'
                       }`}
                       aria-label={`${isSelected ? '参加者から外す' : '参加者に追加'}: ${member.name}`}
