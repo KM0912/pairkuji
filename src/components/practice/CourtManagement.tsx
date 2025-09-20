@@ -1,9 +1,8 @@
 import { type Member } from '@/types/member';
 import { type PracticePlayer } from '@/types/practice';
 import { type Round } from '@/types/round';
-import { Shuffle, BarChart3, LayoutGrid, Layers } from 'lucide-react';
+import { Shuffle, LayoutGrid } from 'lucide-react';
 import { Button } from '../ui/Button';
-import { Card } from '../ui/Card';
 import { IconBadge } from '../ui/IconBadge';
 import { PlayerNumber } from '../ui/PlayerNumber';
 
@@ -15,7 +14,6 @@ interface CourtManagementProps {
   substituting: number | null;
   onGenerateNextRound: () => Promise<void>;
   onPlayerClick: (memberId: number) => Promise<void>;
-  onShowPairStats: () => void;
 }
 
 export function CourtManagement({
@@ -26,32 +24,9 @@ export function CourtManagement({
   substituting,
   onGenerateNextRound,
   onPlayerClick,
-  onShowPairStats,
 }: CourtManagementProps) {
   return (
-    <Card
-      as="section"
-      radius="lg"
-      shadow="lg"
-      padding="none"
-      className="px-4 py-6"
-    >
-      <div className="mb-4">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
-            <IconBadge icon={Layers} size="md" />
-            組み合わせ
-          </h2>
-          <button
-            onClick={onShowPairStats}
-            className="inline-flex items-center gap-1.5 text-sm text-slate-700 hover:text-slate-900 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
-            aria-label="ペア統計を表示"
-          >
-            <BarChart3 className="w-4 h-4" />
-            ペア統計
-          </button>
-        </div>
-      </div>
+    <section className="px-4 py-6">
       {latestRound ? (
         <div className="space-y-4">
           <div>
@@ -245,6 +220,6 @@ export function CourtManagement({
           </Button>
         </div>
       )}
-    </Card>
+    </section>
   );
 }

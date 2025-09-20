@@ -415,7 +415,6 @@ export default function PracticePage() {
                     substituting={substituting}
                     onGenerateNextRound={handleGenerateNextRound}
                     onPlayerClick={onPlayerClick}
-                    onShowPairStats={() => setActiveTab('stats')}
                   />
                 </div>
               </div>
