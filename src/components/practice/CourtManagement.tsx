@@ -51,16 +51,6 @@ export function CourtManagement({
             ペア統計
           </button>
         </div>
-        <Button
-          variant="primary"
-          onClick={onGenerateNextRound}
-          disabled={players.filter((p) => p.status === 'active').length < 4}
-        >
-          <span className="inline-flex items-center gap-2">
-            <Shuffle className="w-4 h-4" />
-            次の組み合わせを生成
-          </span>
-        </Button>
       </div>
       {latestRound ? (
         <div className="space-y-4">
@@ -227,10 +217,32 @@ export function CourtManagement({
               )
             );
           })()}
+          <div className="pt-2">
+            <Button
+              variant="primary"
+              onClick={onGenerateNextRound}
+              disabled={players.filter((p) => p.status === 'active').length < 4}
+            >
+              <span className="inline-flex items-center gap-2">
+                <Shuffle className="w-4 h-4" />
+                次の組み合わせを生成
+              </span>
+            </Button>
+          </div>
         </div>
       ) : (
-        <div className="text-slate-600 text-sm">
-          まだ組み合わせがありません。ボタンで生成してください。
+        <div className="text-slate-600 text-sm space-y-3">
+          <div>まだ組み合わせがありません。ボタンで生成してください。</div>
+          <Button
+            variant="primary"
+            onClick={onGenerateNextRound}
+            disabled={players.filter((p) => p.status === 'active').length < 4}
+          >
+            <span className="inline-flex items-center gap-2">
+              <Shuffle className="w-4 h-4" />
+              次の組み合わせを生成
+            </span>
+          </Button>
         </div>
       )}
     </Card>

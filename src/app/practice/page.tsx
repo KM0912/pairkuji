@@ -35,12 +35,19 @@ export default function PracticePage() {
   const [showAddParticipant, setShowAddParticipant] = useState(false);
   const [substituting, setSubstituting] = useState<number | null>(null);
   const [showPairStats, setShowPairStats] = useState(false);
+  const [activeTab, setActiveTab] = useState<'combos' | 'manage'>(() => {
+    if (typeof window === 'undefined') return 'combos';
+    return (
+      (window.localStorage.getItem('practiceActiveTab') as any) || 'combos'
+    );
+  });
   const [isParticipantsOpen, setIsParticipantsOpen] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
     const saved = window.localStorage.getItem('participantsAccordionOpen');
     return saved === 'true';
   });
   const participantsAccordionRef = useRef<HTMLDivElement | null>(null);
+  const combosRef = useRef<HTMLDivElement | null>(null);
   const [accordionMaxHeight, setAccordionMaxHeight] = useState<string>('0px');
 
   useEffect(() => {
@@ -81,6 +88,19 @@ export default function PracticePage() {
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, [isParticipantsOpen]);
+
+  // Persist active tab
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      window.localStorage.setItem('practiceActiveTab', activeTab);
+    } catch {}
+  }, [activeTab]);
+
+  // When practice starts, focus on combos tab
+  useEffect(() => {
+    if (settings) setActiveTab('combos');
+  }, [settings]);
 
   // Smooth accordion animation: set max-height to scrollHeight when open
   useEffect(() => {
@@ -216,6 +236,15 @@ export default function PracticePage() {
     resetPractice();
   };
 
+  const handleGenerateNextRound = async () => {
+    // Ensure combos tab is active and scroll into view after generating
+    setActiveTab('combos');
+    await generateNextRound();
+    requestAnimationFrame(() => {
+      combosRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
+
   const toggleParticipantsAccordion = () => {
     const next = !isParticipantsOpen;
     setIsParticipantsOpen(next);
@@ -237,105 +266,140 @@ export default function PracticePage() {
           />
         ) : (
           <>
-            {/* ステータスバー */}
-            <section className="mb-3 sm:mb-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className={`${isParticipantsOpen ? 'sm:col-span-2' : ''}`}>
-                  <Card shadow="sm" padding="none">
-                    <button
-                      type="button"
-                      onClick={toggleParticipantsAccordion}
-                      aria-controls="participants-accordion-content"
-                      aria-expanded={isParticipantsOpen}
-                      className="w-full flex items-center justify-between px-4 py-3"
-                    >
-                      <div className="flex items-center gap-2">
-                        <IconBadge icon={Users} size="md" />
-                        <div className="text-left">
-                          <div className="text-sm text-slate-700">
-                            参加者{' '}
-                            <span className="font-semibold">
-                              {players.length}
-                            </span>
-                          </div>
-                          <div className="text-[11px] text-slate-500">
-                            出場可{' '}
-                            {
-                              players.filter((p) => p.status === 'active')
-                                .length
-                            }
-                          </div>
-                        </div>
-                      </div>
-                      <ChevronDown
-                        className={`h-4 w-4 text-slate-500 transition-transform duration-200 ${
-                          isParticipantsOpen ? 'rotate-180' : ''
-                        }`}
-                        aria-hidden="true"
-                      />
-                    </button>
-                    <div
-                      id="participants-accordion-content"
-                      ref={participantsAccordionRef}
-                      className={`overflow-hidden transition-[max-height] duration-300 ease-in-out`}
-                      style={{ maxHeight: accordionMaxHeight }}
-                    >
-                      <div className="p-4">
-                        <ParticipantManagement
-                          settings={settings}
-                          players={players}
-                          memberMap={memberMap}
-                          matchCounts={matchCounts}
-                          updateCourts={updateCourts}
-                          toggleStatus={toggleStatus}
-                          onShowAddParticipant={() =>
-                            setShowAddParticipant(true)
-                          }
-                        />
-                      </div>
-                    </div>
-                  </Card>
-                </div>
-                <Card
-                  shadow="sm"
-                  padding="none"
-                  className="flex items-center justify-between px-4 py-3"
+            {/* タブ切り替え */}
+            <div className="sticky top-0 z-10 -mx-4 px-4 pb-3 bg-slate-50/80 backdrop-blur supports-[backdrop-filter]:bg-slate-50/60">
+              <div
+                role="tablist"
+                aria-label="表示切替"
+                className="grid grid-cols-2 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm"
+              >
+                <button
+                  role="tab"
+                  aria-selected={activeTab === 'combos'}
+                  className={`text-sm font-medium py-2.5 ${activeTab === 'combos' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-50'}`}
+                  onClick={() => setActiveTab('combos')}
                 >
-                  <div className="flex items-center gap-2">
-                    <IconBadge icon={LayoutGrid} size="md" />
-                    <div className="text-sm text-slate-700">コート数</div>
-                  </div>
-                  <select
-                    value={settings.courts}
-                    onChange={(e) => updateCourts(Number(e.target.value))}
-                    className="bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold min-h-[36px] focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 transition-colors"
-                    aria-label="コート数を変更"
-                  >
-                    {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-                      <option key={n} value={n}>
-                        {n}
-                      </option>
-                    ))}
-                  </select>
-                </Card>
-              </div>
-            </section>
-
-            {/* 2カラムレイアウト */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-              <div className="md:col-span-5">
-                <CourtManagement
-                  players={players}
-                  latestRound={latestRound}
-                  memberMap={memberMap}
-                  playerMap={playerMap}
-                  substituting={substituting}
-                  onGenerateNextRound={generateNextRound}
-                  onPlayerClick={onPlayerClick}
-                  onShowPairStats={() => setShowPairStats(true)}
-                />
+                  組み合わせ
+                </button>
+                <button
+                  role="tab"
+                  aria-selected={activeTab === 'manage'}
+                  className={`text-sm font-medium py-2.5 ${activeTab === 'manage' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-50'}`}
+                  onClick={() => setActiveTab('manage')}
+                >
+                  参加者・設定
+                </button>
               </div>
             </div>
+
+            {/* ステータスバー（参加者・設定タブで表示） */}
+            {activeTab === 'manage' && (
+              <section className="mb-3 sm:mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div
+                    className={`${isParticipantsOpen ? 'sm:col-span-2' : ''}`}
+                  >
+                    <Card shadow="sm" padding="none">
+                      <button
+                        type="button"
+                        onClick={toggleParticipantsAccordion}
+                        aria-controls="participants-accordion-content"
+                        aria-expanded={isParticipantsOpen}
+                        className="w-full flex items-center justify-between px-4 py-3"
+                      >
+                        <div className="flex items-center gap-2">
+                          <IconBadge icon={Users} size="md" />
+                          <div className="text-left">
+                            <div className="text-sm text-slate-700">
+                              参加者{' '}
+                              <span className="font-semibold">
+                                {players.length}
+                              </span>
+                            </div>
+                            <div className="text-[11px] text-slate-500">
+                              出場可{' '}
+                              {
+                                players.filter((p) => p.status === 'active')
+                                  .length
+                              }
+                            </div>
+                          </div>
+                        </div>
+                        <ChevronDown
+                          className={`h-4 w-4 text-slate-500 transition-transform duration-200 ${
+                            isParticipantsOpen ? 'rotate-180' : ''
+                          }`}
+                          aria-hidden="true"
+                        />
+                      </button>
+                      <div
+                        id="participants-accordion-content"
+                        ref={participantsAccordionRef}
+                        className={`overflow-hidden transition-[max-height] duration-300 ease-in-out`}
+                        style={{ maxHeight: accordionMaxHeight }}
+                      >
+                        <div className="p-4">
+                          <ParticipantManagement
+                            settings={settings}
+                            players={players}
+                            memberMap={memberMap}
+                            matchCounts={matchCounts}
+                            updateCourts={updateCourts}
+                            toggleStatus={toggleStatus}
+                            onShowAddParticipant={() =>
+                              setShowAddParticipant(true)
+                            }
+                          />
+                        </div>
+                      </div>
+                    </Card>
+                  </div>
+                  <Card
+                    shadow="sm"
+                    padding="none"
+                    className="flex items-center justify-between px-4 py-3"
+                  >
+                    <div className="flex items-center gap-2">
+                      <IconBadge icon={LayoutGrid} size="md" />
+                      <div className="text-sm text-slate-700">コート数</div>
+                    </div>
+                    <select
+                      value={settings.courts}
+                      onChange={(e) => updateCourts(Number(e.target.value))}
+                      className="bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold min-h-[36px] focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 transition-colors"
+                      aria-label="コート数を変更"
+                    >
+                      {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                        <option key={n} value={n}>
+                          {n}
+                        </option>
+                      ))}
+                    </select>
+                  </Card>
+                </div>
+              </section>
+            )}
+
+            {/* 組み合わせ（組み合わせタブで表示） */}
+            {activeTab === 'combos' && (
+              <div
+                ref={combosRef}
+                className="grid grid-cols-1 md:grid-cols-5 gap-6"
+              >
+                <div className="md:col-span-5">
+                  <CourtManagement
+                    players={players}
+                    latestRound={latestRound}
+                    memberMap={memberMap}
+                    playerMap={playerMap}
+                    substituting={substituting}
+                    onGenerateNextRound={handleGenerateNextRound}
+                    onPlayerClick={onPlayerClick}
+                    onShowPairStats={() => setShowPairStats(true)}
+                  />
+                </div>
+              </div>
+            )}
           </>
         )}
 
