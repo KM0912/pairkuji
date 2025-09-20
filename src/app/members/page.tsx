@@ -1,27 +1,34 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Trash2 } from 'lucide-react';
+import { Search, X, Trash2 } from 'lucide-react';
 import { useMemberStore } from '@/lib/stores/memberStore';
 import { usePracticeStore } from '@/lib/stores/practiceStore';
 import { Button } from '@/components/ui/Button';
-import { SelectTile } from '@/components/ui/SelectTile';
+
+interface EditingMember {
+  id: number;
+  name: string;
+}
 
 export default function MembersPage() {
   const { members, isLoading, error, load, add, update, remove, clearError } =
     useMemberStore();
   const { players } = usePracticeStore();
+
   const [name, setName] = useState('');
-  // 有効/無効の切替機能は一旦廃止（DB上のカラムは維持）
+  const [searchTerm, setSearchTerm] = useState('');
   const [flashingId, setFlashingId] = useState<number | null>(null);
-  const [editingMember, setEditingMember] = useState<{
-    id: number;
-    name: string;
-  } | null>(null);
-  const [deletingMember, setDeletingMember] = useState<{
-    id: number;
-    name: string;
-  } | null>(null);
+  const [editingMember, setEditingMember] = useState<EditingMember | null>(
+    null
+  );
+  const [deletingMember, setDeletingMember] = useState<
+    | {
+        id: number;
+        name: string;
+      }
+    | null
+  >(null);
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
@@ -29,20 +36,35 @@ export default function MembersPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const filtered = useMemo(() => {
-    return [...members].sort((a, b) => a.name.localeCompare(b.name, 'ja'));
-  }, [members]);
+  useEffect(() => {
+    if (!toast) return;
+    const id = setTimeout(() => setToast(null), 2500);
+    return () => clearTimeout(id);
+  }, [toast]);
 
-  const onSubmit = async (e: React.FormEvent) => {
+  const practiceIdSet = useMemo(
+    () => new Set(players.map((p) => p.memberId)),
+    [players]
+  );
+
+  const filteredMembers = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    const list = [...members].sort((a, b) => a.name.localeCompare(b.name, 'ja'));
+    if (!term) return list;
+    return list.filter((member) =>
+      member.name.toLowerCase().includes(term)
+    );
+  }, [members, searchTerm]);
+
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
     await add(name.trim());
     setName('');
+    setToast('選手を追加しました');
   };
 
-  // 有効/無効切り替え機能はUIから削除
-
-  const openEditModal = (member: { id: number; name: string }) => {
+  const openEditModal = (member: EditingMember) => {
     setEditingMember(member);
   };
 
@@ -50,33 +72,30 @@ export default function MembersPage() {
     setEditingMember(null);
   };
 
-  const saveEdit = async (e: React.FormEvent) => {
+  const handleEditSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingMember) return;
 
     setFlashingId(editingMember.id);
     await update(editingMember.id, { name: editingMember.name });
     setTimeout(() => setFlashingId(null), 1000);
+    setToast('保存しました');
     closeEditModal();
   };
 
-  const handleDeleteClick = (id: number, name: string) => {
-    // Check if member is currently in practice
-    const isInPractice = players.some((p) => p.memberId === id);
-    if (isInPractice) {
+  const handleDeleteClick = (id: number, memberName: string) => {
+    if (practiceIdSet.has(id)) {
       setToast('練習に参加中の選手は削除できません');
-      setTimeout(() => setToast(null), 3000);
       return;
     }
-
-    setDeletingMember({ id, name });
+    setDeletingMember({ id, name: memberName });
   };
 
   const handleConfirmDelete = async () => {
     if (!deletingMember) return;
-
     await remove(deletingMember.id);
     setDeletingMember(null);
+    setToast('削除しました');
   };
 
   const handleCancelDelete = () => {
@@ -86,20 +105,20 @@ export default function MembersPage() {
   return (
     <main className="bg-slate-50 min-h-screen">
       <div className="max-w-6xl mx-auto px-4 py-6">
-        {/* Sticky page header for consistency with practice UI */}
         <div className="sticky top-0 z-10 -mx-4 px-4 pb-3 bg-slate-50/80 backdrop-blur supports-[backdrop-filter]:bg-slate-50/60">
-              <div className="bg-white border border-slate-200 rounded-xl px-4 py-2 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-semibold text-slate-800">選手管理</div>
-                  <div className="text-xs text-slate-500">{members.length} 名</div>
-                </div>
+          <div className="bg-white border border-slate-200 rounded-xl px-4 py-2 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-semibold text-slate-800">
+                選手管理
               </div>
+              <div className="text-xs text-slate-500">{members.length} 名</div>
             </div>
+          </div>
+        </div>
 
-        {/* Add form */}
         <form
-          onSubmit={onSubmit}
-          className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex gap-2 mb-6"
+          onSubmit={handleAdd}
+          className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex gap-2 mb-4"
         >
           <input
             type="text"
@@ -113,9 +132,35 @@ export default function MembersPage() {
           </Button>
         </form>
 
-        {/* Count removed as requested */}
+        <div className="mb-4">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="w-5 h-5 text-slate-400" />
+            </div>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="名前で検索"
+              className="w-full pl-10 pr-4 py-3 border rounded-lg text-base min-h-[48px] border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+              aria-label="選手検索"
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm('')}
+                className="absolute inset-y-0 right-0 px-3 text-slate-400 hover:text-slate-600"
+                aria-label="検索をクリア"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+          <p className="mt-2 text-xs text-slate-500">
+            {isLoading ? '読み込み中…' : `${filteredMembers.length} 名が表示されています`}
+          </p>
+        </div>
 
-        {/* Error */}
         {error && (
           <div className="mb-4 p-3 rounded bg-red-50 text-red-700 flex justify-between items-center">
             <span>{error}</span>
@@ -125,58 +170,64 @@ export default function MembersPage() {
           </div>
         )}
 
-        {/* List */}
         <ul className="space-y-2">
-          {filtered.map((m) => {
-            const isFlashing = flashingId === m.id;
+          {filteredMembers.map((member) => {
+            const isFlashing = flashingId === member.id;
+            const inPractice = practiceIdSet.has(member.id!);
             return (
-              <li key={m.id} className="transition-all duration-300">
-                <SelectTile
-                  selected={false}
-                  onClick={() =>
-                    openEditModal({
-                      id: m.id!,
-                      name: m.name,
-                    })
-                  }
-                  className={`w-full justify-between ${
-                    isFlashing ? 'ring-2 ring-blue-400 ring-opacity-75' : ''
+              <li key={member.id} className="transition-all duration-300">
+                <div
+                  className={`flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm active:scale-[0.995] transition-transform ${
+                    isFlashing ? 'ring-2 ring-blue-300' : ''
                   }`}
                 >
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <span className="text-left flex-1 min-w-0 truncate font-medium">
-                      {m.name}
-                    </span>
-                  </div>
                   <button
                     type="button"
-                    className="px-2 py-2 rounded-lg border bg-white hover:bg-red-50 text-red-600 min-h-[40px] min-w-[40px] flex items-center justify-center"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteClick(m.id!, m.name);
-                    }}
-                    title="削除"
+                    className="flex-1 text-left min-w-0"
+                    onClick={() =>
+                      openEditModal({ id: member.id!, name: member.name })
+                    }
+                  >
+                    <span className="font-medium text-slate-800 truncate block">
+                      {member.name}
+                    </span>
+                    {inPractice && (
+                      <span className="text-[11px] text-emerald-600">
+                        練習に参加中
+                      </span>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    className="ml-3 px-3 py-2 rounded-lg border bg-white hover:bg-red-50 text-red-600 min-h-[36px] flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
+                    onClick={() => handleDeleteClick(member.id!, member.name)}
+                    title={
+                      inPractice
+                        ? '練習に参加中の選手は削除できません'
+                        : '削除'
+                    }
+                    disabled={inPractice}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
-                </SelectTile>
+                </div>
               </li>
             );
           })}
-          {!isLoading && filtered.length === 0 && (
+
+          {!isLoading && filteredMembers.length === 0 && (
             <li className="text-center text-gray-500 py-10">
               選手はいません。上のフォームから追加してください。
             </li>
           )}
         </ul>
 
-        {/* Edit Modal */}
         {editingMember && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg w-full max-w-sm mx-4">
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-xl w-full max-w-sm shadow-2xl">
               <div className="p-6">
                 <h2 className="text-lg font-semibold mb-4">選手情報を編集</h2>
-                <form onSubmit={saveEdit} className="space-y-4">
+                <form onSubmit={handleEditSave} className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       名前
@@ -216,9 +267,8 @@ export default function MembersPage() {
           </div>
         )}
 
-        {/* Delete Confirmation Modal */}
         {deletingMember && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-2xl w-full max-w-sm mx-4 shadow-2xl">
               <div className="p-6">
                 <div className="text-center mb-6">
@@ -258,9 +308,8 @@ export default function MembersPage() {
           </div>
         )}
 
-        {/* Toast */}
         {toast && (
-          <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-pulse">
+          <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-slate-900 text-white px-4 py-2 rounded-lg shadow-lg z-50 text-sm">
             {toast}
           </div>
         )}
