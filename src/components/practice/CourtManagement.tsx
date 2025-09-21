@@ -1,8 +1,7 @@
 import { type Member } from '@/types/member';
 import { type PracticePlayer } from '@/types/practice';
 import { type Round } from '@/types/round';
-import { Shuffle, LayoutGrid } from 'lucide-react';
-import { Button } from '../ui/Button';
+import { LayoutGrid } from 'lucide-react';
 import { IconBadge } from '../ui/IconBadge';
 import { PlayerNumber } from '../ui/PlayerNumber';
 
@@ -12,7 +11,6 @@ interface CourtManagementProps {
   memberMap: Map<number, Member>;
   playerMap: Map<number, PracticePlayer>;
   substituting: number | null;
-  onGenerateNextRound: () => Promise<void>;
   onPlayerClick: (memberId: number) => Promise<void>;
 }
 
@@ -22,7 +20,6 @@ export function CourtManagement({
   memberMap,
   playerMap,
   substituting,
-  onGenerateNextRound,
   onPlayerClick,
 }: CourtManagementProps) {
   return (
@@ -176,36 +173,10 @@ export function CourtManagement({
               )
             );
           })()}
-          <div className="pt-1">
-            <Button
-              variant="primary"
-              onClick={onGenerateNextRound}
-              className="w-full"
-              size="sm"
-              disabled={players.filter((p) => p.status === 'active').length < 4}
-            >
-              <span className="inline-flex items-center gap-2">
-                <Shuffle className="w-4 h-4" />
-                次の組み合わせを生成
-              </span>
-            </Button>
-          </div>
         </div>
       ) : (
-        <div className="text-slate-600 text-sm space-y-2">
-          <div>まだ組み合わせがありません。ボタンで生成してください。</div>
-          <Button
-            variant="primary"
-            onClick={onGenerateNextRound}
-            className="w-full"
-            size="sm"
-            disabled={players.filter((p) => p.status === 'active').length < 4}
-          >
-            <span className="inline-flex items-center gap-2">
-              <Shuffle className="w-4 h-4" />
-              次の組み合わせを生成
-            </span>
-          </Button>
+        <div className="text-slate-600 text-sm">
+          <div>まだ組み合わせがありません。下部のボタンで生成してください。</div>
         </div>
       )}
     </section>
