@@ -22,13 +22,10 @@ export default function MembersPage() {
   const [editingMember, setEditingMember] = useState<EditingMember | null>(
     null
   );
-  const [deletingMember, setDeletingMember] = useState<
-    | {
-        id: number;
-        name: string;
-      }
-    | null
-  >(null);
+  const [deletingMember, setDeletingMember] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
@@ -49,11 +46,11 @@ export default function MembersPage() {
 
   const filteredMembers = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
-    const list = [...members].sort((a, b) => a.name.localeCompare(b.name, 'ja'));
-    if (!term) return list;
-    return list.filter((member) =>
-      member.name.toLowerCase().includes(term)
+    const list = [...members].sort((a, b) =>
+      a.name.localeCompare(b.name, 'ja')
     );
+    if (!term) return list;
+    return list.filter((member) => member.name.toLowerCase().includes(term));
   }, [members, searchTerm]);
 
   const handleAdd = async (e: React.FormEvent) => {
@@ -105,17 +102,6 @@ export default function MembersPage() {
   return (
     <main className="bg-slate-50 min-h-screen">
       <div className="max-w-6xl mx-auto px-4 py-6">
-        <div className="sticky top-0 z-10 -mx-4 px-4 pb-3 bg-slate-50/80 backdrop-blur supports-[backdrop-filter]:bg-slate-50/60">
-          <div className="bg-white border border-slate-200 rounded-xl px-4 py-2 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div className="text-sm font-semibold text-slate-800">
-                選手管理
-              </div>
-              <div className="text-xs text-slate-500">{members.length} 名</div>
-            </div>
-          </div>
-        </div>
-
         <form
           onSubmit={handleAdd}
           className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex gap-2 mb-4"
@@ -157,7 +143,9 @@ export default function MembersPage() {
             )}
           </div>
           <p className="mt-2 text-xs text-slate-500">
-            {isLoading ? '読み込み中…' : `${filteredMembers.length} 名が表示されています`}
+            {isLoading
+              ? '読み込み中…'
+              : `${filteredMembers.length} 名が表示されています`}
           </p>
         </div>
 
@@ -202,9 +190,7 @@ export default function MembersPage() {
                     className="ml-3 px-3 py-2 rounded-lg border bg-white hover:bg-red-50 text-red-600 min-h-[36px] flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
                     onClick={() => handleDeleteClick(member.id!, member.name)}
                     title={
-                      inPractice
-                        ? '練習に参加中の選手は削除できません'
-                        : '削除'
+                      inPractice ? '練習に参加中の選手は削除できません' : '削除'
                     }
                     disabled={inPractice}
                   >
