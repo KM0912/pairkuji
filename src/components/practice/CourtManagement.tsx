@@ -28,29 +28,23 @@ export function CourtManagement({
   return (
     <section>
       {latestRound ? (
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 sm:gap-6">
-            {latestRound.courts.map((cm, index) => (
+        <div className="space-y-2">
+          <div className="grid grid-cols-1 gap-2">
+            {latestRound.courts.map((cm) => (
               <div
                 key={cm.courtNo}
-                className={`py-3 px-1 ${
-                  index % 2 === 0 ? 'bg-slate-50' : 'bg-white'
-                }`}
+                className="py-2 px-2 rounded-lg border bg-white border-slate-200"
               >
-                <div className="flex items-center justify-between mb-3">
-                  <div className="inline-flex items-center gap-2 text-slate-700 font-medium">
-                    <IconBadge icon={LayoutGrid} size="md" />
-                    <span className="text-sm">COURT {cm.courtNo}</span>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="inline-flex items-center gap-1.5 text-slate-700 font-medium">
+                    <IconBadge icon={LayoutGrid} size="sm" />
+                    <span className="text-xs">COURT {cm.courtNo}</span>
                   </div>
                 </div>
-                <div className="flex items-stretch gap-2">
+                <div className="flex items-stretch gap-1.5">
                   {/* Team A */}
-                  <div className="flex-1 rounded-lg border-2 border-sky-500 bg-gradient-to-br from-sky-50 to-blue-100/80 p-1.5 min-w-0 shadow-lg">
-                    <div className="text-xs font-bold uppercase tracking-wide text-blue-800 mb-1 flex items-center gap-1">
-                      <div className="w-2 h-2 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 shadow-sm"></div>
-                      <span className="text-blue-700">TEAM A</span>
-                    </div>
-                    <div className="space-y-1">
+                  <div className="flex-1 rounded-md border border-sky-400 bg-sky-50 p-1 min-w-0">
+                    <div className="space-y-0.5">
                       {cm.pairA.map((id) => {
                         const member = memberMap.get(id);
                         const player = playerMap.get(id);
@@ -59,25 +53,25 @@ export function CourtManagement({
                         return (
                           <button
                             key={id}
-                            className={`flex items-center gap-1.5 rounded-lg px-2 py-1.5 transition-all duration-200 w-full min-w-0 min-h-[36px] active:scale-95 shadow-sm border-2 ${
+                            className={`flex items-center gap-1 rounded-md px-1.5 py-1 transition-all duration-200 w-full min-w-0 min-h-[28px] active:scale-95 border ${
                               substituting === id
-                                ? 'bg-yellow-50 border-yellow-400 ring-2 ring-yellow-300 shadow-md'
-                                : 'bg-white border-blue-300 hover:bg-blue-50 hover:border-blue-400 hover:shadow-md'
+                                ? 'bg-yellow-50 border-yellow-400 ring-1 ring-yellow-300'
+                                : 'bg-white border-blue-200 hover:bg-blue-50 hover:border-blue-300'
                             }`}
                             onClick={() => onPlayerClick(id)}
                           >
                             <PlayerNumber
                               number={number}
                               variant="team-a"
-                              size="sm"
+                              size="xs"
                             />
                             <div className="flex-1 min-w-0">
                               <div
-                                className="text-sm font-medium text-left truncate"
+                                className="text-xs font-medium text-left truncate"
                                 title={name}
                               >
-                                {name.length > 10
-                                  ? name.substring(0, 10) + '...'
+                                {name.length > 8
+                                  ? name.substring(0, 8) + '...'
                                   : name}
                               </div>
                             </div>
@@ -88,12 +82,8 @@ export function CourtManagement({
                   </div>
 
                   {/* Team B */}
-                  <div className="flex-1 rounded-lg border-2 border-emerald-500 bg-gradient-to-br from-emerald-50 to-teal-100/80 p-1.5 min-w-0 shadow-lg">
-                    <div className="text-xs font-bold uppercase tracking-wide text-emerald-800 mb-1 flex items-center gap-1">
-                      <div className="w-2 h-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 shadow-sm"></div>
-                      <span className="text-emerald-700">TEAM B</span>
-                    </div>
-                    <div className="space-y-1">
+                  <div className="flex-1 rounded-md border border-emerald-400 bg-emerald-50 p-1 min-w-0">
+                    <div className="space-y-0.5">
                       {cm.pairB.map((id) => {
                         const member = memberMap.get(id);
                         const player = playerMap.get(id);
@@ -102,25 +92,25 @@ export function CourtManagement({
                         return (
                           <button
                             key={id}
-                            className={`flex items-center gap-1.5 rounded-lg px-2 py-1.5 transition-all duration-200 w-full min-w-0 min-h-[36px] active:scale-95 shadow-sm border-2 ${
+                            className={`flex items-center gap-1 rounded-md px-1.5 py-1 transition-all duration-200 w-full min-w-0 min-h-[28px] active:scale-95 border ${
                               substituting === id
-                                ? 'bg-yellow-50 border-yellow-400 ring-2 ring-yellow-300 shadow-md'
-                                : 'bg-white border-emerald-300 hover:bg-emerald-50 hover:border-emerald-400 hover:shadow-md'
+                                ? 'bg-yellow-50 border-yellow-400 ring-1 ring-yellow-300'
+                                : 'bg-white border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300'
                             }`}
                             onClick={() => onPlayerClick(id)}
                           >
                             <PlayerNumber
                               number={number}
                               variant="team-b"
-                              size="sm"
+                              size="xs"
                             />
                             <div className="flex-1 min-w-0">
                               <div
-                                className="text-sm font-medium text-left truncate"
+                                className="text-xs font-medium text-left truncate"
                                 title={name}
                               >
-                                {name.length > 10
-                                  ? name.substring(0, 10) + '...'
+                                {name.length > 8
+                                  ? name.substring(0, 8) + '...'
                                   : name}
                               </div>
                             </div>
@@ -149,9 +139,9 @@ export function CourtManagement({
 
             return (
               restingPlayers.length > 0 && (
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
-                  <div className="mb-2 font-medium text-slate-700">休憩</div>
-                  <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-2 text-sm text-slate-700">
+                  <div className="mb-1.5 font-medium text-slate-700 text-xs">休憩</div>
+                  <div className="flex flex-wrap gap-1">
                     {restingPlayers.map((id) => {
                       const member = memberMap.get(id);
                       const player = playerMap.get(id);
@@ -160,10 +150,10 @@ export function CourtManagement({
                       return (
                         <button
                           key={id}
-                          className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1.5 text-sm transition-all duration-200 min-h-[32px] active:scale-95 ${
+                          className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs transition-all duration-200 min-h-[24px] active:scale-95 ${
                             substituting === id
-                              ? 'bg-yellow-100 border-yellow-400 text-yellow-800 ring-2 ring-yellow-300 shadow-md'
-                              : 'bg-white border-slate-300 text-slate-800 hover:bg-slate-50 hover:shadow-sm'
+                              ? 'bg-yellow-100 border-yellow-400 text-yellow-800 ring-1 ring-yellow-300'
+                              : 'bg-white border-slate-300 text-slate-800 hover:bg-slate-50'
                           }`}
                           onClick={() => onPlayerClick(id)}
                         >
@@ -173,10 +163,10 @@ export function CourtManagement({
                             size="xs"
                           />
                           <span
-                            className="truncate max-w-[130px] text-left"
+                            className="truncate max-w-[80px] text-left"
                             title={name}
                           >
-                            {name}
+                            {name.length > 8 ? name.substring(0, 8) + '...' : name}
                           </span>
                         </button>
                       );
@@ -186,11 +176,12 @@ export function CourtManagement({
               )
             );
           })()}
-          <div className="pt-2">
+          <div className="pt-1">
             <Button
               variant="primary"
               onClick={onGenerateNextRound}
               className="w-full"
+              size="sm"
               disabled={players.filter((p) => p.status === 'active').length < 4}
             >
               <span className="inline-flex items-center gap-2">
@@ -201,12 +192,13 @@ export function CourtManagement({
           </div>
         </div>
       ) : (
-        <div className="text-slate-600 text-sm space-y-3">
+        <div className="text-slate-600 text-sm space-y-2">
           <div>まだ組み合わせがありません。ボタンで生成してください。</div>
           <Button
             variant="primary"
             onClick={onGenerateNextRound}
             className="w-full"
+            size="sm"
             disabled={players.filter((p) => p.status === 'active').length < 4}
           >
             <span className="inline-flex items-center gap-2">

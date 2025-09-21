@@ -209,7 +209,7 @@ export default function PracticePage() {
             {/* コート管理 */}
             <div
               ref={combosRef}
-              className="space-y-6"
+              className="space-y-6 mt-6"
             >
               <div>
                 <div className="grid grid-cols-2 gap-3 mb-4">

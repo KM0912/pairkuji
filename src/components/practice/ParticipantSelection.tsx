@@ -1,13 +1,6 @@
 import { type Member } from '@/types/member';
 import { useState, useMemo } from 'react';
-import {
-  Search,
-  X,
-  Users,
-  AlertTriangle,
-  Target,
-  Play,
-} from 'lucide-react';
+import { Search, X, Users, AlertTriangle, Target, Play } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { IconBadge } from '../ui/IconBadge';
@@ -248,7 +241,6 @@ export function ParticipantSelection({
           <Button
             type="submit"
             variant="primary"
-            size="lg"
             className="w-full text-lg font-bold shadow-2xl"
             disabled={selected.length < minToStart}
           >
@@ -260,7 +252,7 @@ export function ParticipantSelection({
             ) : (
               <span className="inline-flex items-center gap-3">
                 <Play className="w-6 h-6" />
-                🏸 ダブルス練習開始 ({selected.length}名)
+                ダブルス練習開始 ({selected.length}名)
               </span>
             )}
           </Button>
