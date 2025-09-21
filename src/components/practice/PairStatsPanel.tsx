@@ -1,7 +1,4 @@
 import { type PracticePlayer } from '@/types/practice';
-import { Card } from '../ui/Card';
-import { IconBadge } from '../ui/IconBadge';
-import { BarChart3 } from 'lucide-react';
 
 interface PairStatsPanelProps {
   players: PracticePlayer[];
@@ -51,12 +48,8 @@ export function PairStatsPanel({ players, pairCounts }: PairStatsPanelProps) {
   const neverMetPairs = allPairs.filter((pair) => pair.count === 0).length;
 
   return (
-    <Card as="section" className="space-y-4">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <IconBadge icon={BarChart3} size="md" />
-          <h2 className="text-xl font-semibold text-slate-800">ペア統計</h2>
-        </div>
         <div className="text-xs text-slate-500">
           未対戦 {neverMetPairs}/{totalPairs}
         </div>
@@ -99,6 +92,6 @@ export function PairStatsPanel({ players, pairCounts }: PairStatsPanelProps) {
           </div>
         </div>
       )}
-    </Card>
+    </div>
   );
 }
