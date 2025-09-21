@@ -10,8 +10,9 @@ import { CourtManagement } from '@/components/practice/CourtManagement';
 import { AddParticipantModal } from '@/components/practice/AddParticipantModal';
 import { PairStatsPanel } from '@/components/practice/PairStatsPanel';
 import { SubstitutionHint } from '@/components/practice/SubstitutionHint';
+import { FullscreenDisplay } from '@/components/practice/FullscreenDisplay';
 import { Button } from '@/components/ui/Button';
-import { Users, LayoutGrid, Layers, BarChart3 } from 'lucide-react';
+import { Users, LayoutGrid, Layers, BarChart3, Maximize } from 'lucide-react';
 
 export default function PracticePage() {
   const { members, load: loadMembers } = useMemberStore();
@@ -39,6 +40,7 @@ export default function PracticePage() {
   const [showCourtModal, setShowCourtModal] = useState(false);
   const [pendingCourts, setPendingCourts] = useState<number>(courts);
   const [showParticipantModal, setShowParticipantModal] = useState(false);
+  const [showFullscreen, setShowFullscreen] = useState(false);
 
   useEffect(() => {
     loadMembers();
@@ -257,6 +259,21 @@ export default function PracticePage() {
                     <span className="font-medium text-slate-800 text-sm">統計</span>
                   </Button>
                 </div>
+
+                {latestRound && (
+                  <div className="mb-4">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setShowFullscreen(true)}
+                      className="w-full flex items-center justify-center gap-2"
+                    >
+                      <Maximize className="h-4 w-4" />
+                      <span className="font-medium">フルスクリーン表示</span>
+                    </Button>
+                  </div>
+                )}
                 <CourtManagement
                   players={players}
                   latestRound={latestRound}
@@ -457,6 +474,20 @@ export default function PracticePage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Fullscreen display */}
+      {showFullscreen && latestRound && (
+        <FullscreenDisplay
+          round={latestRound}
+          memberMap={memberMap}
+          playerMap={playerMap}
+          roundNumber={rounds.length}
+          substituting={substituting}
+          onClose={() => setShowFullscreen(false)}
+          onPlayerClick={onPlayerClick}
+          onGenerateNextRound={handleGenerateNextRound}
+        />
       )}
     </main>
   );
