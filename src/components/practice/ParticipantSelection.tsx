@@ -6,6 +6,7 @@ import { Card } from '../ui/Card';
 import { IconBadge } from '../ui/IconBadge';
 import { PlayerNumber } from '../ui/PlayerNumber';
 import { SelectTile } from '../ui/SelectTile';
+import { CourtSelector } from '../ui/CourtSelector';
 
 interface ParticipantSelectionProps {
   members: Member[];
@@ -66,52 +67,24 @@ export function ParticipantSelection({
         <div className="grid grid-cols-1 gap-4">
         {/* コート設定カード */}
         <Card as="section">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <IconBadge
                 icon={Target}
-                size="md"
+                size="sm"
                 className="bg-emerald-100 text-emerald-600"
               />
               <div>
-                <h3 className="text-base font-semibold text-slate-800">
+                <h3 className="text-sm font-semibold text-slate-800">
                   コート設定
                 </h3>
-                <p className="text-xs text-slate-500">使用するコート数</p>
               </div>
             </div>
           </div>
-          <div className="bg-slate-100 rounded-xl p-4 border border-slate-200">
-            <div className="flex items-center gap-3">
-              <Button
-                type="button"
-                size="sm"
-                variant="default"
-                onClick={() => setCourts(Math.max(1, courts - 1))}
-                className="w-10 h-10 rounded-full bg-white hover:bg-slate-50 shadow-sm border-slate-200 flex items-center justify-center"
-                aria-label="コート数を減らす"
-              >
-                <span className="text-lg font-bold text-slate-600">−</span>
-              </Button>
-              <div className="flex-1 text-center">
-                <div className="text-2xl font-bold text-slate-800">
-                  {courts}
-                </div>
-                <div className="text-xs text-slate-600">コート</div>
-              </div>
-              <Button
-                type="button"
-                size="sm"
-                variant="default"
-                onClick={() => setCourts(Math.min(10, courts + 1))}
-                className="w-10 h-10 rounded-full bg-white hover:bg-slate-50 shadow-sm border-slate-200 flex items-center justify-center"
-                aria-label="コート数を増やす"
-              >
-                <span className="text-lg font-bold text-slate-600">＋</span>
-              </Button>
-            </div>
+          <div className="bg-slate-100 rounded-lg p-2">
+            <CourtSelector courts={courts} setCourts={setCourts} size="sm" />
             {runnableCourts < courts && selected.length >= 4 && (
-              <div className="mt-3 text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-lg border border-amber-200">
+              <div className="mt-2 text-xs text-amber-600 bg-amber-50 px-2 py-1.5 rounded border border-amber-200">
                 参加者数により実際は{runnableCourts}コートで開始されます
               </div>
             )}

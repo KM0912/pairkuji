@@ -11,6 +11,7 @@ import { PairStatsPanel } from '@/components/practice/PairStatsPanel';
 import { SubstitutionHint } from '@/components/practice/SubstitutionHint';
 import { FullscreenDisplay } from '@/components/practice/FullscreenDisplay';
 import { Button } from '@/components/ui/Button';
+import { CourtSelector } from '@/components/ui/CourtSelector';
 import { Users, LayoutGrid, Layers, BarChart3, Maximize, AlertTriangle, RotateCcw } from 'lucide-react';
 
 export default function PracticePage() {
@@ -380,20 +381,16 @@ export default function PracticePage() {
               </Button>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 mb-3">
                 コート数
               </label>
-              <select
-                value={pendingCourts}
-                onChange={(e) => setPendingCourts(Number(e.target.value))}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-200"
-              >
-                {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-                  <option key={n} value={n}>
-                    {n}
-                  </option>
-                ))}
-              </select>
+              <div className="bg-slate-100 rounded-lg p-3 border border-slate-200">
+                <CourtSelector
+                  courts={pendingCourts}
+                  setCourts={setPendingCourts}
+                  size="sm"
+                />
+              </div>
             </div>
             <div className="flex gap-2 justify-end">
               <Button
