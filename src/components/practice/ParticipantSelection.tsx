@@ -227,6 +227,7 @@ export function ParticipantSelection({
           <Button
             type="submit"
             variant="primary"
+            className="w-full"
             disabled={selected.length < minToStart}
           >
             {selected.length < minToStart ? (

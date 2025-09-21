@@ -190,6 +190,7 @@ export function CourtManagement({
             <Button
               variant="primary"
               onClick={onGenerateNextRound}
+              className="w-full"
               disabled={players.filter((p) => p.status === 'active').length < 4}
             >
               <span className="inline-flex items-center gap-2">
@@ -205,6 +206,7 @@ export function CourtManagement({
           <Button
             variant="primary"
             onClick={onGenerateNextRound}
+            className="w-full"
             disabled={players.filter((p) => p.status === 'active').length < 4}
           >
             <span className="inline-flex items-center gap-2">

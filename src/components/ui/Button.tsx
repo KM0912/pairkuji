@@ -36,7 +36,7 @@ export function Button({
       {...props}
       disabled={disabled || loading}
       className={`
-        w-full rounded-xl font-semibold shadow-lg hover:shadow-xl
+        rounded-xl font-semibold shadow-lg hover:shadow-xl
         transition-all duration-200 border disabled:opacity-50
         ${variantStyles[variant]}
         ${sizeStyles[size]}
