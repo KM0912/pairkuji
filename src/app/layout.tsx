@@ -18,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body className={inter.className}>
-        <div className="min-h-screen pb-16">
+        <div className="min-h-screen pb-16 bg-slate-50">
           {children}
         </div>
         <BottomNavigation />

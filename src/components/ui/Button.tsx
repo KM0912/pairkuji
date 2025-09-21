@@ -10,16 +10,17 @@ const variantStyles = {
   primary:
     'bg-gradient-to-r from-blue-400 to-emerald-400 text-white hover:from-blue-500 hover:to-emerald-500 disabled:from-slate-400 disabled:to-slate-400',
   secondary:
-    'bg-gradient-to-r from-blue-50 to-emerald-50 text-slate-700 hover:from-blue-100 hover:to-emerald-100 hover:text-slate-800 disabled:from-slate-300 disabled:to-slate-300',
-  danger: 'bg-red-600 text-white hover:bg-red-700 disabled:bg-red-400',
+    'bg-gradient-to-r from-emerald-50 to-blue-50 text-slate-700 hover:from-emerald-100 hover:to-blue-100 hover:text-slate-800 disabled:from-slate-100 disabled:to-slate-100 border border-emerald-200',
+  danger:
+    'bg-gradient-to-r from-red-500 to-pink-500 text-white hover:from-red-600 hover:to-pink-600 disabled:from-slate-400 disabled:to-slate-400 shadow-red-500/25',
   default:
-    'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:text-slate-900',
+    'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300',
 };
 
 const sizeStyles = {
-  sm: 'py-2 px-3 text-sm min-h-[36px]',
-  md: 'py-3 px-4 text-base min-h-[48px]',
-  lg: 'py-4 px-6 text-lg min-h-[56px]',
+  sm: 'py-2 px-4 text-sm min-h-[40px]',
+  md: 'py-3 px-5 text-base min-h-[52px]',
+  lg: 'py-4 px-6 text-lg min-h-[60px]',
 };
 
 export function Button({
@@ -36,8 +37,8 @@ export function Button({
       {...props}
       disabled={disabled || loading}
       className={`
-        rounded-xl font-semibold shadow-lg hover:shadow-xl
-        transition-all duration-200 border disabled:opacity-50
+        rounded-xl font-semibold shadow-lg hover:shadow-xl active:scale-[0.98]
+        transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
         ${variantStyles[variant]}
         ${sizeStyles[size]}
         ${loading ? 'cursor-not-allowed' : ''}

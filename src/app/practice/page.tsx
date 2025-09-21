@@ -210,7 +210,7 @@ export default function PracticePage() {
   };
 
   return (
-    <main className="bg-slate-50 min-h-screen">
+    <main className="min-h-screen">
       <div className="max-w-6xl mx-auto px-4 py-6">
         <Header settings={settings} onReset={handleReset} />
 
@@ -226,7 +226,7 @@ export default function PracticePage() {
         ) : (
           <>
             {/* タブ切り替え */}
-            <div className="sticky top-0 z-10 -mx-4 px-4 pb-3 bg-slate-50/80 backdrop-blur supports-[backdrop-filter]:bg-slate-50/60">
+            <div className="sticky top-0 z-10 -mx-4 px-4 pt-4 pb-3 bg-slate-50">
               <div
                 role="tablist"
                 aria-label="表示切替"
@@ -235,26 +235,26 @@ export default function PracticePage() {
                 <button
                   role="tab"
                   aria-selected={activeTab === 'combos'}
-                  className={`text-sm font-medium py-2.5 ${
+                  className={`text-sm font-medium py-3 transition-all duration-200 ${
                     activeTab === 'combos'
-                      ? 'bg-emerald-50 text-emerald-700'
-                      : 'text-slate-600 hover:bg-slate-50'
+                      ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-500'
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-700'
                   }`}
                   onClick={() => setActiveTab('combos')}
                 >
-                  組み合わせ
+                  🏘️ コート管理
                 </button>
                 <button
                   role="tab"
                   aria-selected={activeTab === 'stats'}
-                  className={`text-sm font-medium py-2.5 ${
+                  className={`text-sm font-medium py-3 transition-all duration-200 ${
                     activeTab === 'stats'
-                      ? 'bg-emerald-50 text-emerald-700'
-                      : 'text-slate-600 hover:bg-slate-50'
+                      ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-500'
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-700'
                   }`}
                   onClick={() => setActiveTab('stats')}
                 >
-                  ペア統計
+                  📈 ペア統計
                 </button>
               </div>
             </div>
@@ -263,42 +263,42 @@ export default function PracticePage() {
             {activeTab === 'combos' && (
               <div
                 ref={combosRef}
-                className="grid grid-cols-1 md:grid-cols-5 gap-6"
+                className="space-y-6"
               >
-                <div className="md:col-span-5">
-                  <div className="flex gap-2 mb-2 overflow-x-auto">
+                <div>
+                  <div className="grid grid-cols-3 gap-2 mb-2">
                     <Button
                       type="button"
                       variant="default"
                       size="sm"
                       onClick={() => setShowRoundSummary(true)}
-                      className="w-auto flex items-center gap-2 px-3 py-2 text-xs text-slate-600 shadow-none hover:shadow-none border-slate-200 hover:border-emerald-400 hover:bg-emerald-50 hover:text-slate-700 whitespace-nowrap"
+                      className="flex items-center justify-center gap-1 px-1 py-2 text-xs text-slate-600 shadow-none hover:shadow-none border-slate-200 hover:border-emerald-400 hover:bg-emerald-50 hover:text-slate-700 whitespace-nowrap min-w-0"
                     >
-                      <Layers className="h-4 w-4 text-emerald-600" />
-                      <span className="font-medium text-slate-800">ラウンド</span>
-                      <span className="text-slate-600">{rounds.length}</span>
+                      <Layers className="h-3 w-3 text-emerald-600 flex-shrink-0" />
+                      <span className="font-medium text-slate-800 text-xs">ラウンド</span>
+                      <span className="text-slate-600 text-xs">{rounds.length}</span>
                     </Button>
                     <Button
                       type="button"
                       variant="default"
                       size="sm"
                       onClick={() => setShowCourtModal(true)}
-                      className="w-auto flex items-center gap-2 px-3 py-2 text-xs text-slate-600 shadow-none hover:shadow-none border-slate-200 hover:border-sky-400 hover:bg-sky-50 hover:text-slate-700 whitespace-nowrap"
+                      className="flex items-center justify-center gap-1 px-1 py-2 text-xs text-slate-600 shadow-none hover:shadow-none border-slate-200 hover:border-sky-400 hover:bg-sky-50 hover:text-slate-700 whitespace-nowrap min-w-0"
                     >
-                      <LayoutGrid className="h-4 w-4 text-sky-600" />
-                      <span className="font-medium text-slate-800">コート</span>
-                      <span className="text-slate-600">{settings.courts}</span>
+                      <LayoutGrid className="h-3 w-3 text-sky-600 flex-shrink-0" />
+                      <span className="font-medium text-slate-800 text-xs">コート</span>
+                      <span className="text-slate-600 text-xs">{settings.courts}</span>
                     </Button>
                     <Button
                       type="button"
                       variant="default"
                       size="sm"
                       onClick={handleOpenParticipants}
-                      className="w-auto flex items-center gap-2 px-3 py-2 text-xs text-slate-600 shadow-none hover:shadow-none border-slate-200 hover:border-indigo-400 hover:bg-indigo-50 hover:text-slate-700 whitespace-nowrap"
+                      className="flex items-center justify-center gap-1 px-1 py-2 text-xs text-slate-600 shadow-none hover:shadow-none border-slate-200 hover:border-indigo-400 hover:bg-indigo-50 hover:text-slate-700 whitespace-nowrap min-w-0"
                     >
-                      <Users className="h-4 w-4 text-indigo-600" />
-                      <span className="font-medium text-slate-800">参加者</span>
-                      <span className="text-slate-600">{players.length}</span>
+                      <Users className="h-3 w-3 text-indigo-600 flex-shrink-0" />
+                      <span className="font-medium text-slate-800 text-xs">参加者</span>
+                      <span className="text-slate-600 text-xs">{players.length}</span>
                     </Button>
                   </div>
                   <CourtManagement
@@ -315,10 +315,8 @@ export default function PracticePage() {
             )}
 
             {activeTab === 'stats' && (
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-                <div className="md:col-span-5">
-                  <PairStatsPanel players={players} pairCounts={pairCounts} />
-                </div>
+              <div className="space-y-6">
+                <PairStatsPanel players={players} pairCounts={pairCounts} />
               </div>
             )}
           </>
@@ -342,7 +340,7 @@ export default function PracticePage() {
       {/* Round summary modal */}
       {showRoundSummary && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-xl border border-slate-200">
             <div className="flex items-center justify-between border-b px-4 py-3">
               <h2 className="text-sm font-semibold text-slate-800">ラウンド履歴</h2>
               <Button
@@ -385,7 +383,7 @@ export default function PracticePage() {
       {/* Court count modal */}
       {showCourtModal && settings && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl p-5 space-y-5">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-xl border border-slate-200 p-5 space-y-5">
             <div className="flex items-center justify-between">
               <h2 className="text-base font-semibold text-slate-800">
                 コート数を変更
@@ -445,7 +443,7 @@ export default function PracticePage() {
       {/* Participant management modal */}
       {showParticipantModal && settings && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-3xl rounded-2xl bg-white shadow-2xl">
+          <div className="w-full max-w-3xl rounded-2xl bg-white shadow-xl border border-slate-200">
             <div className="flex items-center justify-between border-b px-5 py-4">
               <div>
                 <h2 className="text-base font-semibold text-slate-800">

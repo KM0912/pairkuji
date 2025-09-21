@@ -101,7 +101,7 @@ export default function MembersPage() {
   };
 
   return (
-    <main className="bg-slate-50 min-h-screen">
+    <main className="min-h-screen">
       <Header settings={null} onReset={() => {}} />
       <div className="max-w-6xl mx-auto px-4 py-6">
         <form
@@ -167,8 +167,8 @@ export default function MembersPage() {
             return (
               <li key={member.id} className="transition-all duration-300">
                 <div
-                  className={`flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm active:scale-[0.995] transition-transform ${
-                    isFlashing ? 'ring-2 ring-blue-300' : ''
+                  className={`flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm hover:shadow-md active:scale-[0.995] transition-all duration-200 ${
+                    isFlashing ? 'ring-2 ring-blue-300 bg-blue-50' : ''
                   }`}
                 >
                   <button
@@ -212,7 +212,7 @@ export default function MembersPage() {
 
         {editingMember && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl w-full max-w-sm shadow-2xl">
+            <div className="bg-white rounded-xl w-full max-w-sm shadow-xl border border-slate-200">
               <div className="p-6">
                 <h2 className="text-lg font-semibold mb-4">選手情報を編集</h2>
                 <form onSubmit={handleEditSave} className="space-y-4">
@@ -257,7 +257,7 @@ export default function MembersPage() {
 
         {deletingMember && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-2xl w-full max-w-sm mx-4 shadow-2xl">
+            <div className="bg-white rounded-2xl w-full max-w-sm mx-4 shadow-xl border border-slate-200">
               <div className="p-6">
                 <div className="text-center mb-6">
                   <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">

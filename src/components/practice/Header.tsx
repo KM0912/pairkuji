@@ -23,14 +23,14 @@ export function Header({ settings, onReset }: HeaderProps) {
     setShowConfirm(false);
   };
 
-  // コンパクト（練習中）: スクロールに追従する薄いヘッダー
+  // コンパクト（練習中）: スクロールに追従するヘッダー
   if (settings) {
     return (
       <>
         <div className="sticky top-0 z-40 -mx-4 -mt-6">
-          <div className="bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-b border-slate-200">
-            <div className="h-12 flex items-center justify-between max-w-6xl mx-auto px-4">
-              <div className="text-sm font-semibold text-slate-800">ペアくじ</div>
+          <div className="bg-white border-b border-slate-200">
+            <div className="h-16 flex items-center justify-between max-w-6xl mx-auto px-4">
+              <div className="text-lg font-bold text-slate-800">🏸 ペアくじ</div>
               <button
                 className="text-xs bg-red-600 text-white px-3 py-1.5 rounded-lg hover:bg-red-700 transition-colors font-medium shadow-sm"
                 onClick={handleResetClick}
@@ -81,16 +81,17 @@ export function Header({ settings, onReset }: HeaderProps) {
     );
   }
 
-  // ランディング（未開始）: ヒーロー風の大きなタイトル
+  // ランディング（未開始）: モバイル最適化ヘッダー
   return (
-    <div className="text-center mb-6 pt-4">
+    <div className="text-center mb-8 pt-6 px-4">
       <div className="relative inline-block">
-        <h1 className="text-3xl font-bold text-slate-800 mb-2 relative">
-          ペアくじ
-          <div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-blue-400 to-emerald-400 rounded-full"></div>
+        <h1 className="text-4xl font-bold text-slate-800 mb-3 relative">
+          🏸 ペアくじ
+          <div className="absolute -bottom-3 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 to-blue-500 rounded-full shadow-sm"></div>
         </h1>
       </div>
-      <p className="text-slate-600 text-sm">ダブルス練習管理</p>
+      <p className="text-slate-600 text-base font-medium mt-2">ダブルス練習の組み合わせ管理</p>
+      <p className="text-slate-400 text-sm mt-1">公平で楽しい練習をサポート</p>
     </div>
   );
 }
