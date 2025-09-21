@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { BottomNavigation } from '../components/BottomNavigation';
+import { Header } from '../components/practice/Header';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -17,9 +18,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <body className={inter.className}>
-        <div className="min-h-screen pb-16 bg-slate-50">
-          {children}
+      <body className={`${inter.className} overflow-x-hidden`}>
+        <div className="min-h-screen bg-slate-50">
+          <Header />
+          <main className="pb-20">
+            <div className="max-w-6xl mx-auto px-4 py-6">
+              {children}
+            </div>
+          </main>
         </div>
         <BottomNavigation />
       </body>

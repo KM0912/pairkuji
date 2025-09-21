@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMemberStore } from '@/lib/stores/memberStore';
 import { usePracticeStore } from '@/lib/stores/practiceStore';
-import { Header } from '@/components/practice/Header';
 import { ParticipantSelection } from '@/components/practice/ParticipantSelection';
 import { ParticipantManagement } from '@/components/practice/ParticipantManagement';
 import { CourtManagement } from '@/components/practice/CourtManagement';
@@ -12,7 +11,7 @@ import { PairStatsPanel } from '@/components/practice/PairStatsPanel';
 import { SubstitutionHint } from '@/components/practice/SubstitutionHint';
 import { FullscreenDisplay } from '@/components/practice/FullscreenDisplay';
 import { Button } from '@/components/ui/Button';
-import { Users, LayoutGrid, Layers, BarChart3, Maximize } from 'lucide-react';
+import { Users, LayoutGrid, Layers, BarChart3, Maximize, AlertTriangle, RotateCcw } from 'lucide-react';
 
 export default function PracticePage() {
   const { members, load: loadMembers } = useMemberStore();
@@ -41,6 +40,7 @@ export default function PracticePage() {
   const [pendingCourts, setPendingCourts] = useState<number>(courts);
   const [showParticipantModal, setShowParticipantModal] = useState(false);
   const [showFullscreen, setShowFullscreen] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   useEffect(() => {
     loadMembers();
@@ -167,6 +167,15 @@ export default function PracticePage() {
   const handleReset = () => {
     setSubstituting(null);
     resetPractice();
+    setShowResetConfirm(false);
+  };
+
+  const handleResetClick = () => {
+    setShowResetConfirm(true);
+  };
+
+  const handleCancelReset = () => {
+    setShowResetConfirm(false);
   };
 
   const handleGenerateNextRound = async () => {
@@ -192,11 +201,8 @@ export default function PracticePage() {
   };
 
   return (
-    <main className="min-h-screen">
-      <div className="max-w-6xl mx-auto px-4 py-6">
-        <Header settings={settings} onReset={handleReset} />
-
-        {!settings ? (
+    <div>
+      {!settings ? (
           <ParticipantSelection
             members={members}
             courts={courts}
@@ -214,7 +220,7 @@ export default function PracticePage() {
               className="space-y-6 mt-6"
             >
               <div>
-                <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="grid grid-cols-2 gap-2 mb-4">
                   <Button
                     type="button"
                     variant="default"
@@ -257,6 +263,16 @@ export default function PracticePage() {
                   >
                     <BarChart3 className="h-4 w-4 text-purple-600 flex-shrink-0" />
                     <span className="font-medium text-slate-800 text-sm">統計</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="default"
+                    size="sm"
+                    onClick={handleResetClick}
+                    className="flex items-center justify-center gap-2 px-3 py-3 text-sm text-slate-600 shadow-none hover:shadow-none border-slate-200 hover:border-red-400 hover:bg-red-50 hover:text-slate-700"
+                  >
+                    <RotateCcw className="h-4 w-4 text-red-600 flex-shrink-0" />
+                    <span className="font-medium text-slate-800 text-sm">リセット</span>
                   </Button>
                 </div>
 
@@ -301,10 +317,8 @@ export default function PracticePage() {
           playerMap={playerMap}
         />
 
-      </div>
-
-      {/* Round summary modal */}
-      {showRoundSummary && (
+        {/* Round summary modal */}
+        {showRoundSummary && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-md rounded-2xl bg-white shadow-xl border border-slate-200">
             <div className="flex items-center justify-between border-b px-4 py-3">
@@ -489,6 +503,42 @@ export default function PracticePage() {
           onGenerateNextRound={handleGenerateNextRound}
         />
       )}
-    </main>
+
+      {/* Reset confirmation modal */}
+      {showResetConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl w-full max-w-sm mx-4 shadow-2xl">
+            <div className="p-6">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                  <AlertTriangle className="w-8 h-8 text-red-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  練習をリセットしますか？
+                </h3>
+                <p className="text-sm text-gray-600">
+                  すべてのラウンドデータが削除され、元に戻すことはできません。
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleCancelReset}
+                  className="flex-1 px-4 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                >
+                  キャンセル
+                </button>
+                <button
+                  onClick={handleReset}
+                  className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-medium"
+                >
+                  リセット
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

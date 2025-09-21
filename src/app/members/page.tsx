@@ -5,7 +5,6 @@ import { Search, X, Trash2 } from 'lucide-react';
 import { useMemberStore } from '@/lib/stores/memberStore';
 import { usePracticeStore } from '@/lib/stores/practiceStore';
 import { Button } from '@/components/ui/Button';
-import { Header } from '@/components/practice/Header';
 
 interface EditingMember {
   id: number;
@@ -101,9 +100,8 @@ export default function MembersPage() {
   };
 
   return (
-    <main className="min-h-screen">
-      <Header settings={null} onReset={() => {}} />
-      <div className="max-w-6xl mx-auto px-4 py-6">
+    <>
+      <div className="space-y-6">
         <form
           onSubmit={handleAdd}
           className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex gap-2 mb-4"
@@ -302,6 +300,6 @@ export default function MembersPage() {
           </div>
         )}
       </div>
-    </main>
+    </>
   );
 }

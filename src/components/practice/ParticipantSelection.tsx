@@ -60,8 +60,10 @@ export function ParticipantSelection({
   }, [activeMembers, viewFilter, selectedSet, searchTerm]);
 
   return (
-    <form onSubmit={onStart} className="">
-      <div className="grid grid-cols-1 gap-6">
+    <div className="space-y-4">
+
+      <form onSubmit={onStart} className="">
+        <div className="grid grid-cols-1 gap-4">
         {/* コート設定カード */}
         <Card as="section">
           <div className="flex items-center justify-between mb-4">
@@ -259,5 +261,6 @@ export function ParticipantSelection({
         </div>
       </div>
     </form>
+    </div>
   );
 }

@@ -41,8 +41,8 @@ export const BottomNavigation: React.FC = () => {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg safe-area-pb">
-      <div className="flex px-2">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg safe-area-pb w-full">
+      <div className="flex px-2 max-w-full">
         {tabs.map((tab) => {
           const isActive = activeTab?.id === tab.id;
           return (
