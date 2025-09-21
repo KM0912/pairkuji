@@ -10,7 +10,7 @@ const variantStyles = {
   primary:
     'bg-gradient-to-r from-blue-400 to-emerald-400 text-white hover:from-blue-500 hover:to-emerald-500 disabled:from-slate-400 disabled:to-slate-400',
   secondary:
-    'bg-gradient-to-r from-emerald-50 to-blue-50 text-slate-700 hover:from-emerald-100 hover:to-blue-100 hover:text-slate-800 disabled:from-slate-100 disabled:to-slate-100 border border-emerald-200',
+    'bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700 hover:from-slate-200 hover:to-slate-300 hover:text-slate-800 disabled:from-slate-100 disabled:to-slate-100 border border-slate-300',
   danger:
     'bg-gradient-to-r from-red-500 to-pink-500 text-white hover:from-red-600 hover:to-pink-600 disabled:from-slate-400 disabled:to-slate-400 shadow-red-500/25',
   default:
