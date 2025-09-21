@@ -67,7 +67,7 @@ export function PairStatsPanel({ players, pairCounts }: PairStatsPanelProps) {
               総ペア数 {totalPairs}
             </span>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[60vh] overflow-auto pr-1">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {allPairs.map(({ key, player1, player2, count }) => (
               <div
                 key={key}
