@@ -657,9 +657,6 @@ export default function PracticePage() {
               </Button>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-3">
-                コート数
-              </label>
               <div className="bg-slate-100 rounded-lg p-3 border border-slate-200">
                 <CourtSelector
                   courts={pendingCourts}
