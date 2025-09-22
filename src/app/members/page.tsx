@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Search, X, Trash2 } from 'lucide-react';
+import { Search, X, Trash2, Users, Edit3 } from 'lucide-react';
 import { useMemberStore } from '@/lib/stores/memberStore';
 import { usePracticeStore } from '@/lib/stores/practiceStore';
 import { Button } from '@/components/ui/Button';
@@ -158,55 +158,87 @@ export default function MembersPage() {
           </div>
         )}
 
-        <ul className="space-y-2">
+        {/* メンバー一覧 */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {filteredMembers.map((member) => {
             const isFlashing = flashingId === member.id;
             const inPractice = practiceIdSet.has(member.id!);
             return (
-              <li key={member.id} className="transition-all duration-300">
-                <div
-                  className={`flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm hover:shadow-md active:scale-[0.995] transition-all duration-200 ${
-                    isFlashing ? 'ring-2 ring-blue-300 bg-blue-50' : ''
-                  }`}
-                >
-                  <button
-                    type="button"
-                    className="flex-1 text-left min-w-0"
-                    onClick={() =>
-                      openEditModal({ id: member.id!, name: member.name })
-                    }
-                  >
-                    <span className="font-medium text-slate-800 truncate block">
-                      {member.name}
-                    </span>
-                    {inPractice && (
-                      <span className="text-[11px] text-emerald-600">
-                        練習に参加中
-                      </span>
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    className="ml-3 px-3 py-2 rounded-lg border bg-white hover:bg-red-50 text-red-600 min-h-[36px] flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
-                    onClick={() => handleDeleteClick(member.id!, member.name)}
-                    title={
-                      inPractice ? '練習に参加中の選手は削除できません' : '削除'
-                    }
-                    disabled={inPractice}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+              <div
+                key={member.id}
+                className={`group rounded-lg border bg-white shadow-sm hover:shadow-md transition-all duration-200 ${
+                  isFlashing ? 'ring-2 ring-blue-300 bg-blue-50' : 'border-slate-200'
+                } ${inPractice ? 'border-emerald-200 bg-emerald-50/30' : ''}`}
+              >
+                <div className="p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-slate-800 truncate mb-1">
+                        {member.name}
+                      </h3>
+                      {inPractice && (
+                        <div className="flex items-center gap-1">
+                          <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>
+                          <span className="text-xs text-emerald-600 font-medium">
+                            練習に参加中
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1 ml-2">
+                      <button
+                        type="button"
+                        className="p-1.5 rounded-md hover:bg-blue-50 text-blue-500 transition-colors"
+                        onClick={() =>
+                          openEditModal({ id: member.id!, name: member.name })
+                        }
+                        title="編集"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        className="p-1.5 rounded-md hover:bg-red-50 text-red-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        onClick={() => handleDeleteClick(member.id!, member.name)}
+                        title={
+                          inPractice ? '練習に参加中の選手は削除できません' : '削除'
+                        }
+                        disabled={inPractice}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </li>
+              </div>
             );
           })}
+        </div>
 
-          {!isLoading && filteredMembers.length === 0 && (
-            <li className="text-center text-gray-500 py-10">
-              選手はいません。上のフォームから追加してください。
-            </li>
-          )}
-        </ul>
+        {/* 空状態 */}
+        {!isLoading && filteredMembers.length === 0 && (
+          <div className="text-center py-12">
+            <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-full flex items-center justify-center">
+              <Users className="w-8 h-8 text-slate-400" />
+            </div>
+            <h3 className="text-lg font-medium text-slate-600 mb-2">
+              {searchTerm ? '該当するメンバーがいません' : 'メンバーを追加しましょう'}
+            </h3>
+            <p className="text-sm text-slate-500 mb-4">
+              {searchTerm
+                ? '検索条件を変更して再度お試しください'
+                : '上のフォームから最初のメンバーを追加してください'}
+            </p>
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+              >
+                検索をクリア
+              </button>
+            )}
+          </div>
+        )}
 
         {editingMember && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
@@ -232,20 +264,22 @@ export default function MembersPage() {
                     />
                   </div>
                   <div className="flex gap-3 pt-4">
-                    <button
+                    <Button
                       type="button"
                       onClick={closeEditModal}
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                      variant="default"
+                      className="flex-1"
                     >
                       キャンセル
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="submit"
                       disabled={!editingMember.name.trim()}
-                      className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                      variant="primary"
+                      className="flex-1"
                     >
                       保存
-                    </button>
+                    </Button>
                   </div>
                 </form>
               </div>
@@ -276,18 +310,20 @@ export default function MembersPage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <button
+                  <Button
                     onClick={handleCancelDelete}
-                    className="flex-1 px-4 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                    variant="default"
+                    className="flex-1"
                   >
                     キャンセル
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={handleConfirmDelete}
-                    className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-medium"
+                    variant="danger"
+                    className="flex-1"
                   >
                     削除
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
