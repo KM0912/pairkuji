@@ -17,7 +17,7 @@ const sizeMap = {
 } as const;
 
 const selectedClasses =
-  'bg-gradient-to-r from-blue-50 to-emerald-50 border-blue-200 shadow-sm';
+  'bg-gradient-to-r from-orange-100 to-orange-50 border-orange-400 shadow-md ring-1 ring-orange-300';
 
 const unselectedClasses =
   'bg-white border-slate-300 text-slate-800 active:bg-slate-100';
