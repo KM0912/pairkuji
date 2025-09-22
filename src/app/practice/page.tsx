@@ -413,13 +413,13 @@ export default function PracticePage() {
                 />
               </div>
             </div>
-            <div className="flex gap-2 justify-end">
+            <div className="flex gap-3">
               <Button
                 type="button"
                 variant="default"
                 size="sm"
                 onClick={() => setShowCourtModal(false)}
-                className="w-auto px-4 py-2 text-sm text-slate-600 shadow-none hover:shadow-none border-slate-300 hover:bg-slate-50"
+                className="flex-1 px-4 py-2 text-sm text-slate-600 shadow-none hover:shadow-none border-slate-300 hover:bg-slate-50"
               >
                 キャンセル
               </Button>
@@ -428,7 +428,7 @@ export default function PracticePage() {
                 variant="primary"
                 size="sm"
                 onClick={handleConfirmCourts}
-                className="w-auto px-4 py-2 text-sm"
+                className="flex-1 px-4 py-2 text-sm"
                 disabled={pendingCourts === settings.courts}
               >
                 更新
@@ -665,13 +665,13 @@ export default function PracticePage() {
                 />
               </div>
             </div>
-            <div className="flex gap-2 justify-end">
+            <div className="flex gap-3">
               <Button
                 type="button"
                 variant="default"
                 size="sm"
                 onClick={() => setShowCourtModal(false)}
-                className="w-auto px-4 py-2 text-sm text-slate-600 shadow-none hover:shadow-none border-slate-300 hover:bg-slate-50"
+                className="flex-1 px-4 py-2 text-sm text-slate-600 shadow-none hover:shadow-none border-slate-300 hover:bg-slate-50"
               >
                 キャンセル
               </Button>
@@ -680,7 +680,7 @@ export default function PracticePage() {
                 variant="primary"
                 size="sm"
                 onClick={handleConfirmCourts}
-                className="w-auto px-4 py-2 text-sm"
+                className="flex-1 px-4 py-2 text-sm"
                 disabled={pendingCourts === settings.courts}
               >
                 更新
