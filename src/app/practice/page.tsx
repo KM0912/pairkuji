@@ -10,6 +10,7 @@ import { AddParticipantModal } from '@/components/practice/AddParticipantModal';
 import { PairStatsPanel } from '@/components/practice/PairStatsPanel';
 import { SubstitutionHint } from '@/components/practice/SubstitutionHint';
 import { FullscreenDisplay } from '@/components/practice/FullscreenDisplay';
+import { RoundHistory } from '@/components/practice/RoundHistory';
 import { Button } from '@/components/ui/Button';
 import { CourtSelector } from '@/components/ui/CourtSelector';
 import {
@@ -51,6 +52,8 @@ export default function PracticePage() {
   const [showParticipantModal, setShowParticipantModal] = useState(false);
   const [showFullscreen, setShowFullscreen] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showGenerateConfirm, setShowGenerateConfirm] = useState(false);
+  const [showRoundHistory, setShowRoundHistory] = useState(false);
 
   useEffect(() => {
     loadMembers();
@@ -188,6 +191,16 @@ export default function PracticePage() {
   };
 
   const handleGenerateNextRound = async () => {
+    // 既存のラウンドがある場合は確認ダイアログを表示
+    if (rounds.length > 0) {
+      setShowGenerateConfirm(true);
+    } else {
+      // 初回の場合は直接生成
+      await executeGenerateNextRound();
+    }
+  };
+
+  const executeGenerateNextRound = async () => {
     await generateNextRound();
     requestAnimationFrame(() => {
       combosRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -810,6 +823,55 @@ export default function PracticePage() {
           </div>
         </div>
       )}
+
+      {/* Generate round confirmation modal */}
+      {showGenerateConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl w-full max-w-sm mx-4 shadow-2xl">
+            <div className="p-6">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Shuffle className="w-8 h-8 text-blue-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  ラウンド {rounds.length + 1} を生成しますか？
+                </h3>
+                <p className="text-sm text-gray-600">
+                  新しい組み合わせが作成されます。
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => setShowGenerateConfirm(false)}
+                  variant="default"
+                  className="flex-1"
+                >
+                  キャンセル
+                </Button>
+                <Button
+                  onClick={async () => {
+                    setShowGenerateConfirm(false);
+                    await executeGenerateNextRound();
+                  }}
+                  variant="primary"
+                  className="flex-1"
+                >
+                  生成する
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Round history modal */}
+      <RoundHistory
+        isOpen={showRoundHistory}
+        onClose={() => setShowRoundHistory(false)}
+        rounds={rounds}
+        memberMap={memberMap}
+      />
     </div>
   );
 }
