@@ -1,6 +1,6 @@
 import { type Member } from '@/types/member';
 import { useState, useMemo } from 'react';
-import { Search, X, Users, AlertTriangle, Target, Play } from 'lucide-react';
+import { Search, X, Users, AlertTriangle, LayoutGrid, Play } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { IconBadge } from '../ui/IconBadge';
@@ -69,9 +69,9 @@ export function ParticipantSelection({
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <IconBadge
-                  icon={Target}
+                  icon={LayoutGrid}
                   size="sm"
-                  className="bg-emerald-100 text-emerald-600"
+                  className="bg-sky-100 text-sky-600"
                 />
                 <div>
                   <h3 className="text-base font-semibold text-slate-800">
@@ -97,7 +97,7 @@ export function ParticipantSelection({
                 <IconBadge
                   icon={Users}
                   size="md"
-                  className="bg-blue-100 text-blue-600"
+                  className="bg-indigo-100 text-indigo-600"
                 />
                 <div>
                   <h3 className="text-base font-semibold text-slate-800">
