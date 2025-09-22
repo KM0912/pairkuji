@@ -38,7 +38,7 @@ export function CourtSelector({
         variant="default"
         onClick={() => setCourts(Math.min(maxCourts, courts + 1))}
         className={
-          'w-7 h-7 rounded-full bg-white hover:bg-slate-50 shadow-sm border-slate-200 flex items-center justify-center'
+          'rounded-full bg-white hover:bg-slate-50 shadow-sm border-slate-200 flex items-center justify-center'
         }
         aria-label="コート数を増やす"
       >

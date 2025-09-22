@@ -62,178 +62,177 @@ export function ParticipantSelection({
 
   return (
     <div className="space-y-4">
-
       <form onSubmit={onStart} className="">
         <div className="grid grid-cols-1 gap-4">
-        {/* コート設定カード */}
-        <Card as="section">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <IconBadge
-                icon={Target}
-                size="sm"
-                className="bg-emerald-100 text-emerald-600"
-              />
-              <div>
-                <h3 className="text-sm font-semibold text-slate-800">
-                  コート設定
-                </h3>
+          {/* コート設定カード */}
+          <Card as="section">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <IconBadge
+                  icon={Target}
+                  size="sm"
+                  className="bg-emerald-100 text-emerald-600"
+                />
+                <div>
+                  <h3 className="text-base font-semibold text-slate-800">
+                    コート設定
+                  </h3>
+                </div>
               </div>
             </div>
-          </div>
-          <div className="bg-slate-100 rounded-lg p-2">
-            <CourtSelector courts={courts} setCourts={setCourts} size="sm" />
-            {runnableCourts < courts && selected.length >= 4 && (
-              <div className="mt-2 text-xs text-amber-600 bg-amber-50 px-2 py-1.5 rounded border border-amber-200">
-                参加者数により実際は{runnableCourts}コートで開始されます
-              </div>
-            )}
-          </div>
-        </Card>
-
-        {/* 参加者選択 */}
-        <Card as="section">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <IconBadge
-                icon={Users}
-                size="md"
-                className="bg-blue-100 text-blue-600"
-              />
-              <div>
-                <h3 className="text-base font-semibold text-slate-800">
-                  ダブルス参加者
-                </h3>
-                <p className="text-xs text-slate-500">
-                  {selected.length}名選択中 • 最低4名必要
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            {/* フィルタ（セグメント） */}
-            <div className="grid grid-cols-3 gap-2">
-              <SelectTile
-                size="sm"
-                selected={viewFilter === 'all'}
-                onClick={() => setViewFilter('all')}
-                className="text-xs"
-              >
-                全メンバー {counts.all}
-              </SelectTile>
-              <SelectTile
-                size="sm"
-                selected={viewFilter === 'selected'}
-                onClick={() => setViewFilter('selected')}
-                className="text-xs"
-              >
-                出場予定 {counts.selected}
-              </SelectTile>
-              <SelectTile
-                size="sm"
-                selected={viewFilter === 'unselected'}
-                onClick={() => setViewFilter('unselected')}
-                className="text-xs"
-              >
-                未選択 {counts.unselected}
-              </SelectTile>
-            </div>
-
-            {/* 検索 */}
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="w-5 h-5 text-slate-400" />
-              </div>
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="メンバー名で検索"
-                className="w-full pl-10 pr-4 py-3 border rounded-lg text-base min-h-[48px] border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
-                aria-label="メンバー検索"
-              />
-              {searchTerm && (
-                <button
-                  type="button"
-                  onClick={() => setSearchTerm('')}
-                  className="absolute inset-y-0 right-0 px-3 text-slate-400 hover:text-slate-600"
-                  aria-label="検索をクリア"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+            <div className="bg-slate-100 rounded-lg p-2">
+              <CourtSelector courts={courts} setCourts={setCourts} size="sm" />
+              {runnableCourts < courts && selected.length >= 4 && (
+                <div className="mt-2 text-xs text-amber-600 bg-amber-50 px-2 py-1.5 rounded border border-amber-200">
+                  参加者数により実際は{runnableCourts}コートで開始されます
+                </div>
               )}
             </div>
+          </Card>
 
-            {/* メンバーリスト */}
-            <div className="bg-gradient-to-br from-slate-50 to-blue-50/30 rounded-xl p-2 border border-slate-200">
-              <div className="grid grid-cols-2 gap-2 max-h-80 overflow-auto">
-                {visibleMembers.length > 0 ? (
-                  visibleMembers.map((member) => {
-                    const isSelected = selectedSet.has(member.id!);
-                    const order = isSelected
-                      ? selected.indexOf(member.id!) + 1
-                      : null;
-                    return (
-                      <SelectTile
-                        key={member.id}
-                        selected={isSelected}
-                        onClick={() => onToggleSelect(member.id!)}
-                        aria-label={`${isSelected ? 'ダブルス参加者から外す' : 'ダブルス参加者に追加'}: ${member.name}`}
-                        title={member.name}
-                        className={
-                          isSelected
-                            ? 'ring-2 ring-blue-300 bg-blue-50 m-1'
-                            : 'm-1'
-                        }
-                        left={
-                          isSelected ? (
-                            <PlayerNumber
-                              number={order ?? ''}
-                              variant="neutral"
-                              size="xs"
-                            />
-                          ) : undefined
-                        }
-                      >
-                        {member.name}
-                      </SelectTile>
-                    );
-                  })
-                ) : (
-                  <div className="col-span-full text-center py-8 text-slate-500 text-sm">
-                    {searchTerm
-                      ? '検索条件に一致するメンバーがいません'
-                      : '表示できるメンバーがいません'}
-                  </div>
-                )}
+          {/* 参加者選択 */}
+          <Card as="section">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <IconBadge
+                  icon={Users}
+                  size="md"
+                  className="bg-blue-100 text-blue-600"
+                />
+                <div>
+                  <h3 className="text-base font-semibold text-slate-800">
+                    ダブルス参加者
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    {selected.length}名選択中 • 最低4名必要
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-        </Card>
 
-        <div className="sticky bottom-2">
-          <Button
-            type="submit"
-            variant="primary"
-            className="w-full text-lg font-bold shadow-2xl"
-            disabled={selected.length < minToStart}
-          >
-            {selected.length < minToStart ? (
-              <span className="inline-flex items-center gap-3">
-                <AlertTriangle className="w-6 h-6" />
-                あと {needMore} 名選択してください
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-3">
-                <Play className="w-6 h-6" />
-                ダブルス練習開始 ({selected.length}名)
-              </span>
-            )}
-          </Button>
+            <div className="space-y-3">
+              {/* フィルタ（セグメント） */}
+              <div className="grid grid-cols-3 gap-2">
+                <SelectTile
+                  size="sm"
+                  selected={viewFilter === 'all'}
+                  onClick={() => setViewFilter('all')}
+                  className="text-xs"
+                >
+                  全メンバー {counts.all}
+                </SelectTile>
+                <SelectTile
+                  size="sm"
+                  selected={viewFilter === 'selected'}
+                  onClick={() => setViewFilter('selected')}
+                  className="text-xs"
+                >
+                  出場予定 {counts.selected}
+                </SelectTile>
+                <SelectTile
+                  size="sm"
+                  selected={viewFilter === 'unselected'}
+                  onClick={() => setViewFilter('unselected')}
+                  className="text-xs"
+                >
+                  未選択 {counts.unselected}
+                </SelectTile>
+              </div>
+
+              {/* 検索 */}
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="w-5 h-5 text-slate-400" />
+                </div>
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="メンバー名で検索"
+                  className="w-full pl-10 pr-4 py-3 border rounded-lg text-base min-h-[48px] border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                  aria-label="メンバー検索"
+                />
+                {searchTerm && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchTerm('')}
+                    className="absolute inset-y-0 right-0 px-3 text-slate-400 hover:text-slate-600"
+                    aria-label="検索をクリア"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
+              {/* メンバーリスト */}
+              <div className="bg-gradient-to-br from-slate-50 to-blue-50/30 rounded-xl p-2 border border-slate-200">
+                <div className="grid grid-cols-2 gap-2 max-h-80 overflow-auto">
+                  {visibleMembers.length > 0 ? (
+                    visibleMembers.map((member) => {
+                      const isSelected = selectedSet.has(member.id!);
+                      const order = isSelected
+                        ? selected.indexOf(member.id!) + 1
+                        : null;
+                      return (
+                        <SelectTile
+                          key={member.id}
+                          selected={isSelected}
+                          onClick={() => onToggleSelect(member.id!)}
+                          aria-label={`${isSelected ? 'ダブルス参加者から外す' : 'ダブルス参加者に追加'}: ${member.name}`}
+                          title={member.name}
+                          className={
+                            isSelected
+                              ? 'ring-2 ring-blue-300 bg-blue-50 m-1'
+                              : 'm-1'
+                          }
+                          left={
+                            isSelected ? (
+                              <PlayerNumber
+                                number={order ?? ''}
+                                variant="neutral"
+                                size="xs"
+                              />
+                            ) : undefined
+                          }
+                        >
+                          {member.name}
+                        </SelectTile>
+                      );
+                    })
+                  ) : (
+                    <div className="col-span-full text-center py-8 text-slate-500 text-sm">
+                      {searchTerm
+                        ? '検索条件に一致するメンバーがいません'
+                        : '表示できるメンバーがいません'}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          <div className="sticky bottom-2">
+            <Button
+              type="submit"
+              variant="primary"
+              className="w-full text-lg font-bold shadow-2xl"
+              disabled={selected.length < minToStart}
+            >
+              {selected.length < minToStart ? (
+                <span className="inline-flex items-center gap-3">
+                  <AlertTriangle className="w-6 h-6" />
+                  あと {needMore} 名選択してください
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-3">
+                  <Play className="w-6 h-6" />
+                  ダブルス練習開始 ({selected.length}名)
+                </span>
+              )}
+            </Button>
+          </div>
         </div>
-      </div>
-    </form>
+      </form>
     </div>
   );
 }
