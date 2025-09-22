@@ -463,7 +463,7 @@ export default function PracticePage() {
                 ✕
               </Button>
             </div>
-            <div className="max-h-[70vh] overflow-auto px-5 py-4">
+            <div className="h-[60vh] px-5 py-4">
               <ParticipantManagement
                 settings={settings}
                 players={players}
@@ -502,7 +502,7 @@ export default function PracticePage() {
                 ✕
               </Button>
             </div>
-            <div className="max-h-[70vh] overflow-auto px-5 py-4">
+            <div className="h-[60vh] px-5 py-4">
               <PairStatsPanel players={players} pairCounts={pairCounts} />
             </div>
           </div>
@@ -715,7 +715,7 @@ export default function PracticePage() {
                 ✕
               </Button>
             </div>
-            <div className="max-h-[70vh] overflow-auto px-5 py-4">
+            <div className="h-[60vh] px-5 py-4">
               <ParticipantManagement
                 settings={settings}
                 players={players}
@@ -754,7 +754,7 @@ export default function PracticePage() {
                 ✕
               </Button>
             </div>
-            <div className="max-h-[70vh] overflow-auto px-5 py-4">
+            <div className="h-[60vh] px-5 py-4">
               <PairStatsPanel players={players} pairCounts={pairCounts} />
             </div>
           </div>
