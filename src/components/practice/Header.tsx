@@ -1,10 +1,17 @@
+'use client';
+
+import { useState } from 'react';
 import { Settings, HelpCircle } from 'lucide-react';
+import { HelpModal } from '../help/HelpModal';
 
 interface HeaderProps {
 }
 
 export function Header({}: HeaderProps) {
+  const [showHelp, setShowHelp] = useState(false);
+
   return (
+    <>
     <div className="sticky top-0 z-40 w-full">
       <div className="bg-white border-b border-slate-200">
         <div className="h-14 flex items-center justify-between max-w-6xl mx-auto px-4">
@@ -23,6 +30,7 @@ export function Header({}: HeaderProps) {
             <button
               className="flex items-center gap-1.5 px-3 py-1.5 text-slate-600 hover:text-slate-800 hover:bg-slate-50 rounded-lg transition-colors"
               aria-label="ヘルプ"
+              onClick={() => setShowHelp(true)}
             >
               <HelpCircle className="w-4 h-4" />
               <span className="text-sm hidden sm:inline">？</span>
@@ -31,5 +39,11 @@ export function Header({}: HeaderProps) {
         </div>
       </div>
     </div>
+
+    <HelpModal
+      isOpen={showHelp}
+      onClose={() => setShowHelp(false)}
+    />
+    </>
   );
 }
