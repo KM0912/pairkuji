@@ -515,7 +515,7 @@ export default function PracticePage() {
                 ✕
               </Button>
             </div>
-            <div className="h-[60vh] px-5 py-4">
+            <div className="max-h-[60vh] overflow-auto px-5 py-4">
               <PairStatsPanel players={players} pairCounts={pairCounts} />
             </div>
           </div>
@@ -767,7 +767,7 @@ export default function PracticePage() {
                 ✕
               </Button>
             </div>
-            <div className="h-[60vh] px-5 py-4">
+            <div className="max-h-[60vh] overflow-auto px-5 py-4">
               <PairStatsPanel players={players} pairCounts={pairCounts} />
             </div>
           </div>
