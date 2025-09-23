@@ -9,7 +9,7 @@ interface SelectTileProps
 }
 
 const baseClasses =
-  'flex items-center justify-center gap-1 rounded-lg border text-center transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200';
+  'flex items-center gap-1 rounded-lg border transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200';
 
 const sizeMap = {
   sm: 'px-2 py-1 min-h-[34px] text-xs',

@@ -1,6 +1,13 @@
 import { type Member } from '@/types/member';
 import { useState, useMemo } from 'react';
-import { Search, X, Users, AlertTriangle, LayoutGrid, Play } from 'lucide-react';
+import {
+  Search,
+  X,
+  Users,
+  AlertTriangle,
+  LayoutGrid,
+  Play,
+} from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { IconBadge } from '../ui/IconBadge';
@@ -165,8 +172,8 @@ export function ParticipantSelection({
               </div>
 
               {/* メンバーリスト */}
-              <div className="bg-gradient-to-br from-slate-50 to-blue-50/30 rounded-xl p-2 border border-slate-200">
-                <div className="grid grid-cols-2 gap-2 max-h-80 overflow-auto">
+              <div className="bg-gradient-to-br from-slate-50 to-blue-50/30 rounded-xl border border-slate-200">
+                <div className="grid grid-cols-2 gap-2 p-2 max-h-80 overflow-auto">
                   {visibleMembers.length > 0 ? (
                     visibleMembers.map((member) => {
                       const isSelected = selectedSet.has(member.id!);
@@ -180,11 +187,8 @@ export function ParticipantSelection({
                           onClick={() => onToggleSelect(member.id!)}
                           aria-label={`${isSelected ? 'ダブルス参加者から外す' : 'ダブルス参加者に追加'}: ${member.name}`}
                           title={member.name}
-                          className={
-                            isSelected
-                              ? 'ring-2 ring-blue-300 bg-blue-50 m-1'
-                              : 'm-1'
-                          }
+                          size="sm"
+                          className="w-full justify-start text-left"
                           left={
                             isSelected ? (
                               <PlayerNumber
