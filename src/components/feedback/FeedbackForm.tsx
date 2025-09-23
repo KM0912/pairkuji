@@ -34,16 +34,20 @@ export function FeedbackForm({ isOpen, onClose }: FeedbackFormProps) {
           </Button>
         </div>
 
-        <div className="h-[70vh]">
+        <div className="px-5 py-3 bg-slate-50 border-b">
+          <p className="text-sm text-slate-700 mb-2">
+            ペアくじの不具合報告・改善要望フォームです。
+            <strong>匿名で送信できます。</strong>
+          </p>
+        </div>
+
+        <div className="h-[68vh]">
           <iframe
             src={googleFormUrl}
             width="100%"
             height="100%"
-            frameBorder="0"
-            marginHeight={0}
-            marginWidth={0}
             title="フィードバックフォーム"
-            className="w-full h-full"
+            className="w-full h-full border-0"
           >
             読み込み中...
           </iframe>
