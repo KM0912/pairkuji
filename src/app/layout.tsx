@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import Script from 'next/script';
 import './globals.css';
 import { BottomNavigation } from '../components/BottomNavigation';
 import { Header } from '../components/practice/Header';
@@ -16,9 +17,27 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const gaTrackingId = process.env.NEXT_PUBLIC_GA_TRACKING_ID;
+
   return (
     <html lang="ja">
       <body className={`${inter.className} overflow-x-hidden`}>
+        {gaTrackingId && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${gaTrackingId}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${gaTrackingId}');
+              `}
+            </Script>
+          </>
+        )}
         <div className="min-h-screen bg-slate-50">
           <Header />
           <main className="pb-20">
