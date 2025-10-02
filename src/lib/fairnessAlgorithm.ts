@@ -200,7 +200,9 @@ function buildRestSelectionContext(
   const totalCapacity = totalPlayersNeeded || 1;
   const participationRatio = players.length / totalCapacity;
   const isDoubleCapacity = players.length === totalCapacity * 2;
-  const allPlayedEqual = playedCounts.every((count) => count === playedCounts[0]);
+  const allPlayedEqual = playedCounts.every(
+    (count) => count === playedCounts[0]
+  );
   const allowConsecutiveRest =
     participationRatio > 1.5 && (!isDoubleCapacity || allPlayedEqual);
 
@@ -311,9 +313,7 @@ function scoreRestCombination(
     const predictedPlayedCount = willRest
       ? basePlayedCount
       : basePlayedCount + 1;
-    const predictedRestCount = willRest
-      ? baseRestCount + 1
-      : baseRestCount;
+    const predictedRestCount = willRest ? baseRestCount + 1 : baseRestCount;
 
     predictedPlayed.push(predictedPlayedCount);
     predictedRest.push(predictedRestCount);
@@ -332,7 +332,8 @@ function scoreRestCombination(
       const predictedStreak = currentStreak + 1;
       if (predictedStreak >= 2) {
         score +=
-          CONSECUTIVE_REST_PENALTY * (predictedStreak - 1) *
+          CONSECUTIVE_REST_PENALTY *
+          (predictedStreak - 1) *
           context.consecutivePenaltyMultiplier;
       }
 
@@ -703,6 +704,32 @@ export function generateFairRound(
       courts: [],
       rests: activePlayers.map((player) => player.memberId),
     };
+  }
+
+  // 特例: 4人1コートは3パターンを固定順序で繰り返す
+  // パターン: [1-2|3-4] → [1-3|2-4] → [1-4|2-3]
+  if (activePlayers.length === 4 && maxCourts >= 1) {
+    const ids = activePlayers.map((p) => p.memberId).sort((a, b) => a - b);
+    const [p1, p2, p3, p4] = ids as [number, number, number, number];
+    const patternIndex = rounds.length % 3;
+    const courts: CourtMatch[] = [
+      {
+        courtNo: 1,
+        pairA:
+          patternIndex === 0
+            ? [p1, p2]
+            : patternIndex === 1
+              ? [p1, p3]
+              : [p1, p4],
+        pairB:
+          patternIndex === 0
+            ? [p3, p4]
+            : patternIndex === 1
+              ? [p2, p4]
+              : [p2, p3],
+      },
+    ];
+    return { courts, rests: [] };
   }
 
   const playerIds = activePlayers.map((player) => player.memberId);
