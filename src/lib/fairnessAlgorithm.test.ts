@@ -506,6 +506,203 @@ describe('4人ローテーションの周期性', () => {
   });
 });
 
+describe('途中から4人になった場合', () => {
+  test('8人から4人に減少した場合、3パターン周期が維持される', () => {
+    const players = createTestPlayers(8);
+    const rounds: Round[] = [];
+
+    // 最初の5ラウンドは8人で実施
+    for (let i = 0; i < 5; i++) {
+      const result = generateFairRound(players, 2, rounds);
+      rounds.push({
+        roundNo: i + 1,
+        courts: result.courts,
+        rests: result.rests,
+      });
+    }
+
+    // 6ラウンド目から4人に減少（ID 1-4のみ）
+    const reducedPlayers = players.slice(0, 4);
+    const startRound = 6;
+    const additionalRounds = 12; // 4人×3で12ラウンド分確認
+
+    for (let i = 0; i < additionalRounds; i++) {
+      const result = generateFairRound(reducedPlayers, 1, rounds);
+      rounds.push({
+        roundNo: startRound + i,
+        courts: result.courts,
+        rests: result.rests,
+      });
+    }
+
+    // 4人期間（R6-R17）の試合キーを抽出
+    const toMatchKey = (round: Round): string => {
+      const court = round.courts[0]!;
+      const p1 = [...court.pairA].sort((a, b) => a - b).join('-');
+      const p2 = [...court.pairB].sort((a, b) => a - b).join('-');
+      return [p1, p2].sort().join('|');
+    };
+
+    const fourPlayerRounds = rounds.slice(5); // R6以降
+    const matchKeys = fourPlayerRounds.map(toMatchKey);
+
+    const allowed = new Set<string>(['1-2|3-4', '1-3|2-4', '1-4|2-3']);
+
+    // 4人期間の全試合が3パターンのいずれかであること
+    matchKeys.forEach((k, i) => {
+      expect(allowed.has(k)).toBe(true);
+    });
+
+    // 3連続で全パターンが出現する箇所を探す
+    let startIndex = -1;
+    for (let i = 0; i <= matchKeys.length - 3; i++) {
+      const window = new Set([
+        matchKeys[i]!,
+        matchKeys[i + 1]!,
+        matchKeys[i + 2]!,
+      ]);
+      if (window.size === 3) {
+        startIndex = i;
+        break;
+      }
+    }
+
+    if (startIndex === -1) {
+      throw new Error('3パターンが連続で一巡する箇所を見つけられませんでした');
+    }
+
+    const cycle = [
+      matchKeys[startIndex]!,
+      matchKeys[startIndex + 1]!,
+      matchKeys[startIndex + 2]!,
+    ];
+
+    // 見つけた順序で以降が周期3で繰り返されることを確認
+    for (let j = startIndex; j < matchKeys.length; j++) {
+      const expected = cycle[(j - startIndex) % 3];
+      expect(matchKeys[j]).toBe(expected);
+    }
+
+    console.log('\n途中から4人: 8人→4人のパターン確認');
+    console.log(`  4人期間ラウンド数: ${matchKeys.length}`);
+    console.log(`  検出された周期: ${cycle.join(' → ')}`);
+    console.log(`  周期開始位置: R${startIndex + 6}`);
+  });
+
+  test('10人から4人に減少した場合、試合数が均等に維持される', () => {
+    const players = createTestPlayers(10);
+    const rounds: Round[] = [];
+
+    // 最初の8ラウンドは10人で実施
+    for (let i = 0; i < 8; i++) {
+      const result = generateFairRound(players, 2, rounds);
+      rounds.push({
+        roundNo: i + 1,
+        courts: result.courts,
+        rests: result.rests,
+      });
+    }
+
+    // 9ラウンド目から4人に減少（ID 1-4のみ）
+    const reducedPlayers = players.slice(0, 4);
+    const startRound = 9;
+    const additionalRounds = 15;
+
+    for (let i = 0; i < additionalRounds; i++) {
+      const result = generateFairRound(reducedPlayers, 1, rounds);
+      rounds.push({
+        roundNo: startRound + i,
+        courts: result.courts,
+        rests: result.rests,
+      });
+    }
+
+    // 4人期間（R9-R23）の試合数を確認
+    const fourPlayerRounds = rounds.slice(8);
+    const matchCounts = calculateMatchCounts([1, 2, 3, 4], fourPlayerRounds);
+    const counts = Array.from(matchCounts.values());
+
+    const min = Math.min(...counts);
+    const max = Math.max(...counts);
+    const difference = max - min;
+
+    console.log('\n途中から4人: 10人→4人の試合数確認');
+    console.log(`  4人期間試合数: ${counts.join(', ')}`);
+    console.log(`  試合数差: ${difference}`);
+
+    // 4人の場合は全員が毎回出場するため、試合数は完全に均等
+    expect(difference).toBe(0);
+  });
+
+  test('12人から4人に減少した場合、前半の統計が引き継がれる', () => {
+    const players = createTestPlayers(12);
+    const rounds: Round[] = [];
+
+    // 最初の10ラウンドは12人で実施
+    for (let i = 0; i < 10; i++) {
+      const result = generateFairRound(players, 3, rounds);
+      rounds.push({
+        roundNo: i + 1,
+        courts: result.courts,
+        rests: result.rests,
+      });
+    }
+
+    // 11ラウンド目から4人に減少（ID 1-4のみ）
+    const reducedPlayers = players.slice(0, 4);
+
+    // 減少直前の統計を確認
+    const statsBefore = calculatePlayerStats(
+      reducedPlayers.map((p) => p.memberId),
+      rounds
+    );
+
+    const playedCountsBefore = Array.from(statsBefore.values()).map(
+      (s) => s.playedCount
+    );
+
+    // 4人期間を追加
+    const startRound = 11;
+    const additionalRounds = 10;
+
+    for (let i = 0; i < additionalRounds; i++) {
+      const result = generateFairRound(reducedPlayers, 1, rounds);
+      rounds.push({
+        roundNo: startRound + i,
+        courts: result.courts,
+        rests: result.rests,
+      });
+    }
+
+    // 全期間の統計を確認
+    const statsAfter = calculatePlayerStats(
+      reducedPlayers.map((p) => p.memberId),
+      rounds
+    );
+
+    const playedCountsAfter = Array.from(statsAfter.values()).map(
+      (s) => s.playedCount
+    );
+
+    console.log('\n途中から4人: 12人→4人の統計引き継ぎ確認');
+    console.log(`  減少前試合数: ${playedCountsBefore.join(', ')}`);
+    console.log(`  全期間試合数: ${playedCountsAfter.join(', ')}`);
+
+    // 全期間で見ても試合数差が許容範囲内であること
+    const minAfter = Math.min(...playedCountsAfter);
+    const maxAfter = Math.max(...playedCountsAfter);
+    const differenceAfter = maxAfter - minAfter;
+
+    // 20ラウンドで4人1コートなので、理論差は0
+    const allowableDiff = calculateAllowableMatchDifference(4, 1, rounds.length);
+
+    console.log(`  最終試合数差: ${differenceAfter}`);
+    console.log(`  許容差: ${allowableDiff}`);
+
+    expect(differenceAfter).toBeLessThanOrEqual(allowableDiff);
+  });
+});
+
 // describe('公平性アルゴリズムのテスト', () => {
 //   describe('基本機能', () => {
 //     test('最小人数で妥当なラウンドを生成できる', () => {
