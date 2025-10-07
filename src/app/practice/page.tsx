@@ -8,6 +8,7 @@ import { ParticipantManagement } from '@/components/practice/ParticipantManageme
 import { CourtManagement } from '@/components/practice/CourtManagement';
 import { AddParticipantModal } from '@/components/practice/AddParticipantModal';
 import { PairStatsPanel } from '@/components/practice/PairStatsPanel';
+import { OpponentStatsPanel } from '@/components/practice/OpponentStatsPanel';
 import { SubstitutionHint } from '@/components/practice/SubstitutionHint';
 import { FullscreenDisplay } from '@/components/practice/FullscreenDisplay';
 import { RoundHistory } from '@/components/practice/RoundHistory';
@@ -45,6 +46,7 @@ export default function PracticePage() {
   const [showAddParticipant, setShowAddParticipant] = useState(false);
   const [substituting, setSubstituting] = useState<number | null>(null);
   const [showStatsModal, setShowStatsModal] = useState(false);
+  const [statsMode, setStatsMode] = useState<'pair' | 'opponent'>('pair');
   const combosRef = useRef<HTMLDivElement | null>(null);
   const [showRoundSummary, setShowRoundSummary] = useState(false);
   const [showCourtModal, setShowCourtModal] = useState(false);
@@ -145,6 +147,27 @@ export default function PracticePage() {
           const key = `${b1}-${b2}`;
           counts.set(key, (counts.get(key) || 0) + 1);
         }
+      });
+    });
+
+    return counts;
+  }, [rounds]);
+
+  // Calculate opponent counts (times two players faced each other on opposing teams)
+  const opponentCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+
+    rounds.forEach((round) => {
+      round.courts.forEach((court) => {
+        const teamA = court.pairA.filter((id) => id !== undefined) as number[];
+        const teamB = court.pairB.filter((id) => id !== undefined) as number[];
+
+        teamA.forEach((a) => {
+          teamB.forEach((b) => {
+            const key = `${Math.min(a, b)}-${Math.max(a, b)}`;
+            counts.set(key, (counts.get(key) || 0) + 1);
+          });
+        });
       });
     });
 
@@ -497,12 +520,31 @@ export default function PracticePage() {
           <div className="w-full max-w-4xl rounded-2xl bg-white shadow-xl border border-slate-200">
             <div className="flex items-center justify-between border-b px-5 py-4">
               <div>
-                <h2 className="text-base font-semibold text-slate-800">
-                  ペア統計
-                </h2>
-                <p className="text-xs text-slate-500">
-                  ペアの組み合わせ回数を確認できます
-                </p>
+                <h2 className="text-base font-semibold text-slate-800">統計</h2>
+                <div className="mt-2 inline-flex rounded-md border border-slate-200 bg-slate-100 p-0.5">
+                  <button
+                    type="button"
+                    className={`px-3 py-1.5 text-xs rounded ${
+                      statsMode === 'pair'
+                        ? 'bg-white border border-slate-200 text-slate-800'
+                        : 'text-slate-500'
+                    }`}
+                    onClick={() => setStatsMode('pair')}
+                  >
+                    ペア
+                  </button>
+                  <button
+                    type="button"
+                    className={`ml-1 px-3 py-1.5 text-xs rounded ${
+                      statsMode === 'opponent'
+                        ? 'bg-white border border-slate-200 text-slate-800'
+                        : 'text-slate-500'
+                    }`}
+                    onClick={() => setStatsMode('opponent')}
+                  >
+                    対戦相手
+                  </button>
+                </div>
               </div>
               <Button
                 type="button"
@@ -516,7 +558,14 @@ export default function PracticePage() {
               </Button>
             </div>
             <div className="max-h-[60vh] overflow-auto px-5 py-4">
-              <PairStatsPanel players={players} pairCounts={pairCounts} />
+              {statsMode === 'pair' ? (
+                <PairStatsPanel players={players} pairCounts={pairCounts} />
+              ) : (
+                <OpponentStatsPanel
+                  players={players}
+                  opponentCounts={opponentCounts}
+                />
+              )}
             </div>
           </div>
         </div>
@@ -690,36 +739,7 @@ export default function PracticePage() {
         </div>
       )}
 
-      {/* Pair stats modal */}
-      {showStatsModal && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-4xl rounded-2xl bg-white shadow-xl border border-slate-200">
-            <div className="flex items-center justify-between border-b px-5 py-4">
-              <div>
-                <h2 className="text-base font-semibold text-slate-800">
-                  ペア統計
-                </h2>
-                <p className="text-xs text-slate-500">
-                  ペアの組み合わせ回数を確認できます
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="default"
-                size="sm"
-                onClick={() => setShowStatsModal(false)}
-                className="w-auto px-2 py-1 text-slate-400 hover:text-slate-600 shadow-none hover:shadow-none border-transparent"
-                aria-label="閉じる"
-              >
-                ✕
-              </Button>
-            </div>
-            <div className="max-h-[60vh] overflow-auto px-5 py-4">
-              <PairStatsPanel players={players} pairCounts={pairCounts} />
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* Fullscreen display */}
       {showFullscreen && latestRound && (
