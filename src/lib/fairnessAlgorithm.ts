@@ -10,6 +10,8 @@ const PARTNER_PENALTY_MIN = 6;
 const OPPONENT_PENALTY_BASE = 12;
 const OPPONENT_PENALTY_DECAY = 3;
 const OPPONENT_PENALTY_MIN = 2;
+// 過去の対戦回数（個人間の対戦頻度）に基づくペナルティの重み
+const OPPONENT_FREQUENCY_WEIGHT = 4;
 const PAIR_SELECTION_ATTEMPTS = 6;
 const RESTRICTED_PARTNER_CANDIDATES = 3;
 const COURT_MATCH_JITTER = 0.001;
@@ -537,7 +539,8 @@ function buildPairs(
 
 function buildCourtsFromPairs(
   pairs: Pair[],
-  stats: Map<number, PlayerStats>
+  stats: Map<number, PlayerStats>,
+  opponentFrequency: Map<string, number>
 ): CourtMatch[] {
   if (pairs.length % 2 !== 0) {
     throw new Error('Pair count must be even to form courts.');
@@ -569,7 +572,10 @@ function buildCourtsFromPairs(
       const secondIndex = rest[i]!;
       const pairA = pairs[firstIndex!]!;
       const pairB = pairs[secondIndex]!;
-      const matchPenalty = computeMatchPenalty(pairA, pairB, stats);
+      const matchPenalty =
+        computeMatchPenalty(pairA, pairB, stats) +
+        sumOpponentFrequency(pairA, pairB, opponentFrequency) *
+          OPPONENT_FREQUENCY_WEIGHT;
       const jitter = Math.random() * COURT_MATCH_JITTER;
       const nextScore = score + matchPenalty + jitter;
       if (nextScore >= bestScore) continue;
@@ -757,7 +763,53 @@ export function generateFairRound(
   );
   const playingIds = playing.map((player) => player.memberId);
   const pairs = buildPairs(playingIds, playerStats);
-  const courts = buildCourtsFromPairs(pairs, playerStats);
+  const opponentFrequency = buildOpponentFrequencyMap(rounds);
+  const courts = buildCourtsFromPairs(
+    pairs,
+    playerStats,
+    opponentFrequency
+  );
 
   return { courts, rests: restIds };
+}
+
+// 対戦履歴（個人間の対戦回数）マップを構築
+function buildOpponentFrequencyMap(rounds: Round[]): Map<string, number> {
+  const map = new Map<string, number>();
+
+  const key = (x: number, y: number) => {
+    const a = Math.min(x, y);
+    const b = Math.max(x, y);
+    return `${a}-${b}`;
+  };
+
+  rounds.forEach((round) => {
+    round.courts.forEach((court) => {
+      const teamA = court.pairA.filter((id) => id !== undefined) as number[];
+      const teamB = court.pairB.filter((id) => id !== undefined) as number[];
+      for (const a of teamA) {
+        for (const b of teamB) {
+          const k = key(a, b);
+          map.set(k, (map.get(k) ?? 0) + 1);
+        }
+      }
+    });
+  });
+
+  return map;
+}
+
+// 2ペア間の過去対戦回数合計を算出
+function sumOpponentFrequency(
+  pairA: Pair,
+  pairB: Pair,
+  freq: Map<string, number>
+): number {
+  const key = (x: number, y: number) => (x < y ? `${x}-${y}` : `${y}-${x}`);
+  let total = 0;
+  total += freq.get(key(pairA[0]!, pairB[0]!)) ?? 0;
+  total += freq.get(key(pairA[0]!, pairB[1]!)) ?? 0;
+  total += freq.get(key(pairA[1]!, pairB[0]!)) ?? 0;
+  total += freq.get(key(pairA[1]!, pairB[1]!)) ?? 0;
+  return total;
 }
