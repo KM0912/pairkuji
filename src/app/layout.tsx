@@ -26,11 +26,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const gaTrackingId = process.env.NEXT_PUBLIC_GA_TRACKING_ID;
+  const isProd = process.env.NODE_ENV === 'production';
 
   return (
     <html lang="ja">
       <body className={`${inter.className} overflow-x-hidden`}>
-        {gaTrackingId && (
+        {isProd && gaTrackingId && (
           <>
             <Script
               src={`https://www.googletagmanager.com/gtag/js?id=${gaTrackingId}`}
