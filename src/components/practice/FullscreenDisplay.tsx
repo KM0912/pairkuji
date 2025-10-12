@@ -50,7 +50,7 @@ export function FullscreenDisplay({
       ...court.pairA,
       ...court.pairB,
     ]);
-    return round.rests.filter(id => !playersInCourts.includes(id));
+    return round.rests.filter((id) => !playersInCourts.includes(id));
   };
 
   const restingPlayers = getRestingPlayers();
@@ -116,19 +116,15 @@ export function FullscreenDisplay({
                               variant="team-a"
                               size="xs"
                             />
-                            <div className="font-semibold text-slate-800 truncate text-sm" title={name}>
+                            <div
+                              className="font-semibold text-slate-800 truncate text-sm"
+                              title={name}
+                            >
                               {name}
                             </div>
                           </button>
                         );
                       })}
-                    </div>
-                  </div>
-
-                  {/* VS */}
-                  <div className="flex items-center justify-center px-2">
-                    <div className="font-bold text-slate-600 text-base">
-                      VS
                     </div>
                   </div>
 
@@ -155,7 +151,10 @@ export function FullscreenDisplay({
                               variant="team-b"
                               size="xs"
                             />
-                            <div className="font-semibold text-slate-800 truncate text-sm" title={name}>
+                            <div
+                              className="font-semibold text-slate-800 truncate text-sm"
+                              title={name}
+                            >
                               {name}
                             </div>
                           </button>
@@ -171,9 +170,7 @@ export function FullscreenDisplay({
           {/* Resting players */}
           {restingPlayers.length > 0 && (
             <div className="border border-slate-300 rounded-lg p-3 bg-slate-50">
-              <h3 className="font-bold text-slate-800 mb-2 text-base">
-                休憩
-              </h3>
+              <h3 className="font-bold text-slate-800 mb-2 text-base">休憩</h3>
               <div className="flex flex-wrap gap-1.5">
                 {restingPlayers.map((id) => {
                   const member = memberMap.get(id);
@@ -195,7 +192,10 @@ export function FullscreenDisplay({
                         variant="neutral"
                         size="xs"
                       />
-                      <div className="font-semibold text-slate-800 truncate text-sm max-w-[100px]" title={name}>
+                      <div
+                        className="font-semibold text-slate-800 truncate text-sm max-w-[100px]"
+                        title={name}
+                      >
                         {name}
                       </div>
                     </button>
@@ -204,7 +204,6 @@ export function FullscreenDisplay({
               </div>
             </div>
           )}
-
         </div>
       </div>
 
@@ -222,7 +221,6 @@ export function FullscreenDisplay({
           </span>
         </Button>
       </div>
-
     </div>
   );
 }
