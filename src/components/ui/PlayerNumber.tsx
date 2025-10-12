@@ -1,4 +1,5 @@
 import React from 'react';
+import { gradientColors } from '../../lib/colors';
 
 interface PlayerNumberProps {
   number: number | string;
@@ -11,8 +12,8 @@ const variantStyles = {
   primary: 'bg-blue-100 text-blue-700',
   secondary: 'bg-emerald-100 text-emerald-700',
   neutral: 'bg-slate-600 text-white',
-  'team-a': 'bg-gradient-to-r from-sky-500 to-blue-600 text-white',
-  'team-b': 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white',
+  'team-a': `${gradientColors.teamA} text-white`,
+  'team-b': `${gradientColors.teamB} text-white`,
 };
 
 const sizeStyles = {
@@ -34,7 +35,9 @@ export function PlayerNumber({
         ${variantStyles[variant]}
         ${sizeStyles[size]}
         ${className}
-      `.trim().replace(/\s+/g, ' ')}
+      `
+        .trim()
+        .replace(/\s+/g, ' ')}
     >
       {number}
     </span>

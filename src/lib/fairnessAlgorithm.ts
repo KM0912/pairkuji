@@ -764,11 +764,7 @@ export function generateFairRound(
   const playingIds = playing.map((player) => player.memberId);
   const pairs = buildPairs(playingIds, playerStats);
   const opponentFrequency = buildOpponentFrequencyMap(rounds);
-  const courts = buildCourtsFromPairs(
-    pairs,
-    playerStats,
-    opponentFrequency
-  );
+  const courts = buildCourtsFromPairs(pairs, playerStats, opponentFrequency);
 
   return { courts, rests: restIds };
 }

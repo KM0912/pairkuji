@@ -1,5 +1,6 @@
 import { X, Users, LayoutGrid, Shuffle, BarChart3 } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { colorCombinations } from '../../lib/colors';
 
 interface HelpModalProps {
   isOpen: boolean;
@@ -33,7 +34,9 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
         </div>
 
         <div className="overflow-auto max-h-[60vh] px-5 py-4 space-y-6">
-          <div className="bg-gradient-to-r from-blue-50 to-emerald-50 rounded-lg p-4 border border-blue-200">
+          <div
+            className={`${colorCombinations.backgroundLight} rounded-lg p-4`}
+          >
             <h3 className="text-base font-semibold text-slate-800 mb-2">
               このアプリでできること
             </h3>
@@ -55,7 +58,9 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <Users className="w-4 h-4 text-indigo-600" />
-                    <span className="font-medium text-slate-800">メンバー登録</span>
+                    <span className="font-medium text-slate-800">
+                      メンバー登録
+                    </span>
                   </div>
                   <p className="text-sm text-slate-600">
                     「メンバー」タブから練習に参加する可能性のある全員を登録します。
@@ -87,7 +92,9 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <Shuffle className="w-4 h-4 text-blue-600" />
-                    <span className="font-medium text-slate-800">組み合わせ生成</span>
+                    <span className="font-medium text-slate-800">
+                      組み合わせ生成
+                    </span>
                   </div>
                   <p className="text-sm text-slate-600">
                     「次の組み合わせを生成」ボタンで、公平性を考慮した組み合わせが自動作成されます。
