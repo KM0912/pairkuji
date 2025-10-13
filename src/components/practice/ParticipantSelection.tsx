@@ -8,7 +8,7 @@ import {
   LayoutGrid,
   Play,
 } from 'lucide-react';
-import { Button } from '../ui/Button';
+import { Button } from '../ui/button';
 import { Card } from '../ui/Card';
 import { IconBadge } from '../ui/IconBadge';
 import { PlayerNumber } from '../ui/PlayerNumber';

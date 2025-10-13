@@ -2,7 +2,6 @@
 
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { gradientColors } from '../lib/colors';
 
 export default function Home() {
   const router = useRouter();
@@ -16,7 +15,7 @@ export default function Home() {
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="text-center w-full max-w-sm">
         <div
-          className={`w-20 h-20 ${gradientColors.icon} rounded-3xl flex items-center justify-center shadow-2xl mb-8 mx-auto`}
+          className={`w-20 h-20 bg-gradient-to-br from-emerald-500 to-blue-600 rounded-3xl flex items-center justify-center shadow-2xl mb-8 mx-auto`}
         >
           <span className="text-white font-bold text-3xl">P</span>
         </div>

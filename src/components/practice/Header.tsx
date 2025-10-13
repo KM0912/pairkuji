@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { Settings, HelpCircle, MessageCircle } from 'lucide-react';
 import { HelpModal } from '../help/HelpModal';
 import { FeedbackForm } from '../feedback/FeedbackForm';
-import { gradientColors, textColors, borderColors } from '../../lib/colors';
 
 interface HeaderProps {}
 
@@ -17,7 +16,9 @@ export function Header({}: HeaderProps) {
     <>
       <div className="sticky top-0 z-40 w-full">
         <div
-          className={`${gradientColors.primary} border-b ${borderColors.primary}`}
+          className={
+            'bg-gradient-to-r from-blue-400 to-emerald-400 border-b border-slate-200'
+          }
         >
           <div className="h-14 flex items-center justify-between max-w-6xl mx-auto px-4">
             <div className="flex items-center gap-3">
@@ -29,12 +30,10 @@ export function Header({}: HeaderProps) {
                   height={28}
                   className="rounded-md"
                 />
-                <h1 className={`text-xl font-bold ${textColors.primary}`}>
-                  ペアくじ
-                </h1>
+                <h1 className={'text-xl font-bold text-white'}>ペアくじ</h1>
               </div>
               <span
-                className={`${textColors.primary} text-sm font-medium hidden sm:inline`}
+                className={'text-white text-sm font-medium hidden sm:inline'}
               >
                 - ダブルス練習
               </span>

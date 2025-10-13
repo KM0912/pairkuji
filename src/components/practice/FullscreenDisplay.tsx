@@ -4,7 +4,7 @@ import { type PracticePlayer } from '@/types/practice';
 import { type Round } from '@/types/round';
 import { X, Shuffle } from 'lucide-react';
 import { PlayerNumber } from '../ui/PlayerNumber';
-import { Button } from '../ui/Button';
+import { Button } from '../ui/button';
 
 interface FullscreenDisplayProps {
   round: Round;

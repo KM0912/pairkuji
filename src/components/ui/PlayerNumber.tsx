@@ -1,5 +1,4 @@
 import React from 'react';
-import { gradientColors } from '../../lib/colors';
 
 interface PlayerNumberProps {
   number: number | string;
@@ -9,11 +8,15 @@ interface PlayerNumberProps {
 }
 
 const variantStyles = {
-  primary: 'bg-blue-100 text-blue-700',
-  secondary: 'bg-emerald-100 text-emerald-700',
-  neutral: 'bg-slate-600 text-white',
-  'team-a': `${gradientColors.teamA} text-white`,
-  'team-b': `${gradientColors.teamB} text-white`,
+  // メイン番号（ブランド）
+  primary: 'bg-brand-primary text-white',
+  // 補助番号（情報トーン）
+  secondary: 'bg-state-info-bg text-state-info-fg',
+  // ニュートラル（濃色ベース）
+  neutral: 'bg-ink-base text-white',
+  // チーム/コート識別（色と番号で識別）
+  'team-a': 'bg-court-1 text-white',
+  'team-b': 'bg-court-3 text-white',
 };
 
 const sizeStyles = {

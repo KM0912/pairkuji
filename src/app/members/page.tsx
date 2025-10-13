@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Search, X, Trash2, Users, Edit3 } from 'lucide-react';
 import { useMemberStore } from '@/lib/stores/memberStore';
 import { usePracticeStore } from '@/lib/stores/practiceStore';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface EditingMember {
   id: number;
@@ -167,7 +167,9 @@ export default function MembersPage() {
               <div
                 key={member.id}
                 className={`group rounded-lg border bg-white shadow-sm hover:shadow-md transition-all duration-200 ${
-                  isFlashing ? 'ring-2 ring-blue-300 bg-blue-50' : 'border-slate-200'
+                  isFlashing
+                    ? 'ring-2 ring-blue-300 bg-blue-50'
+                    : 'border-slate-200'
                 } ${inPractice ? 'border-emerald-200 bg-emerald-50/30' : ''}`}
               >
                 <div className="p-3">
@@ -199,9 +201,13 @@ export default function MembersPage() {
                       <button
                         type="button"
                         className="p-1.5 rounded-md hover:bg-red-50 text-red-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                        onClick={() => handleDeleteClick(member.id!, member.name)}
+                        onClick={() =>
+                          handleDeleteClick(member.id!, member.name)
+                        }
                         title={
-                          inPractice ? '練習に参加中の選手は削除できません' : '削除'
+                          inPractice
+                            ? '練習に参加中の選手は削除できません'
+                            : '削除'
                         }
                         disabled={inPractice}
                       >
@@ -222,7 +228,9 @@ export default function MembersPage() {
               <Users className="w-8 h-8 text-slate-400" />
             </div>
             <h3 className="text-lg font-medium text-slate-600 mb-2">
-              {searchTerm ? '該当するメンバーがいません' : 'メンバーを追加しましょう'}
+              {searchTerm
+                ? '該当するメンバーがいません'
+                : 'メンバーを追加しましょう'}
             </h3>
             <p className="text-sm text-slate-500 mb-4">
               {searchTerm

@@ -1,5 +1,5 @@
 import { X, History, Users } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { PlayerNumber } from '@/components/ui/PlayerNumber';
 import type { Round } from '@/types/round';
 import type { Member } from '@/types/member';
@@ -11,7 +11,12 @@ interface RoundHistoryProps {
   memberMap: Map<number, Member>;
 }
 
-export function RoundHistory({ isOpen, onClose, rounds, memberMap }: RoundHistoryProps) {
+export function RoundHistory({
+  isOpen,
+  onClose,
+  rounds,
+  memberMap,
+}: RoundHistoryProps) {
   if (!isOpen) return null;
 
   return (
@@ -80,12 +85,17 @@ export function RoundHistory({ isOpen, onClose, rounds, memberMap }: RoundHistor
                         <div className="space-y-2">
                           {/* ペアA */}
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-slate-500 w-8">ペアA</span>
+                            <span className="text-xs text-slate-500 w-8">
+                              ペアA
+                            </span>
                             <div className="flex items-center gap-1">
                               {court.pairA.map((memberId) => {
                                 const member = memberMap.get(memberId);
                                 return (
-                                  <div key={memberId} className="flex items-center gap-1">
+                                  <div
+                                    key={memberId}
+                                    className="flex items-center gap-1"
+                                  >
                                     <PlayerNumber
                                       number={memberId}
                                       variant="neutral"
@@ -105,12 +115,17 @@ export function RoundHistory({ isOpen, onClose, rounds, memberMap }: RoundHistor
                           </div>
                           {/* ペアB */}
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-slate-500 w-8">ペアB</span>
+                            <span className="text-xs text-slate-500 w-8">
+                              ペアB
+                            </span>
                             <div className="flex items-center gap-1">
                               {court.pairB.map((memberId) => {
                                 const member = memberMap.get(memberId);
                                 return (
-                                  <div key={memberId} className="flex items-center gap-1">
+                                  <div
+                                    key={memberId}
+                                    className="flex items-center gap-1"
+                                  >
                                     <PlayerNumber
                                       number={memberId}
                                       variant="neutral"
@@ -142,7 +157,10 @@ export function RoundHistory({ isOpen, onClose, rounds, memberMap }: RoundHistor
                         {round.rests.map((memberId) => {
                           const member = memberMap.get(memberId);
                           return (
-                            <div key={memberId} className="flex items-center gap-1">
+                            <div
+                              key={memberId}
+                              className="flex items-center gap-1"
+                            >
                               <PlayerNumber
                                 number={memberId}
                                 variant="neutral"

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { type Member } from '@/types/member';
-import { Button } from '../ui/Button';
+import { Button } from '../ui/button';
 
 interface AddParticipantModalProps {
   isOpen: boolean;

@@ -1,6 +1,6 @@
 import { type Member } from '@/types/member';
 import { type PracticePlayer, type PracticeSettings } from '@/types/practice';
-import { Button } from '../ui/Button';
+import { Button } from '../ui/button';
 import { PlayerNumber } from '../ui/PlayerNumber';
 
 interface ParticipantManagementProps {

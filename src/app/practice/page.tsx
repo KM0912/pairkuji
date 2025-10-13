@@ -12,7 +12,7 @@ import { OpponentStatsPanel } from '@/components/practice/OpponentStatsPanel';
 import { SubstitutionHint } from '@/components/practice/SubstitutionHint';
 import { FullscreenDisplay } from '@/components/practice/FullscreenDisplay';
 import { RoundHistory } from '@/components/practice/RoundHistory';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { CourtSelector } from '@/components/ui/CourtSelector';
 import {
   Users,
@@ -264,72 +264,51 @@ export default function PracticePage() {
               <div className="grid grid-cols-2 gap-2 mb-4">
                 <Button
                   type="button"
-                  variant="default"
+                  variant="secondary"
                   size="sm"
                   onClick={() => setShowRoundSummary(true)}
-                  className="flex items-center justify-center gap-2 px-3 py-3 text-sm text-slate-600 shadow-none hover:shadow-none border-slate-200 hover:border-emerald-400 hover:bg-emerald-50 hover:text-slate-700"
                 >
-                  <Layers className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-                  <span className="font-medium text-slate-800 text-sm">
-                    ラウンド
-                  </span>
-                  <span className="text-slate-600 text-sm">
-                    {rounds.length}
-                  </span>
+                  <Layers />
+                  ラウンド
+                  <span>{rounds.length}</span>
                 </Button>
                 <Button
                   type="button"
-                  variant="default"
+                  variant="secondary"
                   size="sm"
                   onClick={() => setShowCourtModal(true)}
-                  className="flex items-center justify-center gap-2 px-3 py-3 text-sm text-slate-600 shadow-none hover:shadow-none border-slate-200 hover:border-sky-400 hover:bg-sky-50 hover:text-slate-700"
                 >
-                  <LayoutGrid className="h-4 w-4 text-sky-600 flex-shrink-0" />
-                  <span className="font-medium text-slate-800 text-sm">
-                    コート
-                  </span>
-                  <span className="text-slate-600 text-sm">
-                    {settings.courts}
-                  </span>
+                  <LayoutGrid />
+                  コート
+                  <span>{settings.courts}</span>
                 </Button>
                 <Button
                   type="button"
-                  variant="default"
+                  variant="secondary"
                   size="sm"
                   onClick={handleOpenParticipants}
-                  className="flex items-center justify-center gap-2 px-3 py-3 text-sm text-slate-600 shadow-none hover:shadow-none border-slate-200 hover:border-indigo-400 hover:bg-indigo-50 hover:text-slate-700"
                 >
-                  <Users className="h-4 w-4 text-indigo-600 flex-shrink-0" />
-                  <span className="font-medium text-slate-800 text-sm">
-                    参加者
-                  </span>
-                  <span className="text-slate-600 text-sm">
-                    {players.length}
-                  </span>
+                  <Users />
+                  参加者
+                  <span>{players.length}</span>
                 </Button>
                 <Button
                   type="button"
-                  variant="default"
+                  variant="secondary"
                   size="sm"
                   onClick={() => setShowStatsModal(true)}
-                  className="flex items-center justify-center gap-2 px-3 py-3 text-sm text-slate-600 shadow-none hover:shadow-none border-slate-200 hover:border-purple-400 hover:bg-purple-50 hover:text-slate-700"
                 >
-                  <BarChart3 className="h-4 w-4 text-purple-600 flex-shrink-0" />
-                  <span className="font-medium text-slate-800 text-sm">
-                    統計
-                  </span>
+                  <BarChart3 />
+                  統計
                 </Button>
                 <Button
                   type="button"
-                  variant="default"
+                  variant="outline"
                   size="sm"
                   onClick={handleResetClick}
-                  className="flex items-center justify-center gap-2 px-3 py-3 text-sm text-slate-600 shadow-none hover:shadow-none border-slate-200 hover:border-red-400 hover:bg-red-50 hover:text-slate-700"
                 >
-                  <RotateCcw className="h-4 w-4 text-red-600 flex-shrink-0" />
-                  <span className="font-medium text-slate-800 text-sm">
-                    リセット
-                  </span>
+                  <RotateCcw />
+                  リセット
                 </Button>
               </div>
 
@@ -337,13 +316,13 @@ export default function PracticePage() {
                 <div className="mb-4">
                   <Button
                     type="button"
-                    variant="secondary"
+                    variant="outline"
                     size="sm"
                     onClick={() => setShowFullscreen(true)}
-                    className="w-full flex items-center justify-center gap-2"
+                    className="w-full"
                   >
-                    <Maximize className="h-4 w-4" />
-                    <span className="font-medium">フルスクリーン表示</span>
+                    <Maximize />
+                    フルスクリーン表示
                   </Button>
                 </div>
               )}
@@ -452,7 +431,6 @@ export default function PracticePage() {
             <div className="flex gap-3">
               <Button
                 type="button"
-                variant="default"
                 size="sm"
                 onClick={() => setShowCourtModal(false)}
                 className="flex-1 px-4 py-2 text-sm text-slate-600 shadow-none hover:shadow-none border-slate-300 hover:bg-slate-50"
@@ -461,7 +439,7 @@ export default function PracticePage() {
               </Button>
               <Button
                 type="button"
-                variant="primary"
+                variant="default"
                 size="sm"
                 onClick={handleConfirmCourts}
                 className="flex-1 px-4 py-2 text-sm"
@@ -626,10 +604,8 @@ export default function PracticePage() {
         <div className="fixed bottom-24 left-4 right-4 z-30">
           <div className="max-w-6xl mx-auto">
             <Button
-              variant="primary"
               onClick={handleGenerateNextRound}
               className="w-full shadow-2xl"
-              size="md"
               disabled={players.filter((p) => p.status === 'active').length < 4}
             >
               <span className="inline-flex items-center gap-2 text-base font-semibold">
@@ -739,8 +715,6 @@ export default function PracticePage() {
         </div>
       )}
 
-
-
       {/* Fullscreen display */}
       {showFullscreen && latestRound && (
         <FullscreenDisplay
@@ -821,7 +795,6 @@ export default function PracticePage() {
                     setShowGenerateConfirm(false);
                     await executeGenerateNextRound();
                   }}
-                  variant="primary"
                   className="flex-1"
                 >
                   生成する

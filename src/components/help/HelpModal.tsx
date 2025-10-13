@@ -1,6 +1,5 @@
 import { X, Users, LayoutGrid, Shuffle, BarChart3 } from 'lucide-react';
-import { Button } from '../ui/Button';
-import { colorCombinations } from '../../lib/colors';
+import { Button } from '@/components/ui/button';
 
 interface HelpModalProps {
   isOpen: boolean;
@@ -34,9 +33,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
         </div>
 
         <div className="overflow-auto max-h-[60vh] px-5 py-4 space-y-6">
-          <div
-            className={`${colorCombinations.backgroundLight} rounded-lg p-4`}
-          >
+          <div className={'bg-slate-100 rounded-lg p-4'}>
             <h3 className="text-base font-semibold text-slate-800 mb-2">
               このアプリでできること
             </h3>
