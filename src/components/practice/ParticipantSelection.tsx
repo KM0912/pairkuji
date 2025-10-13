@@ -9,7 +9,7 @@ import {
   Play,
 } from 'lucide-react';
 import { Button } from '../ui/button';
-import { Card } from '../ui/Card';
+import { Card } from '../ui/card';
 import { IconBadge } from '../ui/IconBadge';
 import { PlayerNumber } from '../ui/PlayerNumber';
 import { SelectTile } from '../ui/SelectTile';
@@ -72,7 +72,7 @@ export function ParticipantSelection({
       <form onSubmit={onStart} className="">
         <div className="grid grid-cols-1 gap-4">
           {/* コート設定カード */}
-          <Card as="section">
+          <Card>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <IconBadge
@@ -98,7 +98,7 @@ export function ParticipantSelection({
           </Card>
 
           {/* 参加者選択 */}
-          <Card as="section">
+          <Card>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <IconBadge
@@ -218,7 +218,7 @@ export function ParticipantSelection({
           <div className="sticky bottom-2">
             <Button
               type="submit"
-              variant="primary"
+              variant="default"
               className="w-full text-lg font-bold shadow-2xl"
               disabled={selected.length < minToStart}
             >

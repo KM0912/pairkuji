@@ -1,61 +1,76 @@
-import { type HTMLAttributes } from 'react';
+import * as React from "react"
 
-type CardRadius = 'none' | 'sm' | 'md' | 'lg';
-type CardPadding = 'none' | 'sm' | 'md' | 'lg';
-type CardShadow = 'none' | 'sm' | 'md' | 'lg';
-type CardElement = 'div' | 'section' | 'article' | 'aside';
+import { cn } from "@/lib/utils"
 
-interface CardProps extends HTMLAttributes<HTMLElement> {
-  as?: CardElement;
-  radius?: CardRadius;
-  padding?: CardPadding;
-  shadow?: CardShadow;
-}
+const Card = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "rounded-xl border bg-card text-card-foreground shadow",
+      className
+    )}
+    {...props}
+  />
+))
+Card.displayName = "Card"
 
-const radiusClass: Record<CardRadius, string> = {
-  none: 'rounded-none',
-  sm: 'rounded-lg',
-  md: 'rounded-xl',
-  lg: 'rounded-2xl',
-};
+const CardHeader = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex flex-col space-y-1.5 p-6", className)}
+    {...props}
+  />
+))
+CardHeader.displayName = "CardHeader"
 
-const paddingClass: Record<CardPadding, string> = {
-  none: '',
-  sm: 'p-3',
-  md: 'p-4',
-  lg: 'p-6',
-};
+const CardTitle = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("font-semibold leading-none tracking-tight", className)}
+    {...props}
+  />
+))
+CardTitle.displayName = "CardTitle"
 
-const shadowClass: Record<CardShadow, string> = {
-  none: '',
-  sm: 'shadow-sm',
-  md: 'shadow-md',
-  lg: 'shadow-lg',
-};
+const CardDescription = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("text-sm text-muted-foreground", className)}
+    {...props}
+  />
+))
+CardDescription.displayName = "CardDescription"
 
-const mergeClassNames = (...classes: Array<string | undefined>): string =>
-  classes.filter(Boolean).join(' ');
+const CardContent = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+))
+CardContent.displayName = "CardContent"
 
-export function Card({
-  as = 'div',
-  radius = 'md',
-  padding = 'md',
-  shadow = 'none',
-  className,
-  ...props
-}: CardProps) {
-  const Component = as;
+const CardFooter = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex items-center p-6 pt-0", className)}
+    {...props}
+  />
+))
+CardFooter.displayName = "CardFooter"
 
-  return (
-    <Component
-      className={mergeClassNames(
-        'border border-slate-200 bg-white',
-        radiusClass[radius],
-        paddingClass[padding],
-        shadowClass[shadow],
-        className
-      )}
-      {...props}
-    />
-  );
-}
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
