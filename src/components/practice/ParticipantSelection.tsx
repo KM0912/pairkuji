@@ -75,19 +75,15 @@ export function ParticipantSelection({
           <Card>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <IconBadge
-                  icon={LayoutGrid}
-                  size="sm"
-                  className="bg-sky-100 text-sky-600"
-                />
+                <IconBadge icon={LayoutGrid} size="sm" className="text-primary" />
                 <div>
-                  <h3 className="text-base font-semibold text-slate-800">
+                  <h3 className="text-base font-semibold text-foreground">
                     コート設定
                   </h3>
                 </div>
               </div>
             </div>
-            <div className="bg-slate-100 rounded-lg p-2">
+            <div className="bg-muted rounded-lg p-2">
               <CourtSelector courts={courts} setCourts={setCourts} size="sm" />
               {runnableCourts < courts && selected.length >= 4 && (
                 <div className="mt-2 text-xs text-amber-600 bg-amber-50 px-2 py-1.5 rounded border border-amber-200">
@@ -101,16 +97,12 @@ export function ParticipantSelection({
           <Card>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <IconBadge
-                  icon={Users}
-                  size="md"
-                  className="bg-indigo-100 text-indigo-600"
-                />
+                <IconBadge icon={Users} size="md" className="text-primary" />
                 <div>
-                  <h3 className="text-base font-semibold text-slate-800">
+                  <h3 className="text-base font-semibold text-foreground">
                     ダブルス参加者
                   </h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-muted-foreground">
                     {selected.length}名選択中 • 最低4名必要
                   </p>
                 </div>
@@ -149,21 +141,21 @@ export function ParticipantSelection({
               {/* 検索 */}
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="w-5 h-5 text-slate-400" />
+                  <Search className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="メンバー名で検索"
-                  className="w-full pl-10 pr-4 py-3 border rounded-lg text-base min-h-[48px] border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                  className="w-full pl-10 pr-4 py-3 border rounded-lg text-base min-h-[48px] border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                   aria-label="メンバー検索"
                 />
                 {searchTerm && (
                   <button
                     type="button"
                     onClick={() => setSearchTerm('')}
-                    className="absolute inset-y-0 right-0 px-3 text-slate-400 hover:text-slate-600"
+                    className="absolute inset-y-0 right-0 px-3 text-muted-foreground hover:text-foreground"
                     aria-label="検索をクリア"
                   >
                     <X className="w-4 h-4" />
@@ -172,7 +164,7 @@ export function ParticipantSelection({
               </div>
 
               {/* メンバーリスト */}
-              <div className="bg-gradient-to-br from-slate-50 to-blue-50/30 rounded-xl border border-slate-200">
+              <div className="rounded-xl border border-border bg-secondary">
                 <div className="grid grid-cols-2 gap-2 p-2 max-h-80 overflow-auto">
                   {visibleMembers.length > 0 ? (
                     visibleMembers.map((member) => {
@@ -204,7 +196,7 @@ export function ParticipantSelection({
                       );
                     })
                   ) : (
-                    <div className="col-span-full text-center py-8 text-slate-500 text-sm">
+                    <div className="col-span-full text-center py-8 text-muted-foreground text-sm">
                       {searchTerm
                         ? '検索条件に一致するメンバーがいません'
                         : '表示できるメンバーがいません'}

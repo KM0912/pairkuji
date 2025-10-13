@@ -56,16 +56,16 @@ export function FullscreenDisplay({
   const restingPlayers = getRestingPlayers();
 
   return (
-    <div className="fixed inset-0 z-50 bg-white overflow-auto">
+    <div className="fixed inset-0 z-50 bg-background overflow-auto">
       {/* Header */}
-      <div className="sticky top-0 bg-white border-b border-slate-200 z-10">
+      <div className="sticky top-0 bg-background border-b border-border z-10">
         <div className="flex items-center justify-between p-3">
-          <h1 className="font-bold text-slate-800 text-lg">
+          <h1 className="font-bold text-foreground text-lg">
             🏸 第{roundNumber}ラウンド
           </h1>
           <button
             onClick={onClose}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary hover:bg-muted rounded-lg transition-colors"
             aria-label="フルスクリーンを閉じる"
           >
             <X className="w-3 h-3" />
@@ -82,11 +82,11 @@ export function FullscreenDisplay({
             {round.courts.map((court) => (
               <div
                 key={court.courtNo}
-                className="border border-slate-300 rounded-lg p-3 bg-white"
+                className="border border-border rounded-lg p-3 bg-card"
               >
                 {/* Court title */}
                 <div className="text-center mb-3">
-                  <h2 className="font-bold text-slate-800 text-lg">
+                  <h2 className="font-bold text-foreground text-lg">
                     COURT {court.courtNo}
                   </h2>
                 </div>
@@ -94,7 +94,7 @@ export function FullscreenDisplay({
                 {/* Match */}
                 <div className="flex items-stretch gap-2">
                   {/* Team A */}
-                  <div className="flex-1 rounded-md border border-sky-400 bg-sky-50 p-2 min-w-0">
+                  <div className="flex-1 rounded-md border border-primary/40 bg-primary/5 p-2 min-w-0">
                     <div className="space-y-2">
                       {court.pairA.map((id) => {
                         const member = memberMap.get(id);
@@ -104,20 +104,20 @@ export function FullscreenDisplay({
                         return (
                           <button
                             key={id}
-                            className={`flex items-center gap-1.5 bg-white border rounded-md w-full min-w-0 transition-all duration-200 active:scale-95 p-2 min-h-[36px] ${
-                              substituting === id
-                                ? 'border-yellow-400 bg-yellow-50 ring-2 ring-yellow-300'
-                                : 'border-blue-300 hover:bg-blue-50 hover:border-blue-400'
-                            }`}
-                            onClick={() => onPlayerClick(id)}
-                          >
+                          className={`flex items-center gap-1.5 bg-card border rounded-md w-full min-w-0 transition-all duration-200 active:scale-95 p-2 min-h-[36px] ${
+                            substituting === id
+                              ? 'border-yellow-400 bg-yellow-50 ring-2 ring-yellow-300'
+                              : 'border-primary/30 hover:bg-primary/10 hover:border-primary/40'
+                          }`}
+                          onClick={() => onPlayerClick(id)}
+                        >
                             <PlayerNumber
                               number={number}
                               variant="team-a"
                               size="xs"
                             />
                             <div
-                              className="font-semibold text-slate-800 truncate text-sm"
+                              className="font-semibold text-foreground truncate text-sm"
                               title={name}
                             >
                               {name}
@@ -129,7 +129,7 @@ export function FullscreenDisplay({
                   </div>
 
                   {/* Team B */}
-                  <div className="flex-1 rounded-md border border-emerald-400 bg-emerald-50 p-2 min-w-0">
+                  <div className="flex-1 rounded-md border border-accent/40 bg-accent/5 p-2 min-w-0">
                     <div className="space-y-2">
                       {court.pairB.map((id) => {
                         const member = memberMap.get(id);
@@ -139,20 +139,20 @@ export function FullscreenDisplay({
                         return (
                           <button
                             key={id}
-                            className={`flex items-center gap-1.5 bg-white border rounded-md w-full min-w-0 transition-all duration-200 active:scale-95 p-2 min-h-[36px] ${
-                              substituting === id
-                                ? 'border-yellow-400 bg-yellow-50 ring-2 ring-yellow-300'
-                                : 'border-emerald-300 hover:bg-emerald-50 hover:border-emerald-400'
-                            }`}
-                            onClick={() => onPlayerClick(id)}
-                          >
+                          className={`flex items-center gap-1.5 bg-card border rounded-md w-full min-w-0 transition-all duration-200 active:scale-95 p-2 min-h-[36px] ${
+                            substituting === id
+                              ? 'border-yellow-400 bg-yellow-50 ring-2 ring-yellow-300'
+                              : 'border-accent/30 hover:bg-accent/10 hover:border-accent/40'
+                          }`}
+                          onClick={() => onPlayerClick(id)}
+                        >
                             <PlayerNumber
                               number={number}
                               variant="team-b"
                               size="xs"
                             />
                             <div
-                              className="font-semibold text-slate-800 truncate text-sm"
+                              className="font-semibold text-foreground truncate text-sm"
                               title={name}
                             >
                               {name}
@@ -169,8 +169,8 @@ export function FullscreenDisplay({
 
           {/* Resting players */}
           {restingPlayers.length > 0 && (
-            <div className="border border-slate-300 rounded-lg p-3 bg-slate-50">
-              <h3 className="font-bold text-slate-800 mb-2 text-base">休憩</h3>
+            <div className="border border-border rounded-lg p-3 bg-muted">
+              <h3 className="font-bold text-foreground mb-2 text-base">休憩</h3>
               <div className="flex flex-wrap gap-1.5">
                 {restingPlayers.map((id) => {
                   const member = memberMap.get(id);
@@ -180,10 +180,10 @@ export function FullscreenDisplay({
                   return (
                     <button
                       key={id}
-                      className={`flex items-center gap-1.5 bg-white border border-slate-300 rounded-full transition-all duration-200 active:scale-95 px-2.5 py-1.5 min-h-[32px] ${
+                      className={`flex items-center gap-1.5 bg-card border border-border rounded-full transition-all duration-200 active:scale-95 px-2.5 py-1.5 min-h-[32px] ${
                         substituting === id
                           ? 'border-yellow-400 bg-yellow-50 ring-2 ring-yellow-300'
-                          : 'hover:bg-slate-50'
+                          : 'hover:bg-muted'
                       }`}
                       onClick={() => onPlayerClick(id)}
                     >
@@ -193,7 +193,7 @@ export function FullscreenDisplay({
                         size="xs"
                       />
                       <div
-                        className="font-semibold text-slate-800 truncate text-sm max-w-[100px]"
+                        className="font-semibold text-foreground truncate text-sm max-w-[100px]"
                         title={name}
                       >
                         {name}

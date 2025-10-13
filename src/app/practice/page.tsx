@@ -355,9 +355,9 @@ export default function PracticePage() {
       {/* Round summary modal */}
       {showRoundSummary && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-md rounded-2xl bg-white shadow-xl border border-slate-200">
+          <div className="w-full max-w-md rounded-2xl bg-card shadow-xl border border-border">
             <div className="flex items-center justify-between border-b px-4 py-3">
-              <h2 className="text-sm font-semibold text-slate-800">
+              <h2 className="text-sm font-semibold text-foreground">
                 ラウンド履歴
               </h2>
               <Button
@@ -365,7 +365,7 @@ export default function PracticePage() {
                 variant="default"
                 size="sm"
                 onClick={() => setShowRoundSummary(false)}
-                className="w-auto px-2 py-1 text-slate-400 hover:text-slate-600 shadow-none hover:shadow-none border-transparent"
+                className="w-auto px-2 py-1 text-muted-foreground hover:text-foreground shadow-none hover:shadow-none border-transparent"
                 aria-label="閉じる"
               >
                 ✕
@@ -373,7 +373,7 @@ export default function PracticePage() {
             </div>
             <div className="max-h-72 overflow-auto px-4 py-3 space-y-2 text-sm">
               {rounds.length === 0 ? (
-                <p className="text-slate-500">まだラウンドがありません。</p>
+                <p className="text-muted-foreground">まだラウンドがありません。</p>
               ) : (
                 rounds
                   .slice()
@@ -381,12 +381,12 @@ export default function PracticePage() {
                   .map((round) => (
                     <div
                       key={round.roundNo}
-                      className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
+                      className="flex items-center justify-between rounded-lg border border-border bg-muted px-3 py-2"
                     >
-                      <div className="font-medium text-slate-700">
+                      <div className="font-medium text-foreground">
                         ラウンド {round.roundNo}
                       </div>
-                      <div className="text-xs text-slate-500">
+                      <div className="text-xs text-muted-foreground">
                         コート {round.courts.length} / 休憩 {round.rests.length}
                       </div>
                     </div>
@@ -400,9 +400,9 @@ export default function PracticePage() {
       {/* Court count modal */}
       {showCourtModal && settings && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-md rounded-2xl bg-white shadow-xl border border-slate-200 p-5 space-y-5">
+          <div className="w-full max-w-md rounded-2xl bg-card shadow-xl border border-border p-5 space-y-5">
             <div className="flex items-center justify-between">
-              <h2 className="text-base font-semibold text-slate-800">
+              <h2 className="text-base font-semibold text-foreground">
                 コート数を変更
               </h2>
               <Button
@@ -410,17 +410,17 @@ export default function PracticePage() {
                 variant="default"
                 size="sm"
                 onClick={() => setShowCourtModal(false)}
-                className="w-auto px-2 py-1 text-slate-400 hover:text-slate-600 shadow-none hover:shadow-none border-transparent"
+                className="w-auto px-2 py-1 text-muted-foreground hover:text-foreground shadow-none hover:shadow-none border-transparent"
                 aria-label="閉じる"
               >
                 ✕
               </Button>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-3">
+              <label className="block text-sm font-medium text-foreground mb-3">
                 コート数
               </label>
-              <div className="bg-slate-100 rounded-lg p-3 border border-slate-200">
+              <div className="bg-muted rounded-lg p-3 border border-border">
                 <CourtSelector
                   courts={pendingCourts}
                   setCourts={setPendingCourts}
@@ -433,7 +433,7 @@ export default function PracticePage() {
                 type="button"
                 size="sm"
                 onClick={() => setShowCourtModal(false)}
-                className="flex-1 px-4 py-2 text-sm text-slate-600 shadow-none hover:shadow-none border-slate-300 hover:bg-slate-50"
+                className="flex-1 px-4 py-2 text-sm text-muted-foreground shadow-none hover:shadow-none border-border hover:bg-secondary"
               >
                 キャンセル
               </Button>
@@ -455,13 +455,13 @@ export default function PracticePage() {
       {/* Participant management modal */}
       {showParticipantModal && settings && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-3xl rounded-2xl bg-white shadow-xl border border-slate-200">
+          <div className="w-full max-w-3xl rounded-2xl bg-card shadow-xl border border-border">
             <div className="flex items-center justify-between border-b px-5 py-4">
               <div>
-                <h2 className="text-base font-semibold text-slate-800">
+                <h2 className="text-base font-semibold text-foreground">
                   参加者の管理
                 </h2>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   出場可 {players.filter((p) => p.status === 'active').length} /
                   全体 {players.length}
                 </p>
@@ -471,7 +471,7 @@ export default function PracticePage() {
                 variant="default"
                 size="sm"
                 onClick={() => setShowParticipantModal(false)}
-                className="w-auto px-2 py-1 text-slate-400 hover:text-slate-600 shadow-none hover:shadow-none border-transparent"
+                className="w-auto px-2 py-1 text-muted-foreground hover:text-foreground shadow-none hover:shadow-none border-transparent"
                 aria-label="閉じる"
               >
                 ✕
@@ -495,17 +495,17 @@ export default function PracticePage() {
       {/* Pair stats modal */}
       {showStatsModal && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-4xl rounded-2xl bg-white shadow-xl border border-slate-200">
+          <div className="w-full max-w-4xl rounded-2xl bg-card shadow-xl border border-border">
             <div className="flex items-center justify-between border-b px-5 py-4">
               <div>
-                <h2 className="text-base font-semibold text-slate-800">統計</h2>
-                <div className="mt-2 inline-flex rounded-md border border-slate-200 bg-slate-100 p-0.5">
+                <h2 className="text-base font-semibold text-foreground">統計</h2>
+                <div className="mt-2 inline-flex rounded-md border border-border bg-secondary p-0.5">
                   <button
                     type="button"
                     className={`px-3 py-1.5 text-xs rounded ${
                       statsMode === 'pair'
-                        ? 'bg-white border border-slate-200 text-slate-800'
-                        : 'text-slate-500'
+                        ? 'bg-card border border-border text-foreground'
+                        : 'text-muted-foreground'
                     }`}
                     onClick={() => setStatsMode('pair')}
                   >
@@ -515,8 +515,8 @@ export default function PracticePage() {
                     type="button"
                     className={`ml-1 px-3 py-1.5 text-xs rounded ${
                       statsMode === 'opponent'
-                        ? 'bg-white border border-slate-200 text-slate-800'
-                        : 'text-slate-500'
+                        ? 'bg-card border border-border text-foreground'
+                        : 'text-muted-foreground'
                     }`}
                     onClick={() => setStatsMode('opponent')}
                   >
@@ -529,7 +529,7 @@ export default function PracticePage() {
                 variant="default"
                 size="sm"
                 onClick={() => setShowStatsModal(false)}
-                className="w-auto px-2 py-1 text-slate-400 hover:text-slate-600 shadow-none hover:shadow-none border-transparent"
+                className="w-auto px-2 py-1 text-muted-foreground hover:text-foreground shadow-none hover:shadow-none border-transparent"
                 aria-label="閉じる"
               >
                 ✕
@@ -566,16 +566,16 @@ export default function PracticePage() {
       {/* Reset confirmation modal */}
       {showResetConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl w-full max-w-sm mx-4 shadow-2xl">
+          <div className="bg-card rounded-2xl w-full max-w-sm mx-4 shadow-2xl">
             <div className="p-6">
               <div className="text-center mb-6">
-                <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-                  <AlertTriangle className="w-8 h-8 text-red-600" />
+                <div className="w-16 h-16 mx-auto mb-4 bg-destructive/10 rounded-full flex items-center justify-center">
+                  <AlertTriangle className="w-8 h-8 text-destructive" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-lg font-semibold text-foreground mb-2">
                   練習をリセットしますか？
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                   すべてのラウンドデータが削除され、元に戻すことはできません。
                 </p>
               </div>
@@ -583,13 +583,13 @@ export default function PracticePage() {
               <div className="flex gap-3">
                 <button
                   onClick={handleCancelReset}
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                  className="flex-1 px-4 py-3 border border-border rounded-xl text-foreground hover:bg-secondary transition-colors font-medium"
                 >
                   キャンセル
                 </button>
                 <button
                   onClick={handleReset}
-                  className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-medium"
+                  className="flex-1 px-4 py-3 bg-destructive text-destructive-foreground rounded-xl hover:bg-destructive/90 transition-colors font-medium"
                 >
                   リセット
                 </button>
@@ -633,9 +633,9 @@ export default function PracticePage() {
       {/* Round summary modal */}
       {showRoundSummary && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-md rounded-2xl bg-white shadow-xl border border-slate-200">
+          <div className="w-full max-w-md rounded-2xl bg-card shadow-xl border border-border">
             <div className="flex items-center justify-between border-b px-4 py-3">
-              <h2 className="text-sm font-semibold text-slate-800">
+              <h2 className="text-sm font-semibold text-foreground">
                 ラウンド履歴
               </h2>
               <Button
@@ -643,7 +643,7 @@ export default function PracticePage() {
                 variant="default"
                 size="sm"
                 onClick={() => setShowRoundSummary(false)}
-                className="w-auto px-2 py-1 text-slate-400 hover:text-slate-600 shadow-none hover:shadow-none border-transparent"
+                className="w-auto px-2 py-1 text-muted-foreground hover:text-foreground shadow-none hover:shadow-none border-transparent"
                 aria-label="閉じる"
               >
                 ✕
@@ -651,7 +651,7 @@ export default function PracticePage() {
             </div>
             <div className="max-h-72 overflow-auto px-4 py-3 space-y-2 text-sm">
               {rounds.length === 0 ? (
-                <p className="text-slate-500">まだラウンドがありません。</p>
+                <p className="text-muted-foreground">まだラウンドがありません。</p>
               ) : (
                 rounds
                   .slice()
@@ -659,12 +659,12 @@ export default function PracticePage() {
                   .map((round) => (
                     <div
                       key={round.roundNo}
-                      className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
+                      className="flex items-center justify-between rounded-lg border border-border bg-muted px-3 py-2"
                     >
-                      <div className="font-medium text-slate-700">
+                      <div className="font-medium text-foreground">
                         ラウンド {round.roundNo}
                       </div>
-                      <div className="text-xs text-slate-500">
+                      <div className="text-xs text-muted-foreground">
                         コート {round.courts.length} / 休憩 {round.rests.length}
                       </div>
                     </div>
@@ -678,13 +678,13 @@ export default function PracticePage() {
       {/* Participant management modal */}
       {showParticipantModal && settings && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-3xl rounded-2xl bg-white shadow-xl border border-slate-200">
+          <div className="w-full max-w-3xl rounded-2xl bg-card shadow-xl border border-border">
             <div className="flex items-center justify-between border-b px-5 py-4">
               <div>
-                <h2 className="text-base font-semibold text-slate-800">
+                <h2 className="text-base font-semibold text-foreground">
                   参加者の管理
                 </h2>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   出場可 {players.filter((p) => p.status === 'active').length} /
                   全体 {players.length}
                 </p>
@@ -694,7 +694,7 @@ export default function PracticePage() {
                 variant="default"
                 size="sm"
                 onClick={() => setShowParticipantModal(false)}
-                className="w-auto px-2 py-1 text-slate-400 hover:text-slate-600 shadow-none hover:shadow-none border-transparent"
+                className="w-auto px-2 py-1 text-muted-foreground hover:text-foreground shadow-none hover:shadow-none border-transparent"
                 aria-label="閉じる"
               >
                 ✕
@@ -732,16 +732,16 @@ export default function PracticePage() {
       {/* Reset confirmation modal */}
       {showResetConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl w-full max-w-sm mx-4 shadow-2xl">
+          <div className="bg-card rounded-2xl w-full max-w-sm mx-4 shadow-2xl">
             <div className="p-6">
               <div className="text-center mb-6">
-                <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-                  <AlertTriangle className="w-8 h-8 text-red-600" />
+                <div className="w-16 h-16 mx-auto mb-4 bg-destructive/10 rounded-full flex items-center justify-center">
+                  <AlertTriangle className="w-8 h-8 text-destructive" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-lg font-semibold text-foreground mb-2">
                   練習をリセットしますか？
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                   すべてのラウンドデータが削除され、元に戻すことはできません。
                 </p>
               </div>
@@ -749,13 +749,13 @@ export default function PracticePage() {
               <div className="flex gap-3">
                 <button
                   onClick={handleCancelReset}
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                  className="flex-1 px-4 py-3 border border-border rounded-xl text-foreground hover:bg-secondary transition-colors font-medium"
                 >
                   キャンセル
                 </button>
                 <button
                   onClick={handleReset}
-                  className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-medium"
+                  className="flex-1 px-4 py-3 bg-destructive text-destructive-foreground rounded-xl hover:bg-destructive/90 transition-colors font-medium"
                 >
                   リセット
                 </button>
@@ -768,16 +768,16 @@ export default function PracticePage() {
       {/* Generate round confirmation modal */}
       {showGenerateConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl w-full max-w-sm mx-4 shadow-2xl">
+          <div className="bg-card rounded-2xl w-full max-w-sm mx-4 shadow-2xl">
             <div className="p-6">
               <div className="text-center mb-6">
-                <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Shuffle className="w-8 h-8 text-blue-600" />
+                <div className="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
+                  <Shuffle className="w-8 h-8 text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-lg font-semibold text-foreground mb-2">
                   ラウンド {rounds.length + 1} を生成しますか？
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                   新しい組み合わせが作成されます。
                 </p>
               </div>

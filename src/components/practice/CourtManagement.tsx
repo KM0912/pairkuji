@@ -30,17 +30,17 @@ export function CourtManagement({
             {latestRound.courts.map((cm) => (
               <div
                 key={cm.courtNo}
-                className="py-2 px-2 rounded-lg border bg-white border-slate-200"
+                className="py-2 px-2 rounded-lg border bg-card border-border"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <div className="inline-flex items-center gap-1.5 text-slate-700 font-medium">
+                  <div className="inline-flex items-center gap-1.5 text-foreground font-medium">
                     <IconBadge icon={LayoutGrid} size="sm" />
                     <span className="text-xs">COURT {cm.courtNo}</span>
                   </div>
                 </div>
                 <div className="flex items-stretch gap-1.5">
                   {/* Team A */}
-                  <div className="flex-1 rounded-md border border-sky-400 bg-sky-50 p-1 min-w-0">
+                  <div className="flex-1 rounded-md border border-primary/40 bg-primary/5 p-1 min-w-0">
                     <div className="space-y-0.5">
                       {cm.pairA.map((id) => {
                         const member = memberMap.get(id);
@@ -50,13 +50,13 @@ export function CourtManagement({
                         return (
                           <button
                             key={id}
-                            className={`flex items-center gap-1 rounded-md px-1.5 py-1 transition-all duration-200 w-full min-w-0 min-h-[28px] active:scale-95 border ${
+                          className={`flex items-center gap-1 rounded-md px-1.5 py-1 transition-all duration-200 w-full min-w-0 min-h-[28px] active:scale-95 border ${
                               substituting === id
                                 ? 'bg-yellow-50 border-yellow-400 ring-1 ring-yellow-300'
-                                : 'bg-white border-blue-200 hover:bg-blue-50 hover:border-blue-300'
+                                : 'bg-card border-primary/30 hover:bg-primary/10 hover:border-primary/40'
                             }`}
-                            onClick={() => onPlayerClick(id)}
-                          >
+                          onClick={() => onPlayerClick(id)}
+                        >
                             <PlayerNumber
                               number={number}
                               variant="team-a"
@@ -79,7 +79,7 @@ export function CourtManagement({
                   </div>
 
                   {/* Team B */}
-                  <div className="flex-1 rounded-md border border-emerald-400 bg-emerald-50 p-1 min-w-0">
+                  <div className="flex-1 rounded-md border border-accent/40 bg-accent/5 p-1 min-w-0">
                     <div className="space-y-0.5">
                       {cm.pairB.map((id) => {
                         const member = memberMap.get(id);
@@ -89,13 +89,13 @@ export function CourtManagement({
                         return (
                           <button
                             key={id}
-                            className={`flex items-center gap-1 rounded-md px-1.5 py-1 transition-all duration-200 w-full min-w-0 min-h-[28px] active:scale-95 border ${
+                          className={`flex items-center gap-1 rounded-md px-1.5 py-1 transition-all duration-200 w-full min-w-0 min-h-[28px] active:scale-95 border ${
                               substituting === id
                                 ? 'bg-yellow-50 border-yellow-400 ring-1 ring-yellow-300'
-                                : 'bg-white border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300'
+                                : 'bg-card border-accent/30 hover:bg-accent/10 hover:border-accent/40'
                             }`}
-                            onClick={() => onPlayerClick(id)}
-                          >
+                          onClick={() => onPlayerClick(id)}
+                        >
                             <PlayerNumber
                               number={number}
                               variant="team-b"
@@ -136,8 +136,8 @@ export function CourtManagement({
 
             return (
               restingPlayers.length > 0 && (
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-2 text-sm text-slate-700">
-                  <div className="mb-1.5 font-medium text-slate-700 text-xs">休憩</div>
+                <div className="rounded-lg border border-border bg-muted p-2 text-sm text-foreground">
+                  <div className="mb-1.5 font-medium text-foreground text-xs">休憩</div>
                   <div className="flex flex-wrap gap-1">
                     {restingPlayers.map((id) => {
                       const member = memberMap.get(id);
@@ -147,13 +147,13 @@ export function CourtManagement({
                       return (
                         <button
                           key={id}
-                          className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs transition-all duration-200 min-h-[24px] active:scale-95 ${
-                            substituting === id
-                              ? 'bg-yellow-100 border-yellow-400 text-yellow-800 ring-1 ring-yellow-300'
-                              : 'bg-white border-slate-300 text-slate-800 hover:bg-slate-50'
-                          }`}
-                          onClick={() => onPlayerClick(id)}
-                        >
+                        className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs transition-all duration-200 min-h-[24px] active:scale-95 ${
+                          substituting === id
+                            ? 'bg-yellow-100 border-yellow-400 text-yellow-800 ring-1 ring-yellow-300'
+                            : 'bg-card border-border text-foreground hover:bg-muted'
+                        }`}
+                        onClick={() => onPlayerClick(id)}
+                      >
                           <PlayerNumber
                             number={number}
                             variant="neutral"
@@ -175,7 +175,7 @@ export function CourtManagement({
           })()}
         </div>
       ) : (
-        <div className="text-slate-600 text-sm">
+        <div className="text-muted-foreground text-sm">
           <div>まだ組み合わせがありません。下部のボタンで生成してください。</div>
         </div>
       )}

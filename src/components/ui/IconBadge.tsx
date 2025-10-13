@@ -15,12 +15,12 @@ interface IconBadgeProps {
 }
 
 const variantStyles = {
-  primary: 'text-blue-700',
-  secondary: 'text-emerald-700',
-  success: 'text-emerald-700',
+  primary: 'text-primary',
+  secondary: 'text-accent',
+  success: 'text-primary',
   warning: 'text-amber-700',
-  danger: 'text-red-700',
-  neutral: 'text-gray-600',
+  danger: 'text-destructive',
+  neutral: 'text-muted-foreground',
 };
 
 const sizeStyles = {

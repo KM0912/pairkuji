@@ -104,14 +104,14 @@ export default function MembersPage() {
       <div className="space-y-6">
         <form
           onSubmit={handleAdd}
-          className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex gap-2 mb-4"
+          className="bg-card p-4 rounded-xl shadow-sm border border-border flex gap-2 mb-4"
         >
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="選手名を入力"
-            className="flex-1 rounded-lg px-3 py-2 bg-white border border-slate-300 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-600"
+            className="flex-1 rounded-lg px-3 py-2 bg-card border border-border placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
           />
           <Button variant="primary" type="submit" disabled={!name.trim()}>
             追加
@@ -121,28 +121,28 @@ export default function MembersPage() {
         <div className="mb-4">
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="w-5 h-5 text-slate-400" />
+              <Search className="w-5 h-5 text-muted-foreground" />
             </div>
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="名前で検索"
-              className="w-full pl-10 pr-4 py-3 border rounded-lg text-base min-h-[48px] border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+              className="w-full pl-10 pr-4 py-3 border rounded-lg text-base min-h-[48px] border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
               aria-label="選手検索"
             />
             {searchTerm && (
               <button
                 type="button"
                 onClick={() => setSearchTerm('')}
-                className="absolute inset-y-0 right-0 px-3 text-slate-400 hover:text-slate-600"
+                className="absolute inset-y-0 right-0 px-3 text-muted-foreground hover:text-foreground"
                 aria-label="検索をクリア"
               >
                 <X className="w-4 h-4" />
               </button>
             )}
           </div>
-          <p className="mt-2 text-xs text-slate-500">
+          <p className="mt-2 text-xs text-muted-foreground">
             {isLoading
               ? '読み込み中…'
               : `${filteredMembers.length} 名が表示されています`}
@@ -150,7 +150,7 @@ export default function MembersPage() {
         </div>
 
         {error && (
-          <div className="mb-4 p-3 rounded bg-red-50 text-red-700 flex justify-between items-center">
+          <div className="mb-4 p-3 rounded bg-destructive/10 text-destructive flex justify-between items-center">
             <span>{error}</span>
             <button className="text-sm underline" onClick={clearError}>
               閉じる
@@ -166,22 +166,22 @@ export default function MembersPage() {
             return (
               <div
                 key={member.id}
-                className={`group rounded-lg border bg-white shadow-sm hover:shadow-md transition-all duration-200 ${
+                className={`group rounded-lg border bg-card shadow-sm hover:shadow-md transition-all duration-200 ${
                   isFlashing
-                    ? 'ring-2 ring-blue-300 bg-blue-50'
-                    : 'border-slate-200'
-                } ${inPractice ? 'border-emerald-200 bg-emerald-50/30' : ''}`}
+                    ? 'ring-2 ring-primary/30 bg-primary/10'
+                    : 'border-border'
+                } ${inPractice ? 'border-accent/30 bg-accent/10' : ''}`}
               >
                 <div className="p-3">
                   <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-slate-800 truncate mb-1">
+                      <h3 className="font-medium text-foreground truncate mb-1">
                         {member.name}
                       </h3>
                       {inPractice && (
                         <div className="flex items-center gap-1">
-                          <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>
-                          <span className="text-xs text-emerald-600 font-medium">
+                          <div className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse"></div>
+                          <span className="text-xs text-accent font-medium">
                             練習に参加中
                           </span>
                         </div>
@@ -190,7 +190,7 @@ export default function MembersPage() {
                     <div className="flex items-center gap-1 ml-2">
                       <button
                         type="button"
-                        className="p-1.5 rounded-md hover:bg-blue-50 text-blue-500 transition-colors"
+                        className="p-1.5 rounded-md hover:bg-primary/10 text-primary transition-colors"
                         onClick={() =>
                           openEditModal({ id: member.id!, name: member.name })
                         }
@@ -200,7 +200,7 @@ export default function MembersPage() {
                       </button>
                       <button
                         type="button"
-                        className="p-1.5 rounded-md hover:bg-red-50 text-red-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        className="p-1.5 rounded-md hover:bg-destructive/10 text-destructive disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                         onClick={() =>
                           handleDeleteClick(member.id!, member.name)
                         }
@@ -224,15 +224,15 @@ export default function MembersPage() {
         {/* 空状態 */}
         {!isLoading && filteredMembers.length === 0 && (
           <div className="text-center py-12">
-            <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-full flex items-center justify-center">
-              <Users className="w-8 h-8 text-slate-400" />
+            <div className="w-16 h-16 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center">
+              <Users className="w-8 h-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-medium text-slate-600 mb-2">
+            <h3 className="text-lg font-medium text-muted-foreground mb-2">
               {searchTerm
                 ? '該当するメンバーがいません'
                 : 'メンバーを追加しましょう'}
             </h3>
-            <p className="text-sm text-slate-500 mb-4">
+            <p className="text-sm text-muted-foreground mb-4">
               {searchTerm
                 ? '検索条件を変更して再度お試しください'
                 : '上のフォームから最初のメンバーを追加してください'}
@@ -240,7 +240,7 @@ export default function MembersPage() {
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
-                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                className="text-primary hover:text-primary/80 text-sm font-medium"
               >
                 検索をクリア
               </button>
@@ -250,17 +250,17 @@ export default function MembersPage() {
 
         {editingMember && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl w-full max-w-sm shadow-xl border border-slate-200">
+            <div className="bg-card rounded-xl w-full max-w-sm shadow-xl border border-border">
               <div className="p-6">
                 <h2 className="text-lg font-semibold mb-4">選手情報を編集</h2>
                 <form onSubmit={handleEditSave} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-foreground mb-1">
                       名前
                     </label>
                     <input
                       type="text"
-                      className="w-full border rounded-lg px-3 py-2 bg-white border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full border rounded-lg px-3 py-2 bg-card border-border focus:outline-none focus:ring-2 focus:ring-primary"
                       value={editingMember.name}
                       onChange={(e) =>
                         setEditingMember({
@@ -297,22 +297,22 @@ export default function MembersPage() {
 
         {deletingMember && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-2xl w-full max-w-sm mx-4 shadow-xl border border-slate-200">
+            <div className="bg-card rounded-2xl w-full max-w-sm mx-4 shadow-xl border border-border">
               <div className="p-6">
                 <div className="text-center mb-6">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-                    <Trash2 className="w-8 h-8 text-red-600" />
+                  <div className="w-16 h-16 mx-auto mb-4 bg-destructive/10 rounded-full flex items-center justify-center">
+                    <Trash2 className="w-8 h-8 text-destructive" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  <h3 className="text-lg font-semibold text-foreground mb-2">
                     選手を削除しますか？
                   </h3>
-                  <p className="text-sm text-gray-600 mb-2">
-                    <span className="font-medium text-gray-900">
+                  <p className="text-sm text-muted-foreground mb-2">
+                    <span className="font-medium text-foreground">
                       「{deletingMember.name}」
                     </span>
                     を削除します。
                   </p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-muted-foreground">
                     この操作は元に戻すことができません。
                   </p>
                 </div>
@@ -339,7 +339,7 @@ export default function MembersPage() {
         )}
 
         {toast && (
-          <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-slate-900 text-white px-4 py-2 rounded-lg shadow-lg z-50 text-sm">
+          <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-foreground text-background px-4 py-2 rounded-lg shadow-lg z-50 text-sm">
             {toast}
           </div>
         )}

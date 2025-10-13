@@ -15,11 +15,11 @@ export function FeedbackForm({ isOpen, onClose }: FeedbackFormProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="w-full max-w-2xl max-h-[80vh] rounded-2xl bg-white shadow-xl border border-slate-200 overflow-hidden">
+      <div className="w-full max-w-2xl max-h-[80vh] rounded-2xl bg-card shadow-xl border border-border overflow-hidden">
         <div className="flex items-center justify-between border-b px-5 py-4">
           <div className="flex items-center gap-2">
-            <MessageCircle className="w-5 h-5 text-slate-600" />
-            <h2 className="text-lg font-semibold text-slate-800">
+            <MessageCircle className="w-5 h-5 text-foreground" />
+            <h2 className="text-lg font-semibold text-foreground">
               フィードバック
             </h2>
           </div>
@@ -27,15 +27,15 @@ export function FeedbackForm({ isOpen, onClose }: FeedbackFormProps) {
             variant="default"
             size="sm"
             onClick={onClose}
-            className="w-auto px-2 py-1 text-slate-400 hover:text-slate-600 shadow-none hover:shadow-none border-transparent"
+            className="w-auto px-2 py-1 text-muted-foreground hover:text-foreground shadow-none hover:shadow-none border-transparent"
             aria-label="閉じる"
           >
             <X className="w-4 h-4" />
           </Button>
         </div>
 
-        <div className="px-5 py-3 bg-slate-50 border-b">
-          <p className="text-sm text-slate-700 mb-2">
+        <div className="px-5 py-3 bg-secondary border-b">
+          <p className="text-sm text-foreground mb-2">
             ペアくじの不具合報告・改善要望フォームです。
             <strong>匿名で送信できます。</strong>
           </p>

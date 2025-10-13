@@ -41,7 +41,7 @@ export const BottomNavigation: React.FC = () => {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg safe-area-pb w-full">
+    <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border shadow-lg safe-area-pb w-full">
       <div className="flex px-2 max-w-full">
         {tabs.map((tab) => {
           const isActive = activeTab?.id === tab.id;
@@ -51,12 +51,12 @@ export const BottomNavigation: React.FC = () => {
               onClick={() => handleTabClick(tab)}
               className={`flex-1 flex flex-col items-center justify-center py-4 px-3 min-h-[72px] transition-all duration-200 relative active:scale-95 ${
                 isActive
-                  ? 'text-blue-600'
-                  : 'text-slate-500 active:text-slate-700'
+                  ? 'text-primary'
+                  : 'text-muted-foreground active:text-foreground'
               }`}
             >
               {isActive && (
-                <div className="absolute top-1 left-1/2 -translate-x-1/2 w-10 h-1 bg-blue-500 rounded-full" />
+                <div className="absolute top-1 left-1/2 -translate-x-1/2 w-10 h-1 bg-primary rounded-full" />
               )}
               <div
                 className={`mb-2 transition-transform duration-200 ${

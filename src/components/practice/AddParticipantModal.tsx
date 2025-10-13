@@ -33,11 +33,11 @@ export function AddParticipantModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg w-full max-w-sm mx-4">
+      <div className="bg-card rounded-lg w-full max-w-sm mx-4 border border-border">
         <div className="p-6">
           <h2 className="text-lg font-semibold mb-2">参加者を追加</h2>
           {availableMembers.length === 0 ? (
-            <div className="text-center text-gray-500 py-4">
+            <div className="text-center text-muted-foreground py-4">
               追加できる選手がいません
             </div>
           ) : (
@@ -53,12 +53,12 @@ export function AddParticipantModal({
                     aria-pressed={checked}
                     className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all duration-150 ${
                       checked
-                        ? 'bg-gradient-to-r from-blue-50 to-emerald-50 border-blue-200 shadow-sm'
-                        : 'bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300'
+                        ? 'bg-primary/10 border-primary/30 shadow-sm'
+                        : 'bg-card border-border hover:bg-muted'
                     }`}
                     title={m.name}
                   >
-                    <span className="flex-1 text-left font-medium text-slate-800 truncate">
+                    <span className="flex-1 text-left font-medium text-foreground truncate">
                       {m.name}
                     </span>
                   </button>
@@ -66,11 +66,11 @@ export function AddParticipantModal({
               })}
             </div>
           )}
-          <div className="flex items-center justify-between text-sm text-gray-600 mt-3">
+          <div className="flex items-center justify-between text-sm text-muted-foreground mt-3">
             <div>選択中: {selectedIds.length} 名</div>
             {availableMembers.length > 0 && (
               <button
-                className="underline hover:text-gray-800"
+                className="underline hover:text-foreground"
                 onClick={() =>
                   setSelectedIds(
                     selectedIds.length === availableMembers.length
@@ -86,7 +86,7 @@ export function AddParticipantModal({
             )}
           </div>
           <div className="mt-4">
-            <p className="text-xs text-slate-600 mb-4">
+            <p className="text-xs text-muted-foreground mb-4">
               途中参加者は、
               <span className="font-bold">
                 最も試合数が少ない選手(出場可)の 試合数 - 1

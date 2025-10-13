@@ -22,15 +22,15 @@ export function CourtSelector({
         variant="default"
         onClick={() => setCourts(Math.max(1, courts - 1))}
         className={
-          'rounded-full bg-white hover:bg-slate-50 shadow-sm border-slate-200 flex items-center justify-center'
+          'rounded-full bg-card hover:bg-muted shadow-sm border-border flex items-center justify-center'
         }
         aria-label="コート数を減らす"
       >
-        <span className={'text-sm font-bold text-slate-600'}>−</span>
+        <span className={'text-sm font-bold text-foreground'}>−</span>
       </Button>
       <div className="flex-1 text-center">
-        <div className={'text-lg font-bold text-slate-800'}>{courts}</div>
-        <div className="text-xs text-slate-600">コート</div>
+        <div className={'text-lg font-bold text-foreground'}>{courts}</div>
+        <div className="text-xs text-muted-foreground">コート</div>
       </div>
       <Button
         type="button"
@@ -38,11 +38,11 @@ export function CourtSelector({
         variant="default"
         onClick={() => setCourts(Math.min(maxCourts, courts + 1))}
         className={
-          'rounded-full bg-white hover:bg-slate-50 shadow-sm border-slate-200 flex items-center justify-center'
+          'rounded-full bg-card hover:bg-muted shadow-sm border-border flex items-center justify-center'
         }
         aria-label="コート数を増やす"
       >
-        <span className={'text-sm font-bold text-slate-600'}>＋</span>
+        <span className={'text-sm font-bold text-foreground'}>＋</span>
       </Button>
     </div>
   );

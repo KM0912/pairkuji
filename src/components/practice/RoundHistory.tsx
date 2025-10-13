@@ -21,14 +21,14 @@ export function RoundHistory({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="w-full max-w-4xl max-h-[85vh] rounded-2xl bg-white shadow-xl border border-slate-200 overflow-hidden">
+      <div className="w-full max-w-4xl max-h-[85vh] rounded-2xl bg-card shadow-xl border border-border overflow-hidden">
         <div className="flex items-center justify-between border-b px-5 py-4">
           <div className="flex items-center gap-2">
-            <History className="w-5 h-5 text-slate-600" />
-            <h2 className="text-lg font-semibold text-slate-800">
+            <History className="w-5 h-5 text-foreground" />
+            <h2 className="text-lg font-semibold text-foreground">
               ラウンド履歴
             </h2>
-            <span className="text-sm text-slate-500">
+            <span className="text-sm text-muted-foreground">
               ({rounds.length}ラウンド)
             </span>
           </div>
@@ -36,7 +36,7 @@ export function RoundHistory({
             variant="default"
             size="sm"
             onClick={onClose}
-            className="w-auto px-2 py-1 text-slate-400 hover:text-slate-600 shadow-none hover:shadow-none border-transparent"
+            className="w-auto px-2 py-1 text-muted-foreground hover:text-foreground shadow-none hover:shadow-none border-transparent"
             aria-label="閉じる"
           >
             <X className="w-4 h-4" />
@@ -46,13 +46,13 @@ export function RoundHistory({
         <div className="overflow-auto max-h-[70vh] px-5 py-4">
           {rounds.length === 0 ? (
             <div className="text-center py-12">
-              <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-full flex items-center justify-center">
-                <History className="w-8 h-8 text-slate-400" />
+              <div className="w-16 h-16 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center">
+                <History className="w-8 h-8 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-medium text-slate-600 mb-2">
+              <h3 className="text-lg font-medium text-muted-foreground mb-2">
                 まだラウンドがありません
               </h3>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-muted-foreground">
                 組み合わせを生成すると履歴が表示されます
               </p>
             </div>
@@ -61,13 +61,13 @@ export function RoundHistory({
               {rounds.map((round) => (
                 <div
                   key={round.roundNo}
-                  className="bg-slate-50 rounded-xl p-4 border border-slate-200"
+                  className="bg-secondary rounded-xl p-4 border border-border"
                 >
                   <div className="flex items-center gap-2 mb-4">
-                    <h3 className="text-lg font-semibold text-slate-800">
+                    <h3 className="text-lg font-semibold text-foreground">
                       ラウンド {round.roundNo}
                     </h3>
-                    <span className="text-sm text-slate-500">
+                    <span className="text-sm text-muted-foreground">
                       ({round.courts.length}コート, 休憩{round.rests.length}名)
                     </span>
                   </div>
@@ -77,15 +77,15 @@ export function RoundHistory({
                     {round.courts.map((court) => (
                       <div
                         key={court.courtNo}
-                        className="bg-white rounded-lg p-3 border border-slate-200"
+                        className="bg-card rounded-lg p-3 border border-border"
                       >
-                        <div className="text-sm font-medium text-slate-600 mb-2">
+                        <div className="text-sm font-medium text-foreground mb-2">
                           コート {court.courtNo}
                         </div>
                         <div className="space-y-2">
                           {/* ペアA */}
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-slate-500 w-8">
+                            <span className="text-xs text-muted-foreground w-8">
                               ペアA
                             </span>
                             <div className="flex items-center gap-1">
@@ -101,7 +101,7 @@ export function RoundHistory({
                                       variant="neutral"
                                       size="sm"
                                     />
-                                    <span className="text-sm text-slate-700">
+                                    <span className="text-sm text-foreground">
                                       {member?.name || `ID:${memberId}`}
                                     </span>
                                   </div>
@@ -110,12 +110,12 @@ export function RoundHistory({
                             </div>
                           </div>
                           {/* VS */}
-                          <div className="text-center text-xs text-slate-400 font-medium">
+                          <div className="text-center text-xs text-muted-foreground font-medium">
                             VS
                           </div>
                           {/* ペアB */}
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-slate-500 w-8">
+                            <span className="text-xs text-muted-foreground w-8">
                               ペアB
                             </span>
                             <div className="flex items-center gap-1">
@@ -131,7 +131,7 @@ export function RoundHistory({
                                       variant="neutral"
                                       size="sm"
                                     />
-                                    <span className="text-sm text-slate-700">
+                                    <span className="text-sm text-foreground">
                                       {member?.name || `ID:${memberId}`}
                                     </span>
                                   </div>

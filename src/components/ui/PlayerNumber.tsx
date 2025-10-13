@@ -9,14 +9,14 @@ interface PlayerNumberProps {
 
 const variantStyles = {
   // メイン番号（ブランド）
-  primary: 'bg-brand-primary text-white',
-  // 補助番号（情報トーン）
-  secondary: 'bg-state-info-bg text-state-info-fg',
+  primary: 'bg-primary text-primary-foreground',
+  // 補助番号（アクセント）
+  secondary: 'bg-accent text-accent-foreground',
   // ニュートラル（濃色ベース）
-  neutral: 'bg-ink-base text-white',
+  neutral: 'bg-foreground text-background',
   // チーム/コート識別（色と番号で識別）
-  'team-a': 'bg-court-1 text-white',
-  'team-b': 'bg-court-3 text-white',
+  'team-a': 'bg-chart-1 text-background',
+  'team-b': 'bg-chart-3 text-background',
 };
 
 const sizeStyles = {

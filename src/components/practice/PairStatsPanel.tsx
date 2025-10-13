@@ -50,20 +50,20 @@ export function PairStatsPanel({ players, pairCounts }: PairStatsPanelProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <div className="text-xs text-slate-500">
+        <div className="text-xs text-muted-foreground">
           未対戦 {neverMetPairs}/{totalPairs}
         </div>
       </div>
 
       {totalPairs === 0 ? (
-        <div className="text-sm text-slate-600">
+        <div className="text-sm text-muted-foreground">
           参加者が不足しているため、ペア統計はまだ表示できません。
         </div>
       ) : (
         <div className="space-y-3">
-          <div className="flex items-baseline justify-between text-xs text-slate-500">
+          <div className="flex items-baseline justify-between text-xs text-muted-foreground">
             <span>出場番号の組み合わせと対戦回数</span>
-            <span className="font-medium text-slate-600">
+            <span className="font-medium text-foreground">
               総ペア数 {totalPairs}
             </span>
           </div>
@@ -73,16 +73,16 @@ export function PairStatsPanel({ players, pairCounts }: PairStatsPanelProps) {
                 key={key}
                 className={`flex items-center justify-between rounded-lg border px-2 py-1.5 text-xs ${
                   count > 0
-                    ? 'bg-blue-50 border-blue-200 text-blue-700'
-                    : 'bg-slate-50 border-slate-200 text-slate-500'
+                    ? 'bg-primary/10 border-primary/20 text-primary'
+                    : 'bg-muted border-border text-muted-foreground'
                 }`}
               >
                 <div className="flex items-center gap-1">
-                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-slate-800 text-white text-[11px] font-semibold">
+                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-foreground text-background text-[11px] font-semibold">
                     {player1.playerNumber}
                   </span>
-                  <span className="text-[10px] text-slate-400">×</span>
-                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-slate-800 text-white text-[11px] font-semibold">
+                  <span className="text-[10px] text-muted-foreground">×</span>
+                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-foreground text-background text-[11px] font-semibold">
                     {player2.playerNumber}
                   </span>
                 </div>
