@@ -104,13 +104,13 @@ export function FullscreenDisplay({
                         return (
                           <button
                             key={id}
-                          className={`flex items-center gap-1.5 bg-card border rounded-md w-full min-w-0 transition-all duration-200 active:scale-95 p-2 min-h-[36px] ${
-                            substituting === id
-                              ? 'border-yellow-400 bg-yellow-50 ring-2 ring-yellow-300'
-                              : 'border-primary/30 hover:bg-primary/10 hover:border-primary/40'
-                          }`}
-                          onClick={() => onPlayerClick(id)}
-                        >
+                            className={`flex items-center gap-1.5 bg-card border rounded-md w-full min-w-0 transition-all duration-200 active:scale-95 p-2 min-h-[36px] ${
+                              substituting === id
+                                ? 'border-yellow-400 bg-yellow-50 ring-2 ring-yellow-300'
+                                : 'border-primary/30 hover:bg-primary/10 hover:border-primary/40'
+                            }`}
+                            onClick={() => onPlayerClick(id)}
+                          >
                             <PlayerNumber
                               number={number}
                               variant="team-a"
@@ -139,13 +139,13 @@ export function FullscreenDisplay({
                         return (
                           <button
                             key={id}
-                          className={`flex items-center gap-1.5 bg-card border rounded-md w-full min-w-0 transition-all duration-200 active:scale-95 p-2 min-h-[36px] ${
-                            substituting === id
-                              ? 'border-yellow-400 bg-yellow-50 ring-2 ring-yellow-300'
-                              : 'border-accent/30 hover:bg-accent/10 hover:border-accent/40'
-                          }`}
-                          onClick={() => onPlayerClick(id)}
-                        >
+                            className={`flex items-center gap-1.5 bg-card border rounded-md w-full min-w-0 transition-all duration-200 active:scale-95 p-2 min-h-[36px] ${
+                              substituting === id
+                                ? 'border-yellow-400 bg-yellow-50 ring-2 ring-yellow-300'
+                                : 'border-accent/30 hover:bg-accent/10 hover:border-accent/40'
+                            }`}
+                            onClick={() => onPlayerClick(id)}
+                          >
                             <PlayerNumber
                               number={number}
                               variant="team-b"
@@ -210,9 +210,9 @@ export function FullscreenDisplay({
       {/* Generate next round button - outside card */}
       <div className="sticky bottom-3 mx-3 mb-3">
         <Button
-          variant="primary"
+          variant="default"
           onClick={onGenerateNextRound}
-          className="w-full shadow-lg"
+          className="w-full"
           size="sm"
         >
           <span className="inline-flex items-center gap-2">

@@ -453,6 +453,24 @@ export default function PracticePage() {
         </div>
       )}
 
+      {/* Fixed Next Round Button */}
+      {settings && (
+        <div className="fixed bottom-24 left-4 right-4 z-30">
+          <div className="max-w-6xl mx-auto">
+            <Button
+              onClick={handleGenerateNextRound}
+              className="w-full shadow-2xl"
+              disabled={players.filter((p) => p.status === 'active').length < 4}
+            >
+              <span className="inline-flex items-center gap-2 text-base font-semibold">
+                <Shuffle className="w-5 h-5" />
+                次の組み合わせを生成
+              </span>
+            </Button>
+          </div>
+        </div>
+      )}
+
       <AddParticipantModal
         isOpen={showAddParticipant}
         availableMembers={availableMembers}
