@@ -67,7 +67,7 @@ export function ParticipantManagement({
       {/* フッター: 参加者追加ボタン */}
       <div className="flex-shrink-0 border-t border-border pt-4 mt-4">
         <Button
-          variant="secondary"
+          variant="default"
           onClick={onShowAddParticipant}
           className="w-full"
         >

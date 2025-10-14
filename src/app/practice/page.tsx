@@ -339,64 +339,6 @@ export default function PracticePage() {
         </>
       )}
 
-      <AddParticipantModal
-        isOpen={showAddParticipant}
-        availableMembers={availableMembers}
-        onAddParticipants={onAddParticipants}
-        onClose={() => setShowAddParticipant(false)}
-      />
-
-      <SubstitutionHint
-        substituting={substituting}
-        memberMap={memberMap}
-        playerMap={playerMap}
-      />
-
-      {/* Round summary modal */}
-      {showRoundSummary && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-md rounded-2xl bg-card shadow-xl border border-border">
-            <div className="flex items-center justify-between border-b px-4 py-3">
-              <h2 className="text-sm font-semibold text-foreground">
-                ラウンド履歴
-              </h2>
-              <Button
-                type="button"
-                variant="default"
-                size="sm"
-                onClick={() => setShowRoundSummary(false)}
-                className="w-auto px-2 py-1 text-muted-foreground hover:text-foreground shadow-none hover:shadow-none border-transparent"
-                aria-label="閉じる"
-              >
-                ✕
-              </Button>
-            </div>
-            <div className="max-h-72 overflow-auto px-4 py-3 space-y-2 text-sm">
-              {rounds.length === 0 ? (
-                <p className="text-muted-foreground">まだラウンドがありません。</p>
-              ) : (
-                rounds
-                  .slice()
-                  .reverse()
-                  .map((round) => (
-                    <div
-                      key={round.roundNo}
-                      className="flex items-center justify-between rounded-lg border border-border bg-muted px-3 py-2"
-                    >
-                      <div className="font-medium text-foreground">
-                        ラウンド {round.roundNo}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        コート {round.courts.length} / 休憩 {round.rests.length}
-                      </div>
-                    </div>
-                  ))
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Court count modal */}
       {showCourtModal && settings && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
@@ -407,10 +349,9 @@ export default function PracticePage() {
               </h2>
               <Button
                 type="button"
-                variant="default"
+                variant="ghost"
                 size="sm"
                 onClick={() => setShowCourtModal(false)}
-                className="w-auto px-2 py-1 text-muted-foreground hover:text-foreground shadow-none hover:shadow-none border-transparent"
                 aria-label="閉じる"
               >
                 ✕
@@ -432,8 +373,9 @@ export default function PracticePage() {
               <Button
                 type="button"
                 size="sm"
+                variant="secondary"
                 onClick={() => setShowCourtModal(false)}
-                className="flex-1 px-4 py-2 text-sm text-muted-foreground shadow-none hover:shadow-none border-border hover:bg-secondary"
+                className="flex-1 px-4 py-2 text-sm"
               >
                 キャンセル
               </Button>
@@ -452,53 +394,15 @@ export default function PracticePage() {
         </div>
       )}
 
-      {/* Participant management modal */}
-      {showParticipantModal && settings && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-3xl rounded-2xl bg-card shadow-xl border border-border">
-            <div className="flex items-center justify-between border-b px-5 py-4">
-              <div>
-                <h2 className="text-base font-semibold text-foreground">
-                  参加者の管理
-                </h2>
-                <p className="text-xs text-muted-foreground">
-                  出場可 {players.filter((p) => p.status === 'active').length} /
-                  全体 {players.length}
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="default"
-                size="sm"
-                onClick={() => setShowParticipantModal(false)}
-                className="w-auto px-2 py-1 text-muted-foreground hover:text-foreground shadow-none hover:shadow-none border-transparent"
-                aria-label="閉じる"
-              >
-                ✕
-              </Button>
-            </div>
-            <div className="h-[60vh] px-5 py-4">
-              <ParticipantManagement
-                settings={settings}
-                players={players}
-                memberMap={memberMap}
-                matchCounts={matchCounts}
-                updateCourts={updateCourts}
-                toggleStatus={toggleStatus}
-                onShowAddParticipant={() => setShowAddParticipant(true)}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Pair stats modal */}
       {showStatsModal && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-4xl rounded-2xl bg-card shadow-xl border border-border">
             <div className="flex items-center justify-between border-b px-5 py-4">
               <div>
-                <h2 className="text-base font-semibold text-foreground">統計</h2>
+                <h2 className="text-base font-semibold text-foreground">
+                  統計
+                </h2>
                 <div className="mt-2 inline-flex rounded-md border border-border bg-secondary p-0.5">
                   <button
                     type="button"
@@ -526,10 +430,9 @@ export default function PracticePage() {
               </div>
               <Button
                 type="button"
-                variant="default"
+                variant="ghost"
                 size="sm"
                 onClick={() => setShowStatsModal(false)}
-                className="w-auto px-2 py-1 text-muted-foreground hover:text-foreground shadow-none hover:shadow-none border-transparent"
                 aria-label="閉じる"
               >
                 ✕
@@ -545,74 +448,6 @@ export default function PracticePage() {
                 />
               )}
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Fullscreen display */}
-      {showFullscreen && latestRound && (
-        <FullscreenDisplay
-          round={latestRound}
-          memberMap={memberMap}
-          playerMap={playerMap}
-          roundNumber={rounds.length}
-          substituting={substituting}
-          onClose={() => setShowFullscreen(false)}
-          onPlayerClick={onPlayerClick}
-          onGenerateNextRound={handleGenerateNextRound}
-        />
-      )}
-
-      {/* Reset confirmation modal */}
-      {showResetConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-card rounded-2xl w-full max-w-sm mx-4 shadow-2xl">
-            <div className="p-6">
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 mx-auto mb-4 bg-destructive/10 rounded-full flex items-center justify-center">
-                  <AlertTriangle className="w-8 h-8 text-destructive" />
-                </div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">
-                  練習をリセットしますか？
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  すべてのラウンドデータが削除され、元に戻すことはできません。
-                </p>
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={handleCancelReset}
-                  className="flex-1 px-4 py-3 border border-border rounded-xl text-foreground hover:bg-secondary transition-colors font-medium"
-                >
-                  キャンセル
-                </button>
-                <button
-                  onClick={handleReset}
-                  className="flex-1 px-4 py-3 bg-destructive text-destructive-foreground rounded-xl hover:bg-destructive/90 transition-colors font-medium"
-                >
-                  リセット
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Fixed Next Round Button */}
-      {settings && (
-        <div className="fixed bottom-24 left-4 right-4 z-30">
-          <div className="max-w-6xl mx-auto">
-            <Button
-              onClick={handleGenerateNextRound}
-              className="w-full shadow-2xl"
-              disabled={players.filter((p) => p.status === 'active').length < 4}
-            >
-              <span className="inline-flex items-center gap-2 text-base font-semibold">
-                <Shuffle className="w-5 h-5" />
-                次の組み合わせを生成
-              </span>
-            </Button>
           </div>
         </div>
       )}
@@ -640,10 +475,9 @@ export default function PracticePage() {
               </h2>
               <Button
                 type="button"
-                variant="default"
+                variant="ghost"
                 size="sm"
                 onClick={() => setShowRoundSummary(false)}
-                className="w-auto px-2 py-1 text-muted-foreground hover:text-foreground shadow-none hover:shadow-none border-transparent"
                 aria-label="閉じる"
               >
                 ✕
@@ -651,7 +485,9 @@ export default function PracticePage() {
             </div>
             <div className="max-h-72 overflow-auto px-4 py-3 space-y-2 text-sm">
               {rounds.length === 0 ? (
-                <p className="text-muted-foreground">まだラウンドがありません。</p>
+                <p className="text-muted-foreground">
+                  まだラウンドがありません。
+                </p>
               ) : (
                 rounds
                   .slice()
@@ -691,10 +527,9 @@ export default function PracticePage() {
               </div>
               <Button
                 type="button"
-                variant="default"
+                variant="ghost"
                 size="sm"
                 onClick={() => setShowParticipantModal(false)}
-                className="w-auto px-2 py-1 text-muted-foreground hover:text-foreground shadow-none hover:shadow-none border-transparent"
                 aria-label="閉じる"
               >
                 ✕
@@ -747,18 +582,20 @@ export default function PracticePage() {
               </div>
 
               <div className="flex gap-3">
-                <button
+                <Button
+                  variant="secondary"
                   onClick={handleCancelReset}
-                  className="flex-1 px-4 py-3 border border-border rounded-xl text-foreground hover:bg-secondary transition-colors font-medium"
+                  className="flex-1"
                 >
                   キャンセル
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="destructive"
                   onClick={handleReset}
-                  className="flex-1 px-4 py-3 bg-destructive text-destructive-foreground rounded-xl hover:bg-destructive/90 transition-colors font-medium"
+                  className="flex-1"
                 >
                   リセット
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -785,7 +622,7 @@ export default function PracticePage() {
               <div className="flex gap-3">
                 <Button
                   onClick={() => setShowGenerateConfirm(false)}
-                  variant="default"
+                  variant="secondary"
                   className="flex-1"
                 >
                   キャンセル

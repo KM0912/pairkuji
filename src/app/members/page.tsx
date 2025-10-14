@@ -113,7 +113,7 @@ export default function MembersPage() {
             placeholder="選手名を入力"
             className="flex-1 rounded-lg px-3 py-2 bg-card border border-border placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
           />
-          <Button variant="primary" type="submit" disabled={!name.trim()}>
+          <Button variant="default" type="submit" disabled={!name.trim()}>
             追加
           </Button>
         </form>
@@ -275,7 +275,7 @@ export default function MembersPage() {
                     <Button
                       type="button"
                       onClick={closeEditModal}
-                      variant="default"
+                      variant="secondary"
                       className="flex-1"
                     >
                       キャンセル
@@ -283,7 +283,7 @@ export default function MembersPage() {
                     <Button
                       type="submit"
                       disabled={!editingMember.name.trim()}
-                      variant="primary"
+                      variant="default"
                       className="flex-1"
                     >
                       保存
@@ -320,14 +320,14 @@ export default function MembersPage() {
                 <div className="flex gap-3">
                   <Button
                     onClick={handleCancelDelete}
-                    variant="default"
+                    variant="secondary"
                     className="flex-1"
                   >
                     キャンセル
                   </Button>
                   <Button
                     onClick={handleConfirmDelete}
-                    variant="danger"
+                    variant="destructive"
                     className="flex-1"
                   >
                     削除

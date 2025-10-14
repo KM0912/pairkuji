@@ -95,14 +95,14 @@ export function AddParticipantModal({
             </p>
           </div>
           <div className="flex gap-3 pt-4 mt-4 border-t">
-            <Button onClick={onClose} className="flex-1" variant="default">
+            <Button onClick={onClose} className="flex-1" variant="secondary">
               キャンセル
             </Button>
             <Button
               onClick={handleAdd}
               disabled={selectedIds.length === 0}
               className="flex-1"
-              variant="primary"
+              variant="default"
             >
               {selectedIds.length > 0
                 ? `追加する (${selectedIds.length})`
