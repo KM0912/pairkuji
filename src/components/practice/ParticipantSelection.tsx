@@ -9,7 +9,13 @@ import {
   Play,
 } from 'lucide-react';
 import { Button } from '../ui/button';
-import { Card } from '../ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '../ui/card';
 import { IconBadge } from '../ui/IconBadge';
 import { PlayerNumber } from '../ui/PlayerNumber';
 import { SelectTile } from '../ui/SelectTile';
@@ -73,43 +79,46 @@ export function ParticipantSelection({
         <div className="grid grid-cols-1 gap-4">
           {/* コート設定カード */}
           <Card>
-            <div className="flex items-center justify-between mb-3">
+            <CardHeader>
+              <CardTitle></CardTitle>
               <div className="flex items-center gap-2">
-                <IconBadge icon={LayoutGrid} size="sm" className="text-primary" />
-                <div>
-                  <h3 className="text-base font-semibold text-foreground">
-                    コート設定
-                  </h3>
-                </div>
+                <IconBadge icon={LayoutGrid} className="text-primary" />
+                <h3 className="text-base font-semibold text-foreground">
+                  コート設定
+                </h3>
               </div>
-            </div>
-            <div className="bg-muted rounded-lg p-2">
-              <CourtSelector courts={courts} setCourts={setCourts} size="sm" />
-              {runnableCourts < courts && selected.length >= 4 && (
-                <div className="mt-2 text-xs text-amber-600 bg-amber-50 px-2 py-1.5 rounded border border-amber-200">
-                  参加者数により実際は{runnableCourts}コートで開始されます
-                </div>
-              )}
-            </div>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-muted rounded-lg p-2">
+                <CourtSelector
+                  courts={courts}
+                  setCourts={setCourts}
+                  size="sm"
+                />
+                {runnableCourts < courts && selected.length >= 4 && (
+                  <div className="mt-2 text-xs text-amber-600 bg-amber-50 px-2 py-1.5 rounded border border-amber-200">
+                    参加者数により実際は{runnableCourts}コートで開始されます
+                  </div>
+                )}
+              </div>
+            </CardContent>
           </Card>
 
           {/* 参加者選択 */}
           <Card>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
                 <IconBadge icon={Users} size="md" className="text-primary" />
-                <div>
-                  <h3 className="text-base font-semibold text-foreground">
-                    ダブルス参加者
-                  </h3>
-                  <p className="text-xs text-muted-foreground">
-                    {selected.length}名選択中 • 最低4名必要
-                  </p>
-                </div>
-              </div>
-            </div>
+                <h3 className="text-base font-semibold text-foreground">
+                  ダブルス参加者
+                </h3>
+              </CardTitle>
+              <CardDescription>
+                {selected.length}名選択中 • 最低4名必要
+              </CardDescription>
+            </CardHeader>
 
-            <div className="space-y-3">
+            <CardContent className="space-y-3">
               {/* フィルタ（セグメント） */}
               <div className="grid grid-cols-3 gap-2">
                 <SelectTile
@@ -164,8 +173,8 @@ export function ParticipantSelection({
               </div>
 
               {/* メンバーリスト */}
-              <div className="rounded-xl border border-border bg-secondary">
-                <div className="grid grid-cols-2 gap-2 p-2 max-h-80 overflow-auto">
+              <Card>
+                <CardContent className="grid grid-cols-2 gap-2 p-2 max-h-80 overflow-auto">
                   {visibleMembers.length > 0 ? (
                     visibleMembers.map((member) => {
                       const isSelected = selectedSet.has(member.id!);
@@ -202,9 +211,9 @@ export function ParticipantSelection({
                         : '表示できるメンバーがいません'}
                     </div>
                   )}
-                </div>
-              </div>
-            </div>
+                </CardContent>
+              </Card>
+            </CardContent>
           </Card>
 
           <div className="sticky bottom-2">
