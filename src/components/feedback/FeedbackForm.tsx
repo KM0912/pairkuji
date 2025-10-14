@@ -24,10 +24,10 @@ export function FeedbackForm({ isOpen, onClose }: FeedbackFormProps) {
             </h2>
           </div>
           <Button
-            variant="default"
+            variant="ghost"
             size="sm"
             onClick={onClose}
-            className="w-auto px-2 py-1 text-muted-foreground hover:text-foreground shadow-none hover:shadow-none border-transparent"
+            className="w-auto"
             aria-label="閉じる"
           >
             <X className="w-4 h-4" />

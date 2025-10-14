@@ -23,6 +23,7 @@ import {
   AlertTriangle,
   RotateCcw,
   Shuffle,
+  X,
 } from 'lucide-react';
 
 export default function PracticePage() {
@@ -354,7 +355,7 @@ export default function PracticePage() {
                 onClick={() => setShowCourtModal(false)}
                 aria-label="閉じる"
               >
-                ✕
+                <X className="w-4 h-4" />
               </Button>
             </div>
             <div>
@@ -435,7 +436,7 @@ export default function PracticePage() {
                 onClick={() => setShowStatsModal(false)}
                 aria-label="閉じる"
               >
-                ✕
+                <X className="w-4 h-4" />
               </Button>
             </div>
             <div className="max-h-[60vh] overflow-auto px-5 py-4">
@@ -480,7 +481,7 @@ export default function PracticePage() {
                 onClick={() => setShowRoundSummary(false)}
                 aria-label="閉じる"
               >
-                ✕
+                <X className="w-4 h-4" />
               </Button>
             </div>
             <div className="max-h-72 overflow-auto px-4 py-3 space-y-2 text-sm">
@@ -532,7 +533,7 @@ export default function PracticePage() {
                 onClick={() => setShowParticipantModal(false)}
                 aria-label="閉じる"
               >
-                ✕
+                <X className="w-4 h-4" />
               </Button>
             </div>
             <div className="h-[60vh] px-5 py-4">
