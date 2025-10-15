@@ -1,17 +1,12 @@
 'use client';
 
-import { useState } from 'react';
 import Image from 'next/image';
-import { Settings, HelpCircle, MessageCircle } from 'lucide-react';
 import { HelpModal } from '../help/HelpModal';
 import { FeedbackForm } from '../feedback/FeedbackForm';
 
 interface HeaderProps {}
 
 export function Header({}: HeaderProps) {
-  const [showHelp, setShowHelp] = useState(false);
-  const [showFeedback, setShowFeedback] = useState(false);
-
   return (
     <>
       <div className="sticky top-0 z-40 w-full">
