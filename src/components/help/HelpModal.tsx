@@ -1,35 +1,37 @@
-import { X, Users, LayoutGrid, Shuffle, BarChart3 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import {
+  Users,
+  LayoutGrid,
+  Shuffle,
+  BarChart3,
+  HelpCircle,
+} from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { DialogTrigger } from '@radix-ui/react-dialog';
+import { Button } from '../ui/button';
 
-interface HelpModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-export function HelpModal({ isOpen, onClose }: HelpModalProps) {
-  if (!isOpen) return null;
-
+export function HelpModal() {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="w-full max-w-2xl max-h-[80vh] rounded-2xl bg-card shadow-xl border border-border overflow-hidden">
-        <div className="flex items-center justify-between border-b px-5 py-4">
-          <div>
-            <h2 className="text-lg font-semibold text-foreground">
-              🏸 ペアくじの使い方
-            </h2>
-            <p className="text-sm text-muted-foreground">
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="ghost">
+          <HelpCircle className="w-4 h-4" />
+          <span className="text-sm hidden sm:inline">ヘルプ</span>
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl p-0 bg-card rounded-2xl">
+        <div className="border-b px-5 py-4">
+          <DialogHeader className="items-start text-left">
+            <DialogTitle className="text-lg">🏸 ペアくじの使い方</DialogTitle>
+            <DialogDescription>
               バドミントンダブルス練習の組み合わせ管理アプリ
-            </p>
-          </div>
-          <Button
-            variant="default"
-            size="sm"
-            onClick={onClose}
-            className="w-auto px-2 py-1 text-muted-foreground hover:text-foreground shadow-none hover:shadow-none border-transparent"
-            aria-label="閉じる"
-          >
-            <X className="w-4 h-4" />
-          </Button>
+            </DialogDescription>
+          </DialogHeader>
         </div>
 
         <div className="overflow-auto max-h-[60vh] px-5 py-4 space-y-6">
@@ -73,7 +75,9 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <LayoutGrid className="w-4 h-4 text-primary" />
-                    <span className="font-medium text-foreground">練習設定</span>
+                    <span className="font-medium text-foreground">
+                      練習設定
+                    </span>
                   </div>
                   <p className="text-sm text-muted-foreground">
                     「ダブルス」タブでコート数を設定し、その日の参加者を選択します。
@@ -107,7 +111,9 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <BarChart3 className="w-4 h-4 text-primary" />
-                    <span className="font-medium text-foreground">統計確認</span>
+                    <span className="font-medium text-foreground">
+                      統計確認
+                    </span>
                   </div>
                   <p className="text-sm text-muted-foreground">
                     「統計」ボタンでペアの組み合わせ回数を確認できます。
@@ -130,7 +136,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
             </ul>
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

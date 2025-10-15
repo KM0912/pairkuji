@@ -1,43 +1,43 @@
-import { X, MessageCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { MessageCircle } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { DialogTrigger } from '@radix-ui/react-dialog';
+import { Button } from '../ui/button';
 
-interface FeedbackFormProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-export function FeedbackForm({ isOpen, onClose }: FeedbackFormProps) {
-  if (!isOpen) return null;
-
+export function FeedbackForm() {
   // Google FormsのURL（iframe埋め込み用）
   const googleFormUrl =
     'https://docs.google.com/forms/d/e/1FAIpQLSeOp4FoUV3Sw3WiU_LAfBUPN0uvpvf42AYWZGadDdOI0AnVeg/viewform?embedded=true';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="w-full max-w-2xl max-h-[80vh] rounded-2xl bg-card shadow-xl border border-border overflow-hidden">
-        <div className="flex items-center justify-between border-b px-5 py-4">
-          <div className="flex items-center gap-2">
-            <MessageCircle className="w-5 h-5 text-foreground" />
-            <h2 className="text-lg font-semibold text-foreground">
-              フィードバック
-            </h2>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="w-auto"
-            aria-label="閉じる"
-          >
-            <X className="w-4 h-4" />
-          </Button>
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="ghost">
+          <MessageCircle className="w-4 h-4" />
+          <span className="text-sm hidden sm:inline">フィードバック</span>
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl p-0 bg-card rounded-2xl">
+        <div className="border-b px-5 py-4">
+          <DialogHeader className="items-start text-left">
+            <div className="flex items-center gap-2">
+              <MessageCircle className="w-5 h-5 text-foreground" />
+              <DialogTitle className="text-lg">フィードバック</DialogTitle>
+            </div>
+            <DialogDescription>
+              ペアくじの不具合報告・改善要望フォームです。匿名で送信できます。
+            </DialogDescription>
+          </DialogHeader>
         </div>
 
         <div className="px-5 py-3 bg-secondary border-b">
-          <p className="text-sm text-foreground mb-2">
-            ペアくじの不具合報告・改善要望フォームです。
-            <strong>匿名で送信できます。</strong>
+          <p className="text-sm text-foreground">
+            改善点やご要望があればお気軽にお送りください。
           </p>
         </div>
 
@@ -52,7 +52,7 @@ export function FeedbackForm({ isOpen, onClose }: FeedbackFormProps) {
             読み込み中...
           </iframe>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

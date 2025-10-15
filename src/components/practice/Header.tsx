@@ -35,32 +35,12 @@ export function Header({}: HeaderProps) {
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <button
-                className="flex items-center gap-1.5 px-3 py-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
-                aria-label="フィードバック"
-                onClick={() => setShowFeedback(true)}
-              >
-                <MessageCircle className="w-4 h-4" />
-                <span className="text-sm hidden sm:inline">フィードバック</span>
-              </button>
-              <button
-                className="flex items-center gap-1.5 px-3 py-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
-                aria-label="ヘルプ"
-                onClick={() => setShowHelp(true)}
-              >
-                <HelpCircle className="w-4 h-4" />
-                <span className="text-sm hidden sm:inline">ヘルプ</span>
-              </button>
+              <FeedbackForm />
+              <HelpModal />
             </div>
           </div>
         </div>
       </div>
-
-      <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
-      <FeedbackForm
-        isOpen={showFeedback}
-        onClose={() => setShowFeedback(false)}
-      />
     </>
   );
 }
