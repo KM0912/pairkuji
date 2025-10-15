@@ -26,20 +26,15 @@ export function Header({}: HeaderProps) {
                   height={28}
                   className="rounded-md"
                 />
-                <h1 className={'text-xl font-bold text-foreground'}>ペアくじ</h1>
+                <h1 className={'text-xl font-bold text-foreground'}>
+                  ペアくじ
+                </h1>
               </div>
               <span className={'text-sm font-medium hidden sm:inline'}>
                 - ダブルス練習
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <button
-                className="flex items-center gap-1.5 px-3 py-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
-                aria-label="設定"
-              >
-                <Settings className="w-4 h-4" />
-                <span className="text-sm hidden sm:inline">設定</span>
-              </button>
               <button
                 className="flex items-center gap-1.5 px-3 py-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
                 aria-label="フィードバック"
