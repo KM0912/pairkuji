@@ -22,6 +22,36 @@ export class PairkujiDB extends Dexie {
       rounds: 'roundNo',
       pairStats: '++id, sessionId, lastUpdated',
     });
+
+    this.on('populate', async () => {
+      const now = new Date().toISOString();
+      await this.members.bulkAdd([
+        {
+          name: 'Aくん',
+          isActive: true,
+          createdAt: now,
+          updatedAt: now,
+        },
+        {
+          name: 'Bさん',
+          isActive: true,
+          createdAt: now,
+          updatedAt: now,
+        },
+        {
+          name: 'Cくん',
+          isActive: true,
+          createdAt: now,
+          updatedAt: now,
+        },
+        {
+          name: 'Dさん',
+          isActive: true,
+          createdAt: now,
+          updatedAt: now,
+        },
+      ]);
+    });
   }
 }
 
