@@ -9,11 +9,11 @@ interface SelectTileProps
 }
 
 const baseClasses =
-  'flex items-center gap-1 rounded-lg border transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20';
+  'flex items-center gap-2 rounded-lg border transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20';
 
 const sizeMap = {
-  sm: 'px-2 py-1 min-h-[34px] text-xs',
-  md: 'px-3 py-2 min-h-[44px] text-sm',
+  sm: 'px-3 py-2 min-h-[44px] text-sm',
+  md: 'px-4 py-3 min-h-[48px] text-sm',
 } as const;
 
 const selectedClasses =
@@ -49,7 +49,9 @@ export function SelectTile({
     >
       {left}
       {typeof children === 'string' ? (
-        <span className="font-medium truncate">{children}</span>
+        <span className="font-medium truncate text-center w-full">
+          {children}
+        </span>
       ) : (
         children
       )}

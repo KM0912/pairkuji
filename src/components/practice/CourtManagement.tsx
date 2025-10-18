@@ -50,13 +50,13 @@ export function CourtManagement({
                         return (
                           <button
                             key={id}
-                          className={`flex items-center gap-1 rounded-md px-1.5 py-1 transition-all duration-200 w-full min-w-0 min-h-[28px] active:scale-95 border ${
+                            className={`flex items-center gap-2 rounded-md px-3 py-2 transition-all duration-200 w-full min-w-0 min-h-[44px] active:scale-95 border ${
                               substituting === id
                                 ? 'bg-yellow-50 border-yellow-400 ring-1 ring-yellow-300'
                                 : 'bg-card border-primary/30 hover:bg-primary/10 hover:border-primary/40'
                             }`}
-                          onClick={() => onPlayerClick(id)}
-                        >
+                            onClick={() => onPlayerClick(id)}
+                          >
                             <PlayerNumber
                               number={number}
                               variant="team-a"
@@ -64,11 +64,11 @@ export function CourtManagement({
                             />
                             <div className="flex-1 min-w-0">
                               <div
-                                className="text-xs font-medium text-left truncate"
+                                className="text-sm font-medium text-left truncate"
                                 title={name}
                               >
-                                {name.length > 8
-                                  ? name.substring(0, 8) + '...'
+                                {name.length > 12
+                                  ? name.substring(0, 12) + '...'
                                   : name}
                               </div>
                             </div>
@@ -89,13 +89,13 @@ export function CourtManagement({
                         return (
                           <button
                             key={id}
-                          className={`flex items-center gap-1 rounded-md px-1.5 py-1 transition-all duration-200 w-full min-w-0 min-h-[28px] active:scale-95 border ${
+                            className={`flex items-center gap-2 rounded-md px-3 py-2 transition-all duration-200 w-full min-w-0 min-h-[44px] active:scale-95 border ${
                               substituting === id
                                 ? 'bg-yellow-50 border-yellow-400 ring-1 ring-yellow-300'
                                 : 'bg-card border-accent/30 hover:bg-accent/10 hover:border-accent/40'
                             }`}
-                          onClick={() => onPlayerClick(id)}
-                        >
+                            onClick={() => onPlayerClick(id)}
+                          >
                             <PlayerNumber
                               number={number}
                               variant="team-b"
@@ -103,11 +103,11 @@ export function CourtManagement({
                             />
                             <div className="flex-1 min-w-0">
                               <div
-                                className="text-xs font-medium text-left truncate"
+                                className="text-sm font-medium text-left truncate"
                                 title={name}
                               >
-                                {name.length > 8
-                                  ? name.substring(0, 8) + '...'
+                                {name.length > 12
+                                  ? name.substring(0, 12) + '...'
                                   : name}
                               </div>
                             </div>
@@ -137,8 +137,10 @@ export function CourtManagement({
             return (
               restingPlayers.length > 0 && (
                 <div className="rounded-lg border border-border bg-muted p-2 text-sm text-foreground">
-                  <div className="mb-1.5 font-medium text-foreground text-xs">休憩</div>
-                  <div className="flex flex-wrap gap-1">
+                  <div className="mb-1.5 font-medium text-foreground text-xs">
+                    休憩
+                  </div>
+                  <div className="flex flex-wrap gap-2">
                     {restingPlayers.map((id) => {
                       const member = memberMap.get(id);
                       const player = playerMap.get(id);
@@ -147,23 +149,25 @@ export function CourtManagement({
                       return (
                         <button
                           key={id}
-                        className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs transition-all duration-200 min-h-[24px] active:scale-95 ${
-                          substituting === id
-                            ? 'bg-yellow-100 border-yellow-400 text-yellow-800 ring-1 ring-yellow-300'
-                            : 'bg-card border-border text-foreground hover:bg-muted'
-                        }`}
-                        onClick={() => onPlayerClick(id)}
-                      >
+                          className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm transition-all duration-200 min-h-[44px] active:scale-95 ${
+                            substituting === id
+                              ? 'bg-yellow-100 border-yellow-400 text-yellow-800 ring-1 ring-yellow-300'
+                              : 'bg-card border-border text-foreground hover:bg-muted'
+                          }`}
+                          onClick={() => onPlayerClick(id)}
+                        >
                           <PlayerNumber
                             number={number}
                             variant="neutral"
                             size="xs"
                           />
                           <span
-                            className="truncate max-w-[80px] text-left"
+                            className="truncate max-w-[100px] text-left"
                             title={name}
                           >
-                            {name.length > 8 ? name.substring(0, 8) + '...' : name}
+                            {name.length > 12
+                              ? name.substring(0, 12) + '...'
+                              : name}
                           </span>
                         </button>
                       );
@@ -176,7 +180,9 @@ export function CourtManagement({
         </div>
       ) : (
         <div className="text-muted-foreground text-sm">
-          <div>まだ組み合わせがありません。下部のボタンで生成してください。</div>
+          <div>
+            まだ組み合わせがありません。下部のボタンで生成してください。
+          </div>
         </div>
       )}
     </section>

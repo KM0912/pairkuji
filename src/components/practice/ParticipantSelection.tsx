@@ -127,7 +127,7 @@ export function ParticipantSelection({
                   onClick={() => setViewFilter('all')}
                   className="text-xs"
                 >
-                  全メンバー {counts.all}
+                  全員 {counts.all}
                 </SelectTile>
                 <SelectTile
                   size="sm"
@@ -135,7 +135,7 @@ export function ParticipantSelection({
                   onClick={() => setViewFilter('selected')}
                   className="text-xs"
                 >
-                  出場予定 {counts.selected}
+                  選択中 {counts.selected}
                 </SelectTile>
                 <SelectTile
                   size="sm"
@@ -174,7 +174,7 @@ export function ParticipantSelection({
 
               {/* メンバーリスト */}
               <Card>
-                <CardContent className="grid grid-cols-2 gap-2 p-2 max-h-80 overflow-auto">
+                <CardContent className="grid grid-cols-2 gap-3 p-3 max-h-80 overflow-auto">
                   {visibleMembers.length > 0 ? (
                     visibleMembers.map((member) => {
                       const isSelected = selectedSet.has(member.id!);
