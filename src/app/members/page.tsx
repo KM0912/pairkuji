@@ -5,6 +5,12 @@ import { Search, X, Trash2, Users, Edit3 } from 'lucide-react';
 import { useMemberStore } from '@/lib/stores/memberStore';
 import { usePracticeStore } from '@/lib/stores/practiceStore';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '@/components/ui/input-group';
 
 interface EditingMember {
   id: number;
@@ -106,12 +112,10 @@ export default function MembersPage() {
           onSubmit={handleAdd}
           className="bg-card p-4 rounded-xl shadow-sm border border-border flex gap-2 mb-4"
         >
-          <input
-            type="text"
+          <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="選手名を入力"
-            className="flex-1 rounded-lg px-3 py-2 bg-card border border-border placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
           />
           <Button variant="default" type="submit" disabled={!name.trim()}>
             追加
@@ -120,27 +124,24 @@ export default function MembersPage() {
 
         <div className="mb-4">
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="w-5 h-5 text-muted-foreground" />
-            </div>
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="名前で検索"
-              className="w-full pl-10 pr-4 py-3 border rounded-lg text-base min-h-[48px] border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
-              aria-label="選手検索"
-            />
-            {searchTerm && (
-              <button
-                type="button"
+            <InputGroup>
+              <InputGroupInput
+                aria-label="選手検索"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="名前で検索"
+              />
+              <InputGroupAddon>
+                <Search className="w-5 h-5 text-muted-foreground" />
+              </InputGroupAddon>
+              <InputGroupAddon
+                align="inline-end"
                 onClick={() => setSearchTerm('')}
-                className="absolute inset-y-0 right-0 px-3 text-muted-foreground hover:text-foreground"
                 aria-label="検索をクリア"
               >
-                <X className="w-4 h-4" />
-              </button>
-            )}
+                {searchTerm && <X className="w-4 h-4" />}
+              </InputGroupAddon>
+            </InputGroup>
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
             {isLoading
