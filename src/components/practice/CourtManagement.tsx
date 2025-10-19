@@ -59,7 +59,7 @@ export function CourtManagement({
                           >
                             <PlayerNumber
                               number={number}
-                              variant="team-a"
+                              variant="primary"
                               size="xs"
                             />
                             <div className="flex-1 min-w-0">
@@ -79,7 +79,7 @@ export function CourtManagement({
                   </div>
 
                   {/* Team B */}
-                  <div className="flex-1 rounded-md border border-accent/40 bg-accent/5 p-1 min-w-0">
+                  <div className="flex-1 rounded-md border border-primary/40 bg-primary/5 p-1 min-w-0">
                     <div className="space-y-0.5">
                       {cm.pairB.map((id) => {
                         const member = memberMap.get(id);
@@ -92,13 +92,13 @@ export function CourtManagement({
                             className={`flex items-center gap-2 rounded-md px-3 py-2 transition-all duration-200 w-full min-w-0 min-h-[44px] active:scale-95 border ${
                               substituting === id
                                 ? 'bg-yellow-50 border-yellow-400 ring-1 ring-yellow-300'
-                                : 'bg-card border-accent/30 hover:bg-accent/10 hover:border-accent/40'
+                                : 'bg-card border-primary/30 hover:bg-primary/10 hover:border-primary/40'
                             }`}
                             onClick={() => onPlayerClick(id)}
                           >
                             <PlayerNumber
                               number={number}
-                              variant="team-b"
+                              variant="primary"
                               size="xs"
                             />
                             <div className="flex-1 min-w-0">

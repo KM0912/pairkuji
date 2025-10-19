@@ -2,7 +2,7 @@ import React from 'react';
 
 interface PlayerNumberProps {
   number: number | string;
-  variant?: 'primary' | 'secondary' | 'neutral' | 'team-a' | 'team-b';
+  variant?: 'primary' | 'secondary' | 'neutral';
   size?: 'xs' | 'sm' | 'md';
   className?: string;
 }
@@ -14,9 +14,6 @@ const variantStyles = {
   secondary: 'bg-accent text-accent-foreground',
   // ニュートラル（濃色ベース）
   neutral: 'bg-foreground text-background',
-  // チーム/コート識別（色と番号で識別）
-  'team-a': 'bg-chart-1 text-background',
-  'team-b': 'bg-chart-3 text-background',
 };
 
 const sizeStyles = {

@@ -113,7 +113,7 @@ export function FullscreenDisplay({
                           >
                             <PlayerNumber
                               number={number}
-                              variant="team-a"
+                              variant="primary"
                               size="xs"
                             />
                             <div
@@ -129,7 +129,7 @@ export function FullscreenDisplay({
                   </div>
 
                   {/* Team B */}
-                  <div className="flex-1 rounded-md border border-accent/40 bg-accent/5 p-2 min-w-0">
+                  <div className="flex-1 rounded-md border border-primary/40 bg-primary/5 p-2 min-w-0">
                     <div className="space-y-2">
                       {court.pairB.map((id) => {
                         const member = memberMap.get(id);
@@ -142,13 +142,13 @@ export function FullscreenDisplay({
                             className={`flex items-center gap-1.5 bg-card border rounded-md w-full min-w-0 transition-all duration-200 active:scale-95 p-2 min-h-[36px] ${
                               substituting === id
                                 ? 'border-yellow-400 bg-yellow-50 ring-2 ring-yellow-300'
-                                : 'border-accent/30 hover:bg-accent/10 hover:border-accent/40'
+                                : 'border-primary/30 hover:bg-primary/10 hover:border-primary/40'
                             }`}
                             onClick={() => onPlayerClick(id)}
                           >
                             <PlayerNumber
                               number={number}
-                              variant="team-b"
+                              variant="primary"
                               size="xs"
                             />
                             <div
