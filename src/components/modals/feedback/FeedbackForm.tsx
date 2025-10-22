@@ -7,7 +7,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { DialogTrigger } from '@radix-ui/react-dialog';
-import { Button } from '../ui/button';
+import { Button } from '../../ui/button';
 
 export function FeedbackForm() {
   // Google FormsのURL（iframe埋め込み用）

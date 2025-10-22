@@ -1,8 +1,8 @@
 'use client';
 
 import Image from 'next/image';
-import { HelpModal } from '../help/HelpModal';
-import { FeedbackForm } from '../feedback/FeedbackForm';
+import { HelpModal } from '../modals/help/HelpModal';
+import { FeedbackForm } from '../modals/feedback/FeedbackForm';
 
 interface HeaderProps {}
 
