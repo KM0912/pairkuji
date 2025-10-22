@@ -7,11 +7,11 @@ import { ParticipantSelection } from '@/components/practice/ParticipantSelection
 import { ParticipantManagement } from '@/components/practice/ParticipantManagement';
 import { CourtManagement } from '@/components/practice/CourtManagement';
 import { AddParticipantModal } from '@/components/practice/AddParticipantModal';
-import { PairStatsPanel } from '@/components/practice/PairStatsPanel';
-import { OpponentStatsPanel } from '@/components/practice/OpponentStatsPanel';
+import { PairStatsPanel } from '@/components/stats/PairStatsPanel';
+import { OpponentStatsPanel } from '@/components/stats/OpponentStatsPanel';
 import { SubstitutionHint } from '@/components/practice/SubstitutionHint';
 import { FullscreenDisplay } from '@/components/practice/FullscreenDisplay';
-import { RoundHistory } from '@/components/practice/RoundHistory';
+import { RoundHistory } from '@/components/stats/RoundHistory';
 import { Button } from '@/components/ui/button';
 import { CourtSelector } from '@/components/ui/CourtSelector';
 import {

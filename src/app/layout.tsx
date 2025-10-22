@@ -3,7 +3,7 @@ import { Inter } from 'next/font/google';
 import Script from 'next/script';
 import './globals.css';
 import { BottomNavigation } from '../components/layout/BottomNavigation';
-import { Header } from '../components/practice/Header';
+import { Header } from '../components/layout/Header';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -50,9 +50,7 @@ export default function RootLayout({
         <div className="min-h-screen bg-background">
           <Header />
           <main className="pb-20">
-            <div className="max-w-6xl mx-auto px-4 py-6">
-              {children}
-            </div>
+            <div className="max-w-6xl mx-auto px-4 py-6">{children}</div>
           </main>
         </div>
         <BottomNavigation />
