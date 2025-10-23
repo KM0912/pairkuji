@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMemberStore } from '@/lib/stores/memberStore';
 import { usePracticeStore } from '@/lib/stores/practiceStore';
-import { ParticipantSelection } from '@/components/practice/ParticipantSelection';
 import { ParticipantManagement } from '@/components/practice/ParticipantManagement';
 import { CourtManagement } from '@/components/practice/CourtManagement';
 import { AddParticipantModal } from '@/components/practice/AddParticipantModal';
@@ -14,6 +13,7 @@ import { FullscreenDisplay } from '@/components/practice/FullscreenDisplay';
 import { RoundHistory } from '@/components/stats/RoundHistory';
 import { Button } from '@/components/ui/button';
 import { CourtSelector } from '@/components/ui/CourtSelector';
+import Link from 'next/link';
 import {
   Users,
   LayoutGrid,
@@ -33,7 +33,6 @@ export default function PracticePage() {
     players,
     rounds,
     load,
-    startPractice,
     toggleStatus,
     generateNextRound,
     resetPractice,
@@ -42,8 +41,6 @@ export default function PracticePage() {
     updateCourts,
   } = usePracticeStore();
 
-  const [courts, setCourts] = useState(2);
-  const [selected, setSelected] = useState<number[]>([]);
   const [showAddParticipant, setShowAddParticipant] = useState(false);
   const [substituting, setSubstituting] = useState<number | null>(null);
   const [showStatsModal, setShowStatsModal] = useState(false);
@@ -51,7 +48,7 @@ export default function PracticePage() {
   const combosRef = useRef<HTMLDivElement | null>(null);
   const [showRoundSummary, setShowRoundSummary] = useState(false);
   const [showCourtModal, setShowCourtModal] = useState(false);
-  const [pendingCourts, setPendingCourts] = useState<number>(courts);
+  const [pendingCourts, setPendingCourts] = useState<number>(2);
   const [showParticipantModal, setShowParticipantModal] = useState(false);
   const [showFullscreen, setShowFullscreen] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -73,14 +70,10 @@ export default function PracticePage() {
   }, [settings]);
 
   useEffect(() => {
-    if (!settings) {
-      // practice is not active, clear selection
-      setSelected([]);
-      return;
+    if (settings) {
+      setPendingCourts(settings.courts);
     }
-    // keep selected list in sync with players when practice is active
-    setSelected(players.map((p) => p.memberId));
-  }, [settings, players]);
+  }, [settings]);
 
   const memberMap = useMemo(
     () => new Map(members.map((m) => [m.id!, m])),
@@ -90,18 +83,6 @@ export default function PracticePage() {
     () => new Map(players.map((p) => [p.memberId, p])),
     [players]
   );
-
-  const onToggleSelect = (id: number) => {
-    setSelected((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
-  };
-
-  const onStart = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (selected.length < 4) return;
-    await startPractice(courts, selected);
-  };
 
   const latestRound = rounds[rounds.length - 1];
 
@@ -247,97 +228,98 @@ export default function PracticePage() {
   };
 
   return (
-    <div>
-      {!settings ? (
-        <ParticipantSelection
-          members={members}
-          courts={courts}
-          setCourts={setCourts}
-          selected={selected}
-          onToggleSelect={onToggleSelect}
-          onStart={onStart}
-        />
-      ) : (
-        <>
-          {/* コート管理 */}
-          <div ref={combosRef} className="space-y-6 pb-16">
-            <div>
-              <div className="grid grid-cols-2 gap-2 mb-4">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setShowRoundSummary(true)}
-                >
-                  <Layers />
-                  ラウンド
-                  <span>{rounds.length}</span>
-                </Button>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setShowCourtModal(true)}
-                >
-                  <LayoutGrid />
-                  コート
-                  <span>{settings.courts}</span>
-                </Button>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleOpenParticipants}
-                >
-                  <Users />
-                  参加者
-                  <span>{players.length}</span>
-                </Button>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setShowStatsModal(true)}
-                >
-                  <BarChart3 />
-                  統計
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleResetClick}
-                >
-                  <RotateCcw />
-                  リセット
-                </Button>
-              </div>
-
-              {latestRound && (
-                <div className="mb-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowFullscreen(true)}
-                    className="w-full"
-                  >
-                    <Maximize />
-                    フルスクリーン表示
-                  </Button>
-                </div>
-              )}
-              <CourtManagement
-                players={players}
-                latestRound={latestRound}
-                memberMap={memberMap}
-                playerMap={playerMap}
-                substituting={substituting}
-                onPlayerClick={onPlayerClick}
-              />
-            </div>
+    <div className="pb-24">
+      {settings ? (
+        <section ref={combosRef} className="space-y-6 pb-16">
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => setShowRoundSummary(true)}
+            >
+              <Layers />
+              ラウンド
+              <span>{rounds.length}</span>
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => setShowCourtModal(true)}
+            >
+              <LayoutGrid />
+              コート
+              <span>{settings.courts}</span>
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={handleOpenParticipants}
+            >
+              <Users />
+              参加者
+              <span>{players.length}</span>
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => setShowStatsModal(true)}
+            >
+              <BarChart3 />
+              統計
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleResetClick}
+            >
+              <RotateCcw />
+              リセット
+            </Button>
           </div>
-        </>
+
+          {latestRound && (
+            <div className="mb-4">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowFullscreen(true)}
+                className="w-full"
+              >
+                <Maximize />
+                フルスクリーン表示
+              </Button>
+            </div>
+          )}
+          <CourtManagement
+            players={players}
+            latestRound={latestRound}
+            memberMap={memberMap}
+            playerMap={playerMap}
+            substituting={substituting}
+            onPlayerClick={onPlayerClick}
+          />
+        </section>
+      ) : (
+        <section className="mx-auto flex min-h-[320px] max-w-md flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-border bg-muted/30 px-6 py-16 text-center">
+          <Shuffle className="h-10 w-10 text-primary" />
+          <div className="space-y-2">
+            <p className="text-base font-semibold text-foreground">
+              ダブルス練習がまだ開始されていません
+            </p>
+            <p className="text-sm text-muted-foreground">
+              設定画面で参加者とコート数を選び、「ダブルス練習開始」を押してください。
+            </p>
+          </div>
+          <Button asChild>
+            <Link href="/practice/settings">設定画面へ移動</Link>
+          </Button>
+        </section>
       )}
 
       {/* Court count modal */}
