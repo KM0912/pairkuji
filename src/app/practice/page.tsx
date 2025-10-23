@@ -23,6 +23,7 @@ import {
   AlertTriangle,
   RotateCcw,
   Shuffle,
+  Play,
   X,
 } from 'lucide-react';
 
@@ -32,6 +33,8 @@ export default function PracticePage() {
     settings,
     players,
     rounds,
+    selectedMembers,
+    selectedCourts,
     load,
     toggleStatus,
     generateNextRound,
@@ -39,6 +42,7 @@ export default function PracticePage() {
     addParticipant,
     substitutePlayer,
     updateCourts,
+    startPracticeFromSelected,
   } = usePracticeStore();
 
   const [showAddParticipant, setShowAddParticipant] = useState(false);
@@ -196,6 +200,15 @@ export default function PracticePage() {
   };
 
   const handleGenerateNextRound = async () => {
+    // 設定がない場合は選択した参加者で練習を開始
+    if (!settings) {
+      if (selectedMembers.length < 4) {
+        return;
+      }
+      await startPracticeFromSelected();
+      return;
+    }
+
     // 既存のラウンドがある場合は確認ダイアログを表示
     if (rounds.length > 0) {
       setShowGenerateConfirm(true);
@@ -282,6 +295,46 @@ export default function PracticePage() {
             </Button>
           </div>
 
+          {rounds.length === 0 && (
+            <div className="mb-6">
+              <Button
+                onClick={handleGenerateNextRound}
+                className="w-full text-lg font-bold shadow-2xl"
+                disabled={
+                  (settings
+                    ? players.filter((p) => p.status === 'active').length
+                    : selectedMembers.length) < 4
+                }
+              >
+                {(settings
+                  ? players.filter((p) => p.status === 'active').length
+                  : selectedMembers.length) < 4 ? (
+                  <span className="inline-flex items-center gap-3">
+                    <AlertTriangle className="w-6 h-6" />
+                    あと{' '}
+                    {Math.max(
+                      4 -
+                        (settings
+                          ? players.filter((p) => p.status === 'active').length
+                          : selectedMembers.length),
+                      0
+                    )}{' '}
+                    名参加してください
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-3">
+                    <Play className="w-6 h-6" />
+                    ダブルス練習開始 (
+                    {settings
+                      ? players.filter((p) => p.status === 'active').length
+                      : selectedMembers.length}
+                    名)
+                  </span>
+                )}
+              </Button>
+            </div>
+          )}
+
           {latestRound && (
             <div className="mb-4">
               <Button
@@ -313,12 +366,35 @@ export default function PracticePage() {
               ダブルス練習がまだ開始されていません
             </p>
             <p className="text-sm text-muted-foreground">
-              設定画面で参加者とコート数を選び、「ダブルス練習開始」を押してください。
+              設定画面で参加者とコート数を選んでください。
+            </p>
+            <p className="text-xs text-muted-foreground">
+              コート数: {selectedCourts}コート
             </p>
           </div>
-          <Button asChild>
-            <Link href="/practice/settings">設定画面へ移動</Link>
-          </Button>
+          <div className="w-full space-y-3">
+            <Button
+              onClick={handleGenerateNextRound}
+              className="w-full text-lg font-bold shadow-2xl"
+              disabled={selectedMembers.length < 4}
+            >
+              {selectedMembers.length < 4 ? (
+                <span className="inline-flex items-center gap-3">
+                  <AlertTriangle className="w-6 h-6" />
+                  あと {Math.max(4 - selectedMembers.length, 0)}{' '}
+                  名参加してください
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-3">
+                  <Play className="w-6 h-6" />
+                  ダブルス練習開始 ({selectedMembers.length}名)
+                </span>
+              )}
+            </Button>
+            <Button asChild variant="outline" className="w-full">
+              <Link href="/practice/settings">設定画面へ移動</Link>
+            </Button>
+          </div>
         </section>
       )}
 
@@ -436,7 +512,7 @@ export default function PracticePage() {
       )}
 
       {/* Fixed Next Round Button */}
-      {settings && (
+      {settings && rounds.length > 0 && (
         <div className="fixed bottom-24 left-4 right-4 z-30">
           <div className="max-w-6xl mx-auto">
             <Button
