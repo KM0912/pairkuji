@@ -26,23 +26,14 @@ export default function PracticeSettingsPage() {
     settings,
     players,
     rounds,
-    selectedMembers,
-    selectedCourts,
     load,
     startPractice,
     toggleStatus,
     updateCourts,
     addParticipant,
-    setSelectedMembers,
-    setSelectedCourts,
   } = usePracticeStore();
 
   const [courts, setCourts] = useState(2);
-
-  const handleCourtsChange = (newCourts: number) => {
-    setCourts(newCourts);
-    setSelectedCourts(newCourts);
-  };
   const [selected, setSelected] = useState<number[]>([]);
   const [showAddParticipant, setShowAddParticipant] = useState(false);
   const [pendingCourts, setPendingCourts] = useState<number>(2);
@@ -55,12 +46,11 @@ export default function PracticeSettingsPage() {
 
   useEffect(() => {
     if (!settings) {
-      setSelected(selectedMembers);
-      setCourts(selectedCourts);
+      setSelected([]);
       return;
     }
     setPendingCourts(settings.courts);
-  }, [settings, selectedMembers, selectedCourts]);
+  }, [settings]);
 
   const memberMap = useMemo(
     () => new Map(members.map((m) => [m.id!, m])),
@@ -94,11 +84,9 @@ export default function PracticeSettingsPage() {
   );
 
   const onToggleSelect = (id: number) => {
-    const newSelected = selected.includes(id)
-      ? selected.filter((x) => x !== id)
-      : [...selected, id];
-    setSelected(newSelected);
-    setSelectedMembers(newSelected);
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
   };
 
   const onStart = async (e: React.FormEvent) => {
@@ -184,7 +172,7 @@ export default function PracticeSettingsPage() {
         <ParticipantSelection
           members={members}
           courts={courts}
-          setCourts={handleCourtsChange}
+          setCourts={setCourts}
           selected={selected}
           onToggleSelect={onToggleSelect}
           onStart={onStart}

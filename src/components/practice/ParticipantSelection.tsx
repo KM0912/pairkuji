@@ -215,6 +215,27 @@ export function ParticipantSelection({
               </Card>
             </CardContent>
           </Card>
+
+          <div className="sticky bottom-2">
+            <Button
+              type="submit"
+              variant="default"
+              className="w-full text-lg font-bold shadow-2xl"
+              disabled={selected.length < minToStart}
+            >
+              {selected.length < minToStart ? (
+                <span className="inline-flex items-center gap-3">
+                  <AlertTriangle className="w-6 h-6" />
+                  あと {needMore} 名選択してください
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-3">
+                  <Play className="w-6 h-6" />
+                  ダブルス練習開始 ({selected.length}名)
+                </span>
+              )}
+            </Button>
+          </div>
         </div>
       </form>
     </div>
