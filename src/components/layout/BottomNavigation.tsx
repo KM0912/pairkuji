@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Settings, Zap, Users } from 'lucide-react';
+import { Zap, Users } from 'lucide-react';
 
 export const BottomNavigation: React.FC = () => {
   const pathname = usePathname();
@@ -10,41 +10,27 @@ export const BottomNavigation: React.FC = () => {
 
   const tabs = [
     {
-      id: 'practice-settings',
-      label: 'ダブルス設定',
-      icon: <Settings className="w-6 h-6" />,
-      paths: ['/practice/settings'],
-      href: '/practice/settings',
-    },
-    {
-      id: 'practice-matches',
-      label: 'ダブルス試合',
+      id: 'practice',
+      label: 'ダブルス',
       icon: <Zap className="w-6 h-6" />,
-      paths: ['/', '/practice'],
+      paths: ['/practice', '/'],
       href: '/practice',
     },
     {
       id: 'members',
       label: 'メンバー',
       icon: <Users className="w-6 h-6" />,
-      paths: ['/members', '/members/*'],
+      paths: ['/members'],
       href: '/members',
     },
   ];
 
-  const matchesPath = (currentPath: string, targetPath: string) => {
-    if (targetPath.endsWith('/*')) {
-      const prefix = targetPath.slice(0, -2);
-      return (
-        currentPath === prefix || currentPath.startsWith(`${prefix}/`)
-      );
-    }
-    return currentPath === targetPath;
-  };
-
   const getActiveTab = () => {
     return tabs.find((tab) =>
-      tab.paths.some((path) => matchesPath(pathname, path))
+      tab.paths.some(
+        (path) =>
+          pathname === path || (path !== '/' && pathname.startsWith(path))
+      )
     );
   };
 
