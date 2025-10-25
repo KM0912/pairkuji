@@ -212,7 +212,7 @@ export default function PracticePage() {
           <div className="flex gap-2 mb-4 overflow-x-auto">
             <Button
               type="button"
-              variant="secondary"
+              variant="outline"
               size="sm"
               onClick={() => setShowRoundSummary(true)}
               className="flex-1 min-w-[112px]"
@@ -223,7 +223,7 @@ export default function PracticePage() {
             </Button>
             <Button
               type="button"
-              variant="secondary"
+              variant="outline"
               size="sm"
               onClick={() => setShowCourtModal(true)}
               className="flex-1 min-w-[112px]"
@@ -234,7 +234,7 @@ export default function PracticePage() {
             </Button>
             <Button
               type="button"
-              variant="secondary"
+              variant="outline"
               size="sm"
               onClick={handleOpenParticipants}
               className="flex-1 min-w-[112px]"
