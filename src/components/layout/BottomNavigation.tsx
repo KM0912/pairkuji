@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Zap, Users } from 'lucide-react';
+import { Zap, Users, BarChart3 } from 'lucide-react';
 
 export const BottomNavigation: React.FC = () => {
   const pathname = usePathname();
@@ -22,6 +22,13 @@ export const BottomNavigation: React.FC = () => {
       icon: <Users className="w-6 h-6" />,
       paths: ['/members'],
       href: '/members',
+    },
+    {
+      id: 'stats',
+      label: '統計',
+      icon: <BarChart3 className="w-6 h-6" />,
+      paths: ['/stats'],
+      href: '/stats',
     },
   ];
 

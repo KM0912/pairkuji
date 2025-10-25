@@ -7,8 +7,6 @@ import { ParticipantSelection } from '@/components/practice/ParticipantSelection
 import { ParticipantManagement } from '@/components/practice/ParticipantManagement';
 import { CourtManagement } from '@/components/practice/CourtManagement';
 import { AddParticipantModal } from '@/components/practice/AddParticipantModal';
-import { PairStatsPanel } from '@/components/stats/PairStatsPanel';
-import { OpponentStatsPanel } from '@/components/stats/OpponentStatsPanel';
 import { SubstitutionHint } from '@/components/practice/SubstitutionHint';
 import { FullscreenDisplay } from '@/components/practice/FullscreenDisplay';
 import { RoundHistory } from '@/components/stats/RoundHistory';
@@ -18,7 +16,6 @@ import {
   Users,
   LayoutGrid,
   Layers,
-  BarChart3,
   Maximize,
   AlertTriangle,
   RotateCcw,
@@ -46,8 +43,6 @@ export default function PracticePage() {
   const [selected, setSelected] = useState<number[]>([]);
   const [showAddParticipant, setShowAddParticipant] = useState(false);
   const [substituting, setSubstituting] = useState<number | null>(null);
-  const [showStatsModal, setShowStatsModal] = useState(false);
-  const [statsMode, setStatsMode] = useState<'pair' | 'opponent'>('pair');
   const combosRef = useRef<HTMLDivElement | null>(null);
   const [showRoundSummary, setShowRoundSummary] = useState(false);
   const [showCourtModal, setShowCourtModal] = useState(false);
@@ -128,52 +123,6 @@ export default function PracticePage() {
 
     return counts;
   }, [rounds, players]);
-
-  // Calculate pair counts from all rounds
-  const pairCounts = useMemo(() => {
-    const counts = new Map<string, number>();
-
-    rounds.forEach((round) => {
-      round.courts.forEach((court) => {
-        // Count pairs in Team A
-        const [a1, a2] = court.pairA.sort((a, b) => a - b);
-        if (a1 !== undefined && a2 !== undefined) {
-          const key = `${a1}-${a2}`;
-          counts.set(key, (counts.get(key) || 0) + 1);
-        }
-
-        // Count pairs in Team B
-        const [b1, b2] = court.pairB.sort((a, b) => a - b);
-        if (b1 !== undefined && b2 !== undefined) {
-          const key = `${b1}-${b2}`;
-          counts.set(key, (counts.get(key) || 0) + 1);
-        }
-      });
-    });
-
-    return counts;
-  }, [rounds]);
-
-  // Calculate opponent counts (times two players faced each other on opposing teams)
-  const opponentCounts = useMemo(() => {
-    const counts = new Map<string, number>();
-
-    rounds.forEach((round) => {
-      round.courts.forEach((court) => {
-        const teamA = court.pairA.filter((id) => id !== undefined) as number[];
-        const teamB = court.pairB.filter((id) => id !== undefined) as number[];
-
-        teamA.forEach((a) => {
-          teamB.forEach((b) => {
-            const key = `${Math.min(a, b)}-${Math.max(a, b)}`;
-            counts.set(key, (counts.get(key) || 0) + 1);
-          });
-        });
-      });
-    });
-
-    return counts;
-  }, [rounds]);
 
   const availableMembers = members.filter(
     (m) => m.isActive && !players.some((p) => p.memberId === m.id)
@@ -295,15 +244,6 @@ export default function PracticePage() {
                 </Button>
                 <Button
                   type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setShowStatsModal(true)}
-                >
-                  <BarChart3 />
-                  統計
-                </Button>
-                <Button
-                  type="button"
                   variant="outline"
                   size="sm"
                   onClick={handleResetClick}
@@ -390,64 +330,6 @@ export default function PracticePage() {
               >
                 更新
               </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Pair stats modal */}
-      {showStatsModal && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-4xl rounded-2xl bg-card shadow-xl border border-border">
-            <div className="flex items-center justify-between border-b px-5 py-4">
-              <div>
-                <h2 className="text-base font-semibold text-foreground">
-                  統計
-                </h2>
-                <div className="mt-2 inline-flex rounded-md border border-border bg-secondary p-0.5">
-                  <button
-                    type="button"
-                    className={`px-3 py-1.5 text-xs rounded ${
-                      statsMode === 'pair'
-                        ? 'bg-card border border-border text-foreground'
-                        : 'text-muted-foreground'
-                    }`}
-                    onClick={() => setStatsMode('pair')}
-                  >
-                    ペア
-                  </button>
-                  <button
-                    type="button"
-                    className={`ml-1 px-3 py-1.5 text-xs rounded ${
-                      statsMode === 'opponent'
-                        ? 'bg-card border border-border text-foreground'
-                        : 'text-muted-foreground'
-                    }`}
-                    onClick={() => setStatsMode('opponent')}
-                  >
-                    対戦相手
-                  </button>
-                </div>
-              </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowStatsModal(false)}
-                aria-label="閉じる"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-            <div className="max-h-[60vh] overflow-auto px-5 py-4">
-              {statsMode === 'pair' ? (
-                <PairStatsPanel players={players} pairCounts={pairCounts} />
-              ) : (
-                <OpponentStatsPanel
-                  players={players}
-                  opponentCounts={opponentCounts}
-                />
-              )}
             </div>
           </div>
         </div>
