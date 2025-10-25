@@ -208,51 +208,46 @@ export default function PracticePage() {
         />
       ) : (
         <>
+          {/* ヘッダーエリア */}
+          <div className="flex gap-2 mb-4 overflow-x-auto">
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => setShowRoundSummary(true)}
+              className="flex-1 min-w-[112px]"
+            >
+              <Layers />
+              ラウンド
+              <span>{rounds.length}</span>
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => setShowCourtModal(true)}
+              className="flex-1 min-w-[112px]"
+            >
+              <LayoutGrid />
+              コート
+              <span>{settings.courts}</span>
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={handleOpenParticipants}
+              className="flex-1 min-w-[112px]"
+            >
+              <Users />
+              参加者
+              <span>{players.length}</span>
+            </Button>
+          </div>
+
           {/* コート管理 */}
           <div ref={combosRef} className="space-y-6 pb-16">
             <div>
-              <div className="grid grid-cols-2 gap-2 mb-4">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setShowRoundSummary(true)}
-                >
-                  <Layers />
-                  ラウンド
-                  <span>{rounds.length}</span>
-                </Button>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setShowCourtModal(true)}
-                >
-                  <LayoutGrid />
-                  コート
-                  <span>{settings.courts}</span>
-                </Button>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleOpenParticipants}
-                >
-                  <Users />
-                  参加者
-                  <span>{players.length}</span>
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleResetClick}
-                >
-                  <RotateCcw />
-                  リセット
-                </Button>
-              </div>
-
               {latestRound && (
                 <div className="mb-4">
                   <Button
@@ -335,20 +330,31 @@ export default function PracticePage() {
         </div>
       )}
 
-      {/* Fixed Next Round Button */}
+      {/* Fixed Bottom Buttons */}
       {settings && (
         <div className="fixed bottom-24 left-4 right-4 z-30">
           <div className="max-w-6xl mx-auto">
-            <Button
-              onClick={handleGenerateNextRound}
-              className="w-full shadow-2xl"
-              disabled={players.filter((p) => p.status === 'active').length < 4}
-            >
-              <span className="inline-flex items-center gap-2 text-base font-semibold">
-                <Shuffle className="w-5 h-5" />
-                次の組み合わせを生成
-              </span>
-            </Button>
+            <div className="flex gap-3">
+              <Button
+                onClick={handleResetClick}
+                variant="destructiveOutline"
+                title="練習をリセット"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </Button>
+              <Button
+                onClick={handleGenerateNextRound}
+                className="flex-1 shadow-2xl"
+                disabled={
+                  players.filter((p) => p.status === 'active').length < 4
+                }
+              >
+                <span className="inline-flex items-center gap-2 font-semibold">
+                  <Shuffle className="w-5 h-5" />
+                  次の組み合わせを生成
+                </span>
+              </Button>
+            </div>
           </div>
         </div>
       )}
