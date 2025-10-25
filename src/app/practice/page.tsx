@@ -248,7 +248,9 @@ export default function PracticePage() {
           {/* コート管理 */}
           <div ref={combosRef} className="space-y-6 pb-16">
             <div>
-              {latestRound && (
+              {/* TODO: フルスクリーン機能を使用するか検討 */}
+              {/* TODO: 不要な場合は関連する処理をすべて削除する */}
+              {/* {latestRound && (
                 <div className="mb-4">
                   <Button
                     type="button"
@@ -261,7 +263,7 @@ export default function PracticePage() {
                     フルスクリーン表示
                   </Button>
                 </div>
-              )}
+              )} */}
               <CourtManagement
                 players={players}
                 latestRound={latestRound}
