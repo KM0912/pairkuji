@@ -126,18 +126,31 @@ export default function PracticeSettingsPage() {
                   <Layers className="h-4 w-4 text-primary" />
                   コート設定
                 </CardTitle>
+                <CardDescription>
+                  現在の試合設定を更新できます。
+                </CardDescription>
               </div>
+              <Button asChild variant="secondary" size="sm">
+                <Link href="/practice">試合作成画面へ</Link>
+              </Button>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="rounded-lg border border-border bg-muted p-3">
                 <CourtSelector
                   courts={pendingCourts}
-                  setCourts={(newCourts) => {
-                    setPendingCourts(newCourts);
-                    updateCourts(newCourts);
-                  }}
+                  setCourts={setPendingCourts}
                   size="sm"
                 />
+              </div>
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => updateCourts(pendingCourts)}
+                  disabled={pendingCourts === settings.courts}
+                >
+                  コート数を更新
+                </Button>
               </div>
             </CardContent>
           </Card>
