@@ -16,7 +16,10 @@ const buttonVariants = cva(
         destructiveOutline:
           'border border-destructive text-destructive hover:bg-destructive/10 hover:border-destructive/20 hover:text-destructive',
         outline:
-          'border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground',
+          'border border-input bg-background shadow-sm hover:bg-secondary hover:text-secondary-foreground',
+        // デフォルトの設定
+        // ホバーした時にアクセントカラーは目立ちすぎるのでsecondaryを使用
+        // 'border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground',
         secondary:
           'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80',
         ghost: 'hover:bg-accent hover:text-accent-foreground',
