@@ -209,13 +209,13 @@ export default function PracticePage() {
       ) : (
         <>
           {/* ヘッダーエリア */}
-          <div className="flex gap-2 mb-4">
+          <div className="flex gap-1 mb-4">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setShowRoundSummary(true)}
-              className="flex-1 min-w-[112px] text-base sm:text-sm"
+              className="flex-1 min-w-0 text-base sm:text-sm"
             >
               <Layers />
               <span className="sm:text-inherit text-xs">ラウンド</span>
@@ -226,7 +226,7 @@ export default function PracticePage() {
               variant="outline"
               size="sm"
               onClick={() => setShowCourtModal(true)}
-              className="flex-1 min-w-[112px] text-base sm:text-sm"
+              className="flex-1 min-w-0 text-base sm:text-sm"
             >
               <LayoutGrid />
               <span className="sm:text-inherit text-xs">コート</span>
@@ -237,7 +237,7 @@ export default function PracticePage() {
               variant="outline"
               size="sm"
               onClick={handleOpenParticipants}
-              className="flex-1 min-w-[112px] text-base sm:text-sm"
+              className="flex-1 min-w-0 text-base sm:text-sm"
             >
               <Users />
               <span className="sm:text-inherit text-xs">参加者</span>
