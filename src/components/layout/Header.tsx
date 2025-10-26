@@ -17,8 +17,8 @@ export function Header({}: HeaderProps) {
                 <Image
                   src="/icon-192.png"
                   alt="ペアくじ"
-                  width={28}
-                  height={28}
+                  width={32}
+                  height={32}
                   className="rounded-md"
                 />
                 <h1 className={'text-xl font-bold text-foreground'}>
