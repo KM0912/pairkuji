@@ -13,14 +13,7 @@ import { RoundHistory } from '@/components/stats/RoundHistory';
 import { Button } from '@/components/ui/button';
 import { CourtSelector } from '@/components/ui/CourtSelector';
 import { Spinner } from '@/components/ui/spinner';
-import {
-  Users,
-  Layers,
-  AlertTriangle,
-  RotateCcw,
-  Shuffle,
-  X,
-} from 'lucide-react';
+import { Users, AlertTriangle, RotateCcw, Shuffle, X } from 'lucide-react';
 import { PiCourtBasketball } from 'react-icons/pi';
 
 export default function PracticePage() {
@@ -238,7 +231,7 @@ export default function PracticePage() {
               onClick={() => setShowRoundSummary(true)}
               className="flex-1 min-w-0 text-base sm:text-sm"
             >
-              <Layers />
+              <Shuffle />
               <span className="sm:text-inherit text-xs">ラウンド</span>
               <span className="sm:text-inherit text-xs">{rounds.length}</span>
             </Button>
