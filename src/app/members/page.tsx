@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Search, X, Trash2, Users, Edit3 } from 'lucide-react';
+import { Search, X, Trash2, Users, Edit3, Plus } from 'lucide-react';
 import { useMemberStore } from '@/lib/stores/memberStore';
 import { usePracticeStore } from '@/lib/stores/practiceStore';
 import { Button } from '@/components/ui/button';
@@ -32,6 +32,7 @@ export default function MembersPage() {
     id: number;
     name: string;
   } | null>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
@@ -64,7 +65,18 @@ export default function MembersPage() {
     if (!name.trim()) return;
     await add(name.trim());
     setName('');
+    setIsAddModalOpen(false);
     setToast('選手を追加しました');
+  };
+
+  const openAddModal = () => {
+    setIsAddModalOpen(true);
+    setName('');
+  };
+
+  const closeAddModal = () => {
+    setIsAddModalOpen(false);
+    setName('');
   };
 
   const openEditModal = (member: EditingMember) => {
@@ -107,21 +119,7 @@ export default function MembersPage() {
 
   return (
     <>
-      <div className="space-y-6">
-        <form
-          onSubmit={handleAdd}
-          className="bg-card p-4 rounded-xl shadow-sm border border-border flex gap-2 mb-4"
-        >
-          <Input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="選手名を入力"
-          />
-          <Button variant="default" type="submit" disabled={!name.trim()}>
-            追加
-          </Button>
-        </form>
-
+      <div className="space-y-6 pb-16">
         <div className="mb-4">
           <div className="relative">
             <InputGroup>
@@ -236,7 +234,7 @@ export default function MembersPage() {
             <p className="text-sm text-muted-foreground mb-4">
               {searchTerm
                 ? '検索条件を変更して再度お試しください'
-                : '上のフォームから最初のメンバーを追加してください'}
+                : '下のボタンから最初のメンバーを追加してください'}
             </p>
             {searchTerm && (
               <button
@@ -246,6 +244,51 @@ export default function MembersPage() {
                 検索をクリア
               </button>
             )}
+          </div>
+        )}
+
+        {/* 選手追加モーダル */}
+        {isAddModalOpen && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
+            <div className="bg-card rounded-xl w-full max-w-sm shadow-xl border border-border">
+              <div className="p-6">
+                <h2 className="text-lg font-semibold mb-4">選手を追加</h2>
+                <form onSubmit={handleAdd} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">
+                      名前
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border rounded-lg px-3 py-2 bg-card border-border focus:outline-none focus:ring-2 focus:ring-primary"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="選手名を入力"
+                      required
+                      autoFocus
+                    />
+                  </div>
+                  <div className="flex gap-3 pt-4">
+                    <Button
+                      type="button"
+                      onClick={closeAddModal}
+                      variant="secondary"
+                      className="flex-1"
+                    >
+                      キャンセル
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={!name.trim()}
+                      variant="default"
+                      className="flex-1"
+                    >
+                      追加
+                    </Button>
+                  </div>
+                </form>
+              </div>
+            </div>
           </div>
         )}
 
@@ -344,6 +387,20 @@ export default function MembersPage() {
             {toast}
           </div>
         )}
+      </div>
+
+      {/* Fixed Bottom Buttons */}
+      <div className="fixed bottom-24 left-4 right-4 z-30">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex gap-3">
+            <Button onClick={openAddModal} className="flex-1 shadow-2xl">
+              <span className="inline-flex items-center gap-2 font-semibold">
+                <Plus className="w-5 h-5" />
+                選手を追加
+              </span>
+            </Button>
+          </div>
+        </div>
       </div>
     </>
   );
