@@ -5,13 +5,12 @@ import { usePracticeStore } from '@/lib/stores/practiceStore';
 import { useMemberStore } from '@/lib/stores/memberStore';
 import { PairStatsPanel } from '@/components/stats/PairStatsPanel';
 import { OpponentStatsPanel } from '@/components/stats/OpponentStatsPanel';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart3 } from 'lucide-react';
 
 export default function StatsPage() {
   const { members, load: loadMembers } = useMemberStore();
   const { settings, players, rounds, load } = usePracticeStore();
-
-  const [statsMode, setStatsMode] = useState<'pair' | 'opponent'>('pair');
 
   useEffect(() => {
     loadMembers();
@@ -99,55 +98,24 @@ export default function StatsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          {/* ヘッダー */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">統計</h1>
-              <div className="mt-2 inline-flex rounded-md border border-border bg-secondary p-0.5">
-                <button
-                  type="button"
-                  className={`px-3 py-1.5 text-xs rounded ${
-                    statsMode === 'pair'
-                      ? 'bg-card border border-border text-foreground'
-                      : 'text-muted-foreground'
-                  }`}
-                  onClick={() => setStatsMode('pair')}
-                >
-                  ペア
-                </button>
-                <button
-                  type="button"
-                  className={`ml-1 px-3 py-1.5 text-xs rounded ${
-                    statsMode === 'opponent'
-                      ? 'bg-card border border-border text-foreground'
-                      : 'text-muted-foreground'
-                  }`}
-                  onClick={() => setStatsMode('opponent')}
-                >
-                  対戦相手
-                </button>
-              </div>
-            </div>
-          </div>
+    <div className="bg-background">
+      <Tabs defaultValue="pair" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="pair">ペア統計</TabsTrigger>
+          <TabsTrigger value="opponent">対戦相手統計</TabsTrigger>
+        </TabsList>
 
-          {/* 統計コンテンツ */}
-          <div className="bg-card rounded-2xl shadow-xl border border-border">
-            <div className="p-6">
-              {statsMode === 'pair' ? (
-                <PairStatsPanel players={players} pairCounts={pairCounts} />
-              ) : (
-                <OpponentStatsPanel
-                  players={players}
-                  opponentCounts={opponentCounts}
-                />
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+        <TabsContent value="pair" className="mt-6">
+          <PairStatsPanel players={players} pairCounts={pairCounts} />
+        </TabsContent>
+
+        <TabsContent value="opponent" className="mt-6">
+          <OpponentStatsPanel
+            players={players}
+            opponentCounts={opponentCounts}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
