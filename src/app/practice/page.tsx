@@ -209,39 +209,39 @@ export default function PracticePage() {
       ) : (
         <>
           {/* ヘッダーエリア */}
-          <div className="flex gap-2 mb-4 overflow-x-auto">
+          <div className="flex gap-2 mb-4">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setShowRoundSummary(true)}
-              className="flex-1 min-w-[112px]"
+              className="flex-1 min-w-[112px] text-base sm:text-sm"
             >
               <Layers />
-              ラウンド
-              <span>{rounds.length}</span>
+              <span className="sm:text-inherit text-xs">ラウンド</span>
+              <span className="sm:text-inherit text-xs">{rounds.length}</span>
             </Button>
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setShowCourtModal(true)}
-              className="flex-1 min-w-[112px]"
+              className="flex-1 min-w-[112px] text-base sm:text-sm"
             >
               <LayoutGrid />
-              コート
-              <span>{settings.courts}</span>
+              <span className="sm:text-inherit text-xs">コート</span>
+              <span className="sm:text-inherit text-xs">{settings.courts}</span>
             </Button>
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={handleOpenParticipants}
-              className="flex-1 min-w-[112px]"
+              className="flex-1 min-w-[112px] text-base sm:text-sm"
             >
               <Users />
-              参加者
-              <span>{players.length}</span>
+              <span className="sm:text-inherit text-xs">参加者</span>
+              <span className="sm:text-inherit text-xs">{players.length}</span>
             </Button>
           </div>
 
