@@ -5,13 +5,17 @@ import type { Member } from '@/types/member';
 type State = {
   members: Member[];
   isLoading: boolean;
+  isInitialLoad: boolean;
   error: string | null;
 };
 
 type Actions = {
   load: () => Promise<void>;
   add: (name: string) => Promise<void>;
-  update: (id: number, updates: Partial<Pick<Member, 'name' | 'isActive'>>) => Promise<void>;
+  update: (
+    id: number,
+    updates: Partial<Pick<Member, 'name' | 'isActive'>>
+  ) => Promise<void>;
   remove: (id: number) => Promise<void>;
   clearError: () => void;
 };
@@ -19,15 +23,20 @@ type Actions = {
 export const useMemberStore = create<State & Actions>((set, get) => ({
   members: [],
   isLoading: false,
+  isInitialLoad: false,
   error: null,
 
   load: async () => {
     set({ isLoading: true, error: null });
     try {
       const list = await db.members.orderBy('createdAt').reverse().toArray();
-      set({ members: list, isLoading: false });
+      set({ members: list, isLoading: false, isInitialLoad: true });
     } catch (e: any) {
-      set({ error: e?.message ?? 'Failed to load members', isLoading: false });
+      set({
+        error: e?.message ?? 'Failed to load members',
+        isLoading: false,
+        isInitialLoad: true,
+      });
     }
   },
 
@@ -52,9 +61,13 @@ export const useMemberStore = create<State & Actions>((set, get) => ({
     try {
       const existing = await db.members.get(id);
       if (!existing) return;
-      const updated: Member = { ...existing, ...updates, updatedAt: new Date().toISOString() };
+      const updated: Member = {
+        ...existing,
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      };
       await db.members.put(updated);
-      set({ members: get().members.map(m => (m.id === id ? updated : m)) });
+      set({ members: get().members.map((m) => (m.id === id ? updated : m)) });
     } catch (e: any) {
       set({ error: e?.message ?? 'Failed to update member' });
     }
@@ -63,7 +76,7 @@ export const useMemberStore = create<State & Actions>((set, get) => ({
   remove: async (id) => {
     try {
       await db.members.delete(id);
-      set({ members: get().members.filter(m => m.id !== id) });
+      set({ members: get().members.filter((m) => m.id !== id) });
     } catch (e: any) {
       set({ error: e?.message ?? 'Failed to delete member' });
     }
@@ -71,4 +84,3 @@ export const useMemberStore = create<State & Actions>((set, get) => ({
 
   clearError: () => set({ error: null }),
 }));
-

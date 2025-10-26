@@ -12,11 +12,11 @@ import { FullscreenDisplay } from '@/components/practice/FullscreenDisplay';
 import { RoundHistory } from '@/components/stats/RoundHistory';
 import { Button } from '@/components/ui/button';
 import { CourtSelector } from '@/components/ui/CourtSelector';
+import { Spinner } from '@/components/ui/spinner';
 import {
   Users,
   LayoutGrid,
   Layers,
-  Maximize,
   AlertTriangle,
   RotateCcw,
   Shuffle,
@@ -24,11 +24,18 @@ import {
 } from 'lucide-react';
 
 export default function PracticePage() {
-  const { members, load: loadMembers } = useMemberStore();
+  const {
+    members,
+    isLoading: membersLoading,
+    isInitialLoad: membersInitialLoad,
+    load: loadMembers,
+  } = useMemberStore();
   const {
     settings,
     players,
     rounds,
+    isLoading: practiceLoading,
+    isInitialLoad: practiceInitialLoad,
     load,
     startPractice,
     toggleStatus,
@@ -194,6 +201,20 @@ export default function PracticePage() {
     updateCourts(pendingCourts);
     setShowCourtModal(false);
   };
+
+  const isLoading = membersLoading || practiceLoading;
+  const isInitialLoading = !membersInitialLoad || !practiceInitialLoad;
+
+  if (isLoading || isInitialLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-4">
+          <Spinner className="size-8" />
+          <p className="text-sm text-muted-foreground">読み込み中...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>

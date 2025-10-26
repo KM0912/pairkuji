@@ -5,6 +5,7 @@ import { Search, X, Trash2, Users, Edit3, Plus } from 'lucide-react';
 import { useMemberStore } from '@/lib/stores/memberStore';
 import { usePracticeStore } from '@/lib/stores/practiceStore';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import { Input } from '@/components/ui/input';
 import {
   InputGroup,
@@ -18,8 +19,17 @@ interface EditingMember {
 }
 
 export default function MembersPage() {
-  const { members, isLoading, error, load, add, update, remove, clearError } =
-    useMemberStore();
+  const {
+    members,
+    isLoading,
+    isInitialLoad,
+    error,
+    load,
+    add,
+    update,
+    remove,
+    clearError,
+  } = useMemberStore();
   const { players } = usePracticeStore();
 
   const [name, setName] = useState('');
@@ -116,6 +126,17 @@ export default function MembersPage() {
   const handleCancelDelete = () => {
     setDeletingMember(null);
   };
+
+  if (isLoading || !isInitialLoad) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-4">
+          <Spinner className="size-8" />
+          <p className="text-sm text-muted-foreground">読み込み中...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

@@ -6,11 +6,24 @@ import { useMemberStore } from '@/lib/stores/memberStore';
 import { PairStatsPanel } from '@/components/stats/PairStatsPanel';
 import { OpponentStatsPanel } from '@/components/stats/OpponentStatsPanel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Spinner } from '@/components/ui/spinner';
 import { BarChart3 } from 'lucide-react';
 
 export default function StatsPage() {
-  const { members, load: loadMembers } = useMemberStore();
-  const { settings, players, rounds, load } = usePracticeStore();
+  const {
+    members,
+    isLoading: membersLoading,
+    isInitialLoad: membersInitialLoad,
+    load: loadMembers,
+  } = useMemberStore();
+  const {
+    settings,
+    players,
+    rounds,
+    isLoading: practiceLoading,
+    isInitialLoad: practiceInitialLoad,
+    load,
+  } = usePracticeStore();
 
   useEffect(() => {
     loadMembers();
@@ -80,6 +93,20 @@ export default function StatsPage() {
 
     return counts;
   }, [rounds]);
+
+  const isLoading = membersLoading || practiceLoading;
+  const isInitialLoading = !membersInitialLoad || !practiceInitialLoad;
+
+  if (isLoading || isInitialLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-4">
+          <Spinner className="size-8" />
+          <p className="text-sm text-muted-foreground">読み込み中...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!settings) {
     return (
