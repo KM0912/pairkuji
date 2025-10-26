@@ -1,13 +1,7 @@
 import { type Member } from '@/types/member';
 import { useState, useMemo } from 'react';
-import {
-  Search,
-  X,
-  Users,
-  AlertTriangle,
-  LayoutGrid,
-  Play,
-} from 'lucide-react';
+import { Search, X, Users, AlertTriangle, Play } from 'lucide-react';
+import { PiCourtBasketball } from 'react-icons/pi';
 import { Button } from '../ui/button';
 import {
   Card,
@@ -82,7 +76,7 @@ export function ParticipantSelection({
             <CardHeader>
               <CardTitle></CardTitle>
               <div className="flex items-center gap-2">
-                <IconBadge icon={LayoutGrid} className="text-primary" />
+                <IconBadge icon={PiCourtBasketball} className="text-primary" />
                 <h3 className="text-base font-semibold text-foreground">
                   コート設定
                 </h3>

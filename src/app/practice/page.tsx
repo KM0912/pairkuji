@@ -15,13 +15,13 @@ import { CourtSelector } from '@/components/ui/CourtSelector';
 import { Spinner } from '@/components/ui/spinner';
 import {
   Users,
-  LayoutGrid,
   Layers,
   AlertTriangle,
   RotateCcw,
   Shuffle,
   X,
 } from 'lucide-react';
+import { PiCourtBasketball } from 'react-icons/pi';
 
 export default function PracticePage() {
   const {
@@ -249,7 +249,7 @@ export default function PracticePage() {
               onClick={() => setShowCourtModal(true)}
               className="flex-1 min-w-0 text-base sm:text-sm"
             >
-              <LayoutGrid />
+              <PiCourtBasketball />
               <span className="sm:text-inherit text-xs">コート</span>
               <span className="sm:text-inherit text-xs">{settings.courts}</span>
             </Button>

@@ -1,8 +1,9 @@
 import React from 'react';
 import { LucideIcon } from 'lucide-react';
+import { IconType } from 'react-icons';
 
 interface IconBadgeProps {
-  icon: LucideIcon;
+  icon: LucideIcon | IconType;
   variant?:
     | 'primary'
     | 'secondary'

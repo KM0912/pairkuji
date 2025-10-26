@@ -1,7 +1,7 @@
 import { type Member } from '@/types/member';
 import { type PracticePlayer } from '@/types/practice';
 import { type Round } from '@/types/round';
-import { LayoutGrid } from 'lucide-react';
+import { PiCourtBasketball } from 'react-icons/pi';
 import { IconBadge } from '../ui/IconBadge';
 import { PlayerNumber } from '../ui/PlayerNumber';
 
@@ -34,7 +34,7 @@ export function CourtManagement({
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="inline-flex items-center gap-1.5 text-foreground font-medium">
-                    <IconBadge icon={LayoutGrid} size="sm" />
+                    <IconBadge icon={PiCourtBasketball} size="sm" />
                     <span className="text-xs">COURT {cm.courtNo}</span>
                   </div>
                 </div>

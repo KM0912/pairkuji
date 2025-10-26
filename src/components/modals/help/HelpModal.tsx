@@ -1,10 +1,5 @@
-import {
-  Users,
-  LayoutGrid,
-  Shuffle,
-  BarChart3,
-  HelpCircle,
-} from 'lucide-react';
+import { Users, Shuffle, BarChart3, HelpCircle } from 'lucide-react';
+import { PiCourtBasketball } from 'react-icons/pi';
 import {
   Dialog,
   DialogContent,
@@ -74,7 +69,7 @@ export function HelpModal() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <LayoutGrid className="w-4 h-4 text-primary" />
+                    <PiCourtBasketball className="w-4 h-4 text-primary" />
                     <span className="font-medium text-foreground">
                       練習設定
                     </span>
