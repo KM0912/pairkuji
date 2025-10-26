@@ -15,9 +15,9 @@ export function SubstitutionHint({
   if (!substituting) return null;
 
   return (
-    <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground px-4 py-2 rounded-lg shadow-lg z-50">
+    <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-secondary px-4 py-2 rounded-lg shadow-lg z-50">
       <div className="flex items-center gap-2 text-sm">
-        <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-semibold text-primary bg-card rounded-full">
+        <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-semibold text-primary-foreground bg-primary rounded-full">
           {playerMap.get(substituting)?.playerNumber}
         </span>
         <span>{memberMap.get(substituting)?.name}を選択中</span>
