@@ -117,11 +117,6 @@ export default function RootLayout({
       price: '0',
       priceCurrency: 'JPY',
     },
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '4.8',
-      ratingCount: '1',
-    },
     inLanguage: 'ja',
     installUrl: baseUrl,
     screenshot: `${baseUrl}/icon-512.png`,
