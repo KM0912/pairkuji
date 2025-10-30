@@ -1,0 +1,9 @@
+# robots.txt for pairkuji
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://pairkuji.app/sitemap.xml
+
+# Disallow specific paths if needed
+# Disallow: /api/
