@@ -8,12 +8,15 @@ import { Header } from '../components/layout/Header';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://pairkuji.app'),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || 'https://pairkuji.app'
+  ),
   title: {
     default: 'ペアくじ - ダブルス練習試合管理',
     template: '%s | ペアくじ',
   },
-  description: 'ダブルス練習試合の組み合わせを公平に管理するPWAアプリ。試合回数の偏りを最小化し、重複するペアや対戦を避けた最適な組み合わせを自動生成します。',
+  description:
+    'ダブルス練習試合の組み合わせを公平に管理するPWAアプリ。試合回数の偏りを最小化し、重複するペアや対戦を避けた最適な組み合わせを自動生成します。',
   keywords: [
     'ダブルス',
     '練習試合',
@@ -47,7 +50,8 @@ export const metadata: Metadata = {
     url: '/',
     siteName: 'ペアくじ',
     title: 'ペアくじ - ダブルス練習試合管理',
-    description: 'ダブルス練習試合の組み合わせを公平に管理するPWAアプリ。試合回数の偏りを最小化し、重複するペアや対戦を避けた最適な組み合わせを自動生成します。',
+    description:
+      'ダブルス練習試合の組み合わせを公平に管理するPWAアプリ。試合回数の偏りを最小化し、重複するペアや対戦を避けた最適な組み合わせを自動生成します。',
     images: [
       {
         url: '/icon-512.png',
@@ -63,12 +67,12 @@ export const metadata: Metadata = {
     description: 'ダブルス練習試合の組み合わせを公平に管理するPWAアプリ',
     images: ['/icon-512.png'],
   },
+  themeColor: '#1e293b',
   viewport: {
     width: 'device-width',
     initialScale: 1,
     maximumScale: 5,
     userScalable: true,
-    themeColor: '#1e293b',
   },
   appleWebApp: {
     capable: true,
@@ -103,7 +107,8 @@ export default function RootLayout({
     '@type': 'SoftwareApplication',
     name: 'ペアくじ',
     alternateName: 'pairkuji',
-    description: 'ダブルス練習試合の組み合わせを公平に管理するPWAアプリ。試合回数の偏りを最小化し、重複するペアや対戦を避けた最適な組み合わせを自動生成します。',
+    description:
+      'ダブルス練習試合の組み合わせを公平に管理するPWAアプリ。試合回数の偏りを最小化し、重複するペアや対戦を避けた最適な組み合わせを自動生成します。',
     url: baseUrl,
     applicationCategory: 'SportsApplication',
     operatingSystem: 'Web Browser, iOS, Android',
