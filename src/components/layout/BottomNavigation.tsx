@@ -10,18 +10,18 @@ export const BottomNavigation: React.FC = () => {
 
   const tabs = [
     {
-      id: 'practice',
-      label: 'ダブルス',
-      icon: <Zap className="w-6 h-6" />,
-      paths: ['/practice', '/'],
-      href: '/practice',
-    },
-    {
       id: 'members',
       label: 'メンバー',
       icon: <Users className="w-6 h-6" />,
       paths: ['/members'],
       href: '/members',
+    },
+    {
+      id: 'practice',
+      label: 'ダブルス',
+      icon: <Zap className="w-6 h-6" />,
+      paths: ['/practice', '/'],
+      href: '/practice',
     },
     {
       id: 'stats',
