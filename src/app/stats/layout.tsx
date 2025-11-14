@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pairkuji.app';
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pairkuji.jp';
 
 export const metadata: Metadata = {
   title: '統計',

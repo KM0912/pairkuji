@@ -9,7 +9,7 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || 'https://pairkuji.app'
+    process.env.NEXT_PUBLIC_SITE_URL || 'https://pairkuji.jp'
   ),
   title: {
     default: 'ペアくじ - ダブルス練習試合管理',
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'ja_JP',
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://pairkuji.app',
+    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://pairkuji.jp',
     siteName: 'ペアくじ',
     title: 'ペアくじ - ダブルス練習試合管理',
     description:
@@ -62,9 +62,9 @@ export const metadata: Metadata = {
     ],
   },
   alternates: {
-    canonical: process.env.NEXT_PUBLIC_SITE_URL || 'https://pairkuji.app',
+    canonical: process.env.NEXT_PUBLIC_SITE_URL || 'https://pairkuji.jp',
     languages: {
-      ja: process.env.NEXT_PUBLIC_SITE_URL || 'https://pairkuji.app',
+      ja: process.env.NEXT_PUBLIC_SITE_URL || 'https://pairkuji.jp',
     },
   },
   twitter: {
@@ -105,7 +105,7 @@ export default function RootLayout({
 }>) {
   const gaTrackingId = process.env.NEXT_PUBLIC_GA_TRACKING_ID;
   const isProd = process.env.NODE_ENV === 'production';
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pairkuji.app';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pairkuji.jp';
 
   // 構造化データ（JSON-LD）
   const structuredData = {
