@@ -47,7 +47,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'ja_JP',
-    url: '/',
+    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://pairkuji.app',
     siteName: 'ペアくじ',
     title: 'ペアくじ - ダブルス練習試合管理',
     description:
@@ -60,6 +60,12 @@ export const metadata: Metadata = {
         alt: 'ペアくじアイコン',
       },
     ],
+  },
+  alternates: {
+    canonical: process.env.NEXT_PUBLIC_SITE_URL || 'https://pairkuji.app',
+    languages: {
+      ja: process.env.NEXT_PUBLIC_SITE_URL || 'https://pairkuji.app',
+    },
   },
   twitter: {
     card: 'summary',
