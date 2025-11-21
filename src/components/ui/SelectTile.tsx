@@ -4,6 +4,7 @@ interface SelectTileProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   selected?: boolean;
   left?: React.ReactNode;
+  right?: React.ReactNode;
   size?: 'sm' | 'md';
   className?: string;
 }
@@ -25,6 +26,7 @@ const unselectedClasses =
 export function SelectTile({
   selected = false,
   left,
+  right,
   size = 'md',
   className = '',
   children,
@@ -49,12 +51,13 @@ export function SelectTile({
     >
       {left}
       {typeof children === 'string' ? (
-        <span className="font-medium truncate text-center w-full">
+        <span className="font-medium truncate text-center flex-1">
           {children}
         </span>
       ) : (
         children
       )}
+      {right}
     </button>
   );
 }
