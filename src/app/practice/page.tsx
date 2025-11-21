@@ -223,39 +223,39 @@ export default function PracticePage() {
       ) : (
         <>
           {/* ヘッダーエリア */}
-          <div className="flex gap-1 mb-4">
+          <div className="flex gap-2 mb-5">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setShowRoundSummary(true)}
-              className="flex-1 min-w-0 text-base sm:text-sm"
+              className="flex-1 min-w-0 text-base sm:text-sm shadow-sm hover:shadow-md"
             >
-              <Shuffle />
-              <span className="sm:text-inherit text-xs">ラウンド</span>
-              <span className="sm:text-inherit text-xs">{rounds.length}</span>
+              <Shuffle className="w-4 h-4" />
+              <span className="sm:text-inherit text-xs font-semibold">ラウンド</span>
+              <span className="sm:text-inherit text-xs font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded">{rounds.length}</span>
             </Button>
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setShowCourtModal(true)}
-              className="flex-1 min-w-0 text-base sm:text-sm"
+              className="flex-1 min-w-0 text-base sm:text-sm shadow-sm hover:shadow-md"
             >
-              <PiCourtBasketball />
-              <span className="sm:text-inherit text-xs">コート</span>
-              <span className="sm:text-inherit text-xs">{settings.courts}</span>
+              <PiCourtBasketball className="w-4 h-4" />
+              <span className="sm:text-inherit text-xs font-semibold">コート</span>
+              <span className="sm:text-inherit text-xs font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded">{settings.courts}</span>
             </Button>
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={handleOpenParticipants}
-              className="flex-1 min-w-0 text-base sm:text-sm"
+              className="flex-1 min-w-0 text-base sm:text-sm shadow-sm hover:shadow-md"
             >
-              <Users />
-              <span className="sm:text-inherit text-xs">参加者</span>
-              <span className="sm:text-inherit text-xs">{players.length}</span>
+              <Users className="w-4 h-4" />
+              <span className="sm:text-inherit text-xs font-semibold">参加者</span>
+              <span className="sm:text-inherit text-xs font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded">{players.length}</span>
             </Button>
           </div>
 
@@ -293,8 +293,8 @@ export default function PracticePage() {
 
       {/* Court count modal */}
       {showCourtModal && settings && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-md rounded-2xl bg-card shadow-xl border border-border p-5 space-y-5">
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+          <div className="w-full max-w-md rounded-2xl bg-card shadow-2xl border-2 border-border/50 p-6 space-y-6 animate-in fade-in-0 zoom-in-95 duration-200">
             <div className="flex items-center justify-between">
               <h2 className="text-base font-semibold text-foreground">
                 コート数を変更
@@ -360,12 +360,12 @@ export default function PracticePage() {
               </Button>
               <Button
                 onClick={handleGenerateNextRound}
-                className="flex-1 shadow-2xl"
+                className="flex-1 shadow-2xl hover:shadow-3xl"
                 disabled={
                   players.filter((p) => p.status === 'active').length < 4
                 }
               >
-                <span className="inline-flex items-center gap-2 font-semibold">
+                <span className="inline-flex items-center gap-2 font-bold text-base">
                   <Shuffle className="w-5 h-5" />
                   次の組み合わせを生成
                 </span>
@@ -390,8 +390,8 @@ export default function PracticePage() {
 
       {/* Round summary modal */}
       {showRoundSummary && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-md rounded-2xl bg-card shadow-xl border border-border">
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+          <div className="w-full max-w-md rounded-2xl bg-card shadow-2xl border-2 border-border/50 animate-in fade-in-0 zoom-in-95 duration-200">
             <div className="flex items-center justify-between border-b px-4 py-3">
               <h2 className="text-sm font-semibold text-foreground">
                 ラウンド履歴
@@ -436,8 +436,8 @@ export default function PracticePage() {
 
       {/* Participant management modal */}
       {showParticipantModal && settings && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-3xl rounded-2xl bg-card shadow-xl border border-border">
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+          <div className="w-full max-w-3xl rounded-2xl bg-card shadow-2xl border-2 border-border/50 animate-in fade-in-0 zoom-in-95 duration-200">
             <div className="flex items-center justify-between border-b px-5 py-4">
               <div>
                 <h2 className="text-base font-semibold text-foreground">
@@ -489,8 +489,8 @@ export default function PracticePage() {
 
       {/* Reset confirmation modal */}
       {showResetConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-card rounded-2xl w-full max-w-sm mx-4 shadow-2xl">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-card rounded-2xl w-full max-w-sm mx-4 shadow-2xl border-2 border-border/50 animate-in fade-in-0 zoom-in-95 duration-200">
             <div className="p-6">
               <div className="text-center mb-6">
                 <div className="w-16 h-16 mx-auto mb-4 bg-destructive/10 rounded-full flex items-center justify-center">
@@ -527,8 +527,8 @@ export default function PracticePage() {
 
       {/* Generate round confirmation modal */}
       {showGenerateConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-card rounded-2xl w-full max-w-sm mx-4 shadow-2xl">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-card rounded-2xl w-full max-w-sm mx-4 shadow-2xl border-2 border-border/50 animate-in fade-in-0 zoom-in-95 duration-200">
             <div className="p-6">
               <div className="text-center mb-6">
                 <div className="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">

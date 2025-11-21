@@ -186,11 +186,11 @@ export default function MembersPage() {
             return (
               <div
                 key={member.id}
-                className={`group rounded-lg border bg-card shadow-sm hover:shadow-md transition-all duration-200 ${
+                className={`group rounded-xl border-2 bg-card shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 ${
                   isFlashing
-                    ? 'ring-2 ring-primary/30 bg-primary/10'
-                    : 'border-border'
-                } ${inPractice ? 'border-accent/30 bg-accent/10' : ''}`}
+                    ? 'ring-2 ring-primary/40 bg-primary/10 border-primary/30'
+                    : 'border-border/60'
+                } ${inPractice ? 'border-accent/40 bg-accent/10 shadow-accent/20' : ''}`}
               >
                 <div className="p-3">
                   <div className="flex items-center justify-between">
@@ -270,8 +270,8 @@ export default function MembersPage() {
 
         {/* 選手追加モーダル */}
         {isAddModalOpen && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-            <div className="bg-card rounded-xl w-full max-w-sm shadow-xl border border-border">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-card rounded-2xl w-full max-w-sm shadow-2xl border-2 border-border/50 animate-in fade-in-0 zoom-in-95 duration-200">
               <div className="p-6">
                 <h2 className="text-lg font-semibold mb-4">選手を追加</h2>
                 <form onSubmit={handleAdd} className="space-y-4">
@@ -314,8 +314,8 @@ export default function MembersPage() {
         )}
 
         {editingMember && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-            <div className="bg-card rounded-xl w-full max-w-sm shadow-xl border border-border">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-card rounded-2xl w-full max-w-sm shadow-2xl border-2 border-border/50 animate-in fade-in-0 zoom-in-95 duration-200">
               <div className="p-6">
                 <h2 className="text-lg font-semibold mb-4">選手情報を編集</h2>
                 <form onSubmit={handleEditSave} className="space-y-4">
@@ -361,8 +361,8 @@ export default function MembersPage() {
         )}
 
         {deletingMember && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-            <div className="bg-card rounded-2xl w-full max-w-sm mx-4 shadow-xl border border-border">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-card rounded-2xl w-full max-w-sm mx-4 shadow-2xl border-2 border-border/50 animate-in fade-in-0 zoom-in-95 duration-200">
               <div className="p-6">
                 <div className="text-center mb-6">
                   <div className="w-16 h-16 mx-auto mb-4 bg-destructive/10 rounded-full flex items-center justify-center">
@@ -404,7 +404,7 @@ export default function MembersPage() {
         )}
 
         {toast && (
-          <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-foreground text-background px-4 py-2 rounded-lg shadow-lg z-50 text-sm">
+          <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-foreground text-background px-5 py-3 rounded-xl shadow-2xl z-50 text-sm font-medium animate-in fade-in-0 slide-in-from-bottom-4 duration-300">
             {toast}
           </div>
         )}
