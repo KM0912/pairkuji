@@ -48,7 +48,7 @@ export const BottomNavigation: React.FC = () => {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border shadow-lg safe-area-pb w-full">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-border/50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] safe-area-pb w-full">
       <div className="flex px-2 max-w-full">
         {tabs.map((tab) => {
           const isActive = activeTab?.id === tab.id;
@@ -56,23 +56,27 @@ export const BottomNavigation: React.FC = () => {
             <button
               key={tab.id}
               onClick={() => handleTabClick(tab)}
-              className={`flex-1 flex flex-col items-center justify-center py-4 px-3 min-h-[72px] transition-all duration-200 relative active:scale-95 ${
+              className={`flex-1 flex flex-col items-center justify-center py-3 px-3 min-h-[72px] transition-all duration-300 relative active:scale-95 ${
                 isActive
                   ? 'text-primary'
                   : 'text-muted-foreground active:text-foreground'
               }`}
             >
               {isActive && (
-                <div className="absolute top-1 left-1/2 -translate-x-1/2 w-10 h-1 bg-primary rounded-full" />
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-primary rounded-full shadow-sm" />
               )}
               <div
-                className={`mb-2 transition-transform duration-200 ${
-                  isActive ? 'scale-110' : ''
+                className={`mb-1.5 transition-all duration-300 ${
+                  isActive 
+                    ? 'scale-110 text-primary' 
+                    : 'scale-100 hover:scale-105'
                 }`}
               >
                 {tab.icon}
               </div>
-              <span className="text-xs font-semibold">{tab.label}</span>
+              <span className={`text-xs font-semibold transition-all duration-300 ${
+                isActive ? 'text-primary' : ''
+              }`}>{tab.label}</span>
             </button>
           );
         })}
