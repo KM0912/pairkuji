@@ -13,7 +13,6 @@ import {
   InputGroupInput,
 } from '@/components/ui/input-group';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-
 interface EditingMember {
   id: number;
   name: string;

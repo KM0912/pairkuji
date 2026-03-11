@@ -42,6 +42,7 @@ export default function PracticePage() {
   } = usePracticeStore();
 
   const [courts, setCourts] = useState(2);
+  const [clubTags, setClubTags] = useState<string[]>([]);
   const [selected, setSelected] = useState<number[]>([]);
   const [showAddParticipant, setShowAddParticipant] = useState(false);
   const [substituting, setSubstituting] = useState<number | null>(null);
@@ -95,7 +96,7 @@ export default function PracticePage() {
   const onStart = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selected.length < 4) return;
-    await startPractice(courts, selected);
+    await startPractice(courts, selected, clubTags.length > 0 ? clubTags : undefined);
   };
 
   const latestRound = rounds[rounds.length - 1];
@@ -271,6 +272,8 @@ export default function PracticePage() {
           selected={selected}
           onToggleSelect={onToggleSelect}
           onStart={onStart}
+          clubTags={clubTags}
+          onClubTagsChange={setClubTags}
         />
       ) : (
         <>

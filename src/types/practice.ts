@@ -4,6 +4,7 @@ export interface PracticeSettings {
   currentRound: number; // 0 = 未開始
   startedAt: string | null;
   updatedAt: string;
+  clubTags?: string[]; // タグ（自由入力、複数可）
 }
 
 export type NewPracticeSettings = Pick<PracticeSettings, 'courts'>;

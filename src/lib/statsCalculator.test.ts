@@ -7,6 +7,8 @@ import {
   calculatePairWinRates,
   calculateHeadToHead,
   filterSessions,
+  filterSessionsByTag,
+  getUniqueTags,
 } from './statsCalculator';
 
 function makeRound(
@@ -328,5 +330,79 @@ describe('filterSessions', () => {
     );
     expect(result).toHaveLength(1);
     expect(result[0]).toBe(thisMonthSession);
+  });
+});
+
+describe('filterSessionsByTag', () => {
+  const sessions: PracticeSession[] = [
+    makeSession([], [1, 2, 3, 4], '2026-01-01T00:00:00Z'),
+    {
+      ...makeSession([], [1, 2, 3, 4], '2026-01-02T00:00:00Z'),
+      clubTags: ['クラブA'],
+    },
+    {
+      ...makeSession([], [5, 6, 7, 8], '2026-01-03T00:00:00Z'),
+      clubTags: ['クラブB'],
+    },
+    {
+      ...makeSession([], [1, 2, 5, 6], '2026-01-04T00:00:00Z'),
+      clubTags: ['クラブA', 'クラブB'],
+    },
+  ];
+
+  test('tag が null の場合、全セッションを返す', () => {
+    const result = filterSessionsByTag(sessions, null);
+    expect(result).toHaveLength(4);
+  });
+
+  test('tag を指定した場合、該当セッションのみ返す', () => {
+    const result = filterSessionsByTag(sessions, 'クラブA');
+    expect(result).toHaveLength(2);
+    expect(result.every((s) => s.clubTags?.includes('クラブA'))).toBe(true);
+  });
+
+  test('複数タグを持つセッションはどちらのタグでもヒットする', () => {
+    const result = filterSessionsByTag(sessions, 'クラブB');
+    expect(result).toHaveLength(2);
+  });
+
+  test('該当するセッションがない場合、空配列を返す', () => {
+    const result = filterSessionsByTag(sessions, '存在しないクラブ');
+    expect(result).toHaveLength(0);
+  });
+
+  test('clubTags なしのセッションはフィルタで除外される', () => {
+    const result = filterSessionsByTag(sessions, 'クラブA');
+    expect(result).toHaveLength(2);
+    expect(result.every((s) => s.clubTags?.includes('クラブA'))).toBe(true);
+  });
+
+  test('空配列に対しても正常動作', () => {
+    expect(filterSessionsByTag([], null)).toHaveLength(0);
+    expect(filterSessionsByTag([], 'クラブA')).toHaveLength(0);
+  });
+});
+
+describe('getUniqueTags', () => {
+  test('セッションからユニークなタグを取得する', () => {
+    const sessions: PracticeSession[] = [
+      { ...makeSession([], [1, 2], '2026-01-01T00:00:00Z'), clubTags: ['クラブB'] },
+      { ...makeSession([], [1, 2], '2026-01-02T00:00:00Z'), clubTags: ['クラブA', 'クラブB'] },
+      { ...makeSession([], [1, 2], '2026-01-03T00:00:00Z'), clubTags: ['クラブB'] },
+      makeSession([], [1, 2], '2026-01-04T00:00:00Z'),
+    ];
+    const tags = getUniqueTags(sessions);
+    expect(tags).toEqual(['クラブA', 'クラブB']);
+  });
+
+  test('タグがないセッションのみの場合は空配列', () => {
+    const sessions: PracticeSession[] = [
+      makeSession([], [1, 2], '2026-01-01T00:00:00Z'),
+    ];
+    expect(getUniqueTags(sessions)).toEqual([]);
+  });
+
+  test('空配列に対しても正常動作', () => {
+    expect(getUniqueTags([])).toEqual([]);
   });
 });

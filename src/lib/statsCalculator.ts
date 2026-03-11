@@ -12,6 +12,33 @@ export const PERIOD_FILTER_LABELS: Record<PeriodFilterType, string> = {
 };
 
 /**
+ * タグ文字列でセッションを絞り込む
+ * null の場合は全セッションを返す
+ */
+export function filterSessionsByTag(
+  sessions: PracticeSession[],
+  tag: string | null
+): PracticeSession[] {
+  if (tag === null) return sessions;
+  return sessions.filter((s) => s.clubTags?.includes(tag));
+}
+
+/**
+ * セッション一覧からユニークなタグを取得する
+ */
+export function getUniqueTags(sessions: PracticeSession[]): string[] {
+  const tags = new Set<string>();
+  for (const s of sessions) {
+    if (s.clubTags) {
+      for (const t of s.clubTags) {
+        tags.add(t);
+      }
+    }
+  }
+  return Array.from(tags).sort((a, b) => a.localeCompare(b, 'ja'));
+}
+
+/**
  * 期間フィルタに応じてセッションを絞り込む
  * 「今回」の場合は空配列を返す（currentRoundsのみで集計するため）
  */

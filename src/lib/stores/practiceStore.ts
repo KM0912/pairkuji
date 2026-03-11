@@ -23,7 +23,7 @@ type State = {
 type Actions = {
   load: () => Promise<void>;
   loadSessions: () => Promise<void>;
-  startPractice: (courts: number, memberIds: number[]) => Promise<void>;
+  startPractice: (courts: number, memberIds: number[], clubTags?: string[]) => Promise<void>;
   toggleStatus: (memberId: number) => Promise<void>;
   generateNextRound: () => Promise<void>;
   resetPractice: () => Promise<void>;
@@ -78,7 +78,7 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
     }
   },
 
-  startPractice: async (courts, memberIds) => {
+  startPractice: async (courts, memberIds, clubTags?) => {
     const now = new Date().toISOString();
     try {
       await db.transaction(
@@ -96,6 +96,7 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
             currentRound: 0,
             startedAt: now,
             updatedAt: now,
+            clubTags,
           };
           await db.practiceSettings.put(settings);
           const players: PracticePlayer[] = memberIds.map((mid, index) => ({
@@ -197,6 +198,7 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
               courts: state.settings.courts,
               playerIds: state.players.map((p) => p.memberId),
               rounds: state.rounds,
+              clubTags: state.settings.clubTags,
             };
             await db.practiceSessions.add(session);
           }

@@ -65,6 +65,7 @@ interface PracticeSettings {
   currentRound: number;    // 現在のラウンド番号 (0 = 未開始)
   startedAt: string | null; // 練習開始日時
   updatedAt: string;       // 更新日時
+  clubId?: number;         // 練習場所（クラブ）のID
 }
 ```
 
@@ -113,6 +114,21 @@ interface Round {
 - 各コートに必ず4名（pairA 2名 + pairB 2名）
 - 1プレイヤーは1ラウンドで1コートまたは休憩のいずれか
 
+### エンティティ: Club（クラブ）
+
+```typescript
+interface Club {
+  id?: number;       // 自動採番 (++id)
+  name: string;      // クラブ名
+  createdAt: string;  // ISO 8601
+  updatedAt: string;  // ISO 8601
+}
+```
+
+**制約**:
+- `name` は空文字不可（トリム後）
+- `id` は自動採番で一意
+
 ### エンティティ: PairStats（ペア統計）
 
 ```typescript
@@ -158,6 +174,7 @@ erDiagram
     MEMBER ||--o| PRACTICE_PLAYER : "参加"
     PRACTICE_SETTINGS ||--o{ ROUND : "管理"
     ROUND ||--|{ COURT_MATCH : "含む"
+    CLUB ||--o{ PRACTICE_SETTINGS : "タグ付け"
 
     MEMBER {
         number id PK
@@ -560,6 +577,10 @@ graph LR
 
 **前提条件**:
 - 練習セッションが開始されていない場合は空状態メッセージを表示
+
+**フィルタ**:
+- **クラブフィルタ**: クラブ登録がある場合、ピルボタンで「すべて」「クラブA」「クラブB」...を切替可能
+- **期間フィルタ**: 今回 / 過去3回 / 今月 / 全期間
 
 **タブ構成**:
 

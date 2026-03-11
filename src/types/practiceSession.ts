@@ -7,4 +7,5 @@ export interface PracticeSession {
   courts: number;
   playerIds: number[];
   rounds: Round[];
+  clubTags?: string[]; // タグ（自由入力、複数可）
 }

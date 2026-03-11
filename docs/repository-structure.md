@@ -37,7 +37,10 @@ pairkuji/
 │   │   │   ├── CourtSelector.tsx
 │   │   │   ├── SelectTile.tsx
 │   │   │   └── PlayerNumber.tsx
+│   │   ├── members/              # メンバー管理関連コンポーネント
+│   │   │   └── ClubManager.tsx
 │   │   ├── practice/             # 練習セッション関連コンポーネント
+│   │   │   ├── ClubSelector.tsx
 │   │   │   ├── CourtManagement.tsx
 │   │   │   ├── FullscreenDisplay.tsx
 │   │   │   ├── ParticipantManagement.tsx
@@ -45,6 +48,7 @@ pairkuji/
 │   │   │   ├── AddParticipantModal.tsx
 │   │   │   └── SubstitutionHint.tsx
 │   │   ├── stats/                # 統計表示コンポーネント
+│   │   │   ├── ClubFilter.tsx
 │   │   │   ├── PairStatsPanel.tsx
 │   │   │   ├── OpponentStatsPanel.tsx
 │   │   │   └── RoundHistory.tsx
@@ -59,9 +63,11 @@ pairkuji/
 │   │   ├── fairnessAlgorithm.test.ts  # アルゴリズムのユニットテスト
 │   │   ├── utils.ts              # 汎用ユーティリティ（cn関数等）
 │   │   └── stores/               # 状態管理ストア（Zustand）
+│   │       ├── clubStore.ts      # クラブ管理ストア
 │   │       ├── memberStore.ts    # メンバー管理ストア
 │   │       └── practiceStore.ts  # 練習セッション管理ストア
 │   └── types/                    # TypeScript型定義
+│       ├── club.ts               # クラブ関連の型
 │       ├── member.ts             # メンバー関連の型
 │       ├── practice.ts           # 練習セッション関連の型
 │       ├── round.ts              # ラウンド関連の型

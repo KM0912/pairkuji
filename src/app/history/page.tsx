@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useMemberStore } from '@/lib/stores/memberStore';
 import { db } from '@/lib/db';
 import { Spinner } from '@/components/ui/spinner';
-import { History, ChevronRight, Trophy } from 'lucide-react';
+import { History, ChevronRight, Trophy, Building2 } from 'lucide-react';
 import type { PracticeSession } from '@/types/practiceSession';
 
 export default function HistoryPage() {
@@ -113,6 +113,19 @@ export default function HistoryPage() {
                 </div>
                 <ChevronRight className="w-4 h-4 text-muted-foreground" />
               </div>
+              {session.clubTags && session.clubTags.length > 0 && (
+                <div className="flex items-center gap-1 mb-1 flex-wrap">
+                  {session.clubTags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center gap-0.5 text-xs font-medium text-primary"
+                    >
+                      <Building2 className="w-3 h-3" />
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
                 <span>{session.courts}面</span>
                 <span>{session.playerIds.length}人</span>

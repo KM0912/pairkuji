@@ -127,6 +127,16 @@ interface Member {
 }
 ```
 
+#### Club（クラブ）
+```typescript
+interface Club {
+  id?: number;       // 自動採番（IndexedDB auto-increment）
+  name: string;      // クラブ名
+  createdAt: string;  // ISO 8601
+  updatedAt: string;  // ISO 8601
+}
+```
+
 #### PracticeSettings（練習設定）
 ```typescript
 interface PracticeSettings {
@@ -135,6 +145,7 @@ interface PracticeSettings {
   currentRound: number;  // 現在のラウンド番号（0 = 未開始）
   startedAt: string | null;
   updatedAt: string;
+  clubId?: number;       // 練習場所（クラブ）のID
 }
 ```
 
@@ -202,6 +213,8 @@ interface PlayerStats {
 | practicePlayers | memberId | playerNumber, status, createdAt |
 | rounds | roundNo | - |
 | pairStats | ++id (auto-increment) | sessionId, lastUpdated |
+| practiceSessions | ++id (auto-increment) | startedAt, endedAt, clubId |
+| clubs | ++id (auto-increment) | name, createdAt |
 
 ### ER図（概念）
 
@@ -246,6 +259,23 @@ interface PlayerStats {
 | add(name) | 新規メンバー追加 |
 | update(id, updates) | メンバー情報更新 |
 | remove(id) | メンバー削除 |
+| clearError() | エラー状態クリア |
+
+#### useClubStore
+クラブ（練習場所）のCRUD管理ストア。
+
+| State | 型 | 説明 |
+|-------|-----|------|
+| clubs | Club[] | クラブ一覧 |
+| isLoading | boolean | ロード中フラグ |
+| error | string \| null | エラーメッセージ |
+
+| Action | 説明 |
+|--------|------|
+| load() | IndexedDBからクラブ一覧をロード |
+| add(name) | 新規クラブ追加（IDを返す） |
+| update(id, name) | クラブ名更新 |
+| remove(id) | クラブ削除 |
 | clearError() | エラー状態クリア |
 
 #### usePracticeStore

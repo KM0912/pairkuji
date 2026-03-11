@@ -8,6 +8,7 @@ import { WinRateTrendChart } from '@/components/stats/WinRateTrendChart';
 import { PairCompatibility } from '@/components/stats/PairCompatibility';
 import { HeadToHead } from '@/components/stats/HeadToHead';
 import { PeriodFilter } from '@/components/stats/PeriodFilter';
+import { ClubFilter } from '@/components/stats/ClubFilter';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Spinner } from '@/components/ui/spinner';
 import { BarChart3 } from 'lucide-react';
@@ -17,6 +18,8 @@ import {
   calculateSessionWinRates,
   calculatePairWinRates,
   filterSessions,
+  filterSessionsByTag,
+  getUniqueTags,
 } from '@/lib/statsCalculator';
 
 export default function StatsPage() {
@@ -36,6 +39,7 @@ export default function StatsPage() {
   } = usePracticeStore();
 
   const [periodFilter, setPeriodFilter] = useState<PeriodFilterType>('all');
+  const [clubFilter, setClubFilter] = useState<string | null>(null);
 
   useEffect(() => {
     loadMembers();
@@ -49,10 +53,17 @@ export default function StatsPage() {
     [members]
   );
 
-  // 期間フィルタ適用
+  const tags = useMemo(() => getUniqueTags(sessions), [sessions]);
+
+  // クラブフィルタ → 期間フィルタ の順で適用
+  const clubFilteredSessions = useMemo(
+    () => filterSessionsByTag(sessions, clubFilter),
+    [sessions, clubFilter]
+  );
+
   const filteredSessions = useMemo(
-    () => filterSessions(sessions, periodFilter),
-    [sessions, periodFilter]
+    () => filterSessions(clubFilteredSessions, periodFilter),
+    [clubFilteredSessions, periodFilter]
   );
 
   // 通算統計
@@ -117,7 +128,8 @@ export default function StatsPage() {
 
   return (
     <div className="bg-background">
-      <div className="mb-3">
+      <div className="mb-3 space-y-2">
+        <ClubFilter tags={tags} value={clubFilter} onChange={setClubFilter} />
         <PeriodFilter value={periodFilter} onChange={setPeriodFilter} />
       </div>
 

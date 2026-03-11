@@ -14,6 +14,7 @@ import { IconBadge } from '../ui/IconBadge';
 import { PlayerNumber } from '../ui/PlayerNumber';
 import { SelectTile } from '../ui/SelectTile';
 import { CourtSelector } from '../ui/CourtSelector';
+import { TagSelector } from './TagSelector';
 
 interface ParticipantSelectionProps {
   members: Member[];
@@ -22,6 +23,8 @@ interface ParticipantSelectionProps {
   selected: number[];
   onToggleSelect: (id: number) => void;
   onStart: (e: React.FormEvent) => void;
+  clubTags?: string[];
+  onClubTagsChange?: (tags: string[]) => void;
 }
 
 export function ParticipantSelection({
@@ -31,6 +34,8 @@ export function ParticipantSelection({
   selected,
   onToggleSelect,
   onStart,
+  clubTags,
+  onClubTagsChange,
 }: ParticipantSelectionProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [viewFilter, setViewFilter] = useState<
@@ -208,6 +213,14 @@ export function ParticipantSelection({
               </Card>
             </CardContent>
           </Card>
+
+          {/* タグ */}
+          {onClubTagsChange && (
+            <TagSelector
+              value={clubTags ?? []}
+              onChange={onClubTagsChange}
+            />
+          )}
 
           <div className="sticky bottom-2">
             <Button

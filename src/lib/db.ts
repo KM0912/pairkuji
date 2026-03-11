@@ -35,6 +35,33 @@ export class PairkujiDB extends Dexie {
       practiceSessions: '++id, startedAt, endedAt',
     });
 
+    // Version 3: Add clubTag to practiceSessions
+    this.version(3).stores({
+      members: '++id, name, isActive, createdAt, updatedAt',
+      practiceSettings: 'id, updatedAt',
+      practicePlayers: 'memberId, playerNumber, status, createdAt',
+      rounds: 'roundNo',
+      pairStats: '++id, sessionId, lastUpdated',
+      practiceSessions: '++id, startedAt, endedAt, clubTag',
+    });
+
+    // Version 4: clubTag → clubTags (multiple tags as array)
+    this.version(4).stores({
+      members: '++id, name, isActive, createdAt, updatedAt',
+      practiceSettings: 'id, updatedAt',
+      practicePlayers: 'memberId, playerNumber, status, createdAt',
+      rounds: 'roundNo',
+      pairStats: '++id, sessionId, lastUpdated',
+      practiceSessions: '++id, startedAt, endedAt, *clubTags',
+    }).upgrade((tx) => {
+      return tx.table('practiceSessions').toCollection().modify((session) => {
+        if (session.clubTag) {
+          session.clubTags = [session.clubTag];
+        }
+        delete session.clubTag;
+      });
+    });
+
     this.on('populate', async () => {
       const now = new Date().toISOString();
       const seedMembers: Omit<Member, 'id'>[] = [
