@@ -39,7 +39,7 @@ export default function StatsPage() {
   } = usePracticeStore();
 
   const [periodFilter, setPeriodFilter] = useState<PeriodFilterType>('all');
-  const [clubFilter, setClubFilter] = useState<string | null>(null);
+  const [clubFilter, setClubFilter] = useState<string[]>([]);
 
   useEffect(() => {
     loadMembers();

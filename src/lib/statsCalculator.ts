@@ -12,15 +12,17 @@ export const PERIOD_FILTER_LABELS: Record<PeriodFilterType, string> = {
 };
 
 /**
- * タグ文字列でセッションを絞り込む
- * null の場合は全セッションを返す
+ * タグ配列でセッションを絞り込む（OR条件）
+ * 空配列の場合は全セッションを返す
  */
 export function filterSessionsByTag(
   sessions: PracticeSession[],
-  tag: string | null
+  tags: string[]
 ): PracticeSession[] {
-  if (tag === null) return sessions;
-  return sessions.filter((s) => s.clubTags?.includes(tag));
+  if (tags.length === 0) return sessions;
+  return sessions.filter((s) =>
+    s.clubTags?.some((t) => tags.includes(t))
+  );
 }
 
 /**

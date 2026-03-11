@@ -350,36 +350,44 @@ describe('filterSessionsByTag', () => {
     },
   ];
 
-  test('tag が null の場合、全セッションを返す', () => {
-    const result = filterSessionsByTag(sessions, null);
+  test('空配列の場合、全セッションを返す', () => {
+    const result = filterSessionsByTag(sessions, []);
     expect(result).toHaveLength(4);
   });
 
-  test('tag を指定した場合、該当セッションのみ返す', () => {
-    const result = filterSessionsByTag(sessions, 'クラブA');
+  test('単一タグを指定した場合、該当セッションのみ返す', () => {
+    const result = filterSessionsByTag(sessions, ['クラブA']);
     expect(result).toHaveLength(2);
     expect(result.every((s) => s.clubTags?.includes('クラブA'))).toBe(true);
   });
 
+  test('複数タグを指定した場合、いずれかのタグを持つセッションを返す（OR条件）', () => {
+    const result = filterSessionsByTag(sessions, ['クラブA', 'クラブB']);
+    expect(result).toHaveLength(3);
+    expect(result.every((s) =>
+      s.clubTags?.some((t) => ['クラブA', 'クラブB'].includes(t))
+    )).toBe(true);
+  });
+
   test('複数タグを持つセッションはどちらのタグでもヒットする', () => {
-    const result = filterSessionsByTag(sessions, 'クラブB');
+    const result = filterSessionsByTag(sessions, ['クラブB']);
     expect(result).toHaveLength(2);
   });
 
   test('該当するセッションがない場合、空配列を返す', () => {
-    const result = filterSessionsByTag(sessions, '存在しないクラブ');
+    const result = filterSessionsByTag(sessions, ['存在しないクラブ']);
     expect(result).toHaveLength(0);
   });
 
   test('clubTags なしのセッションはフィルタで除外される', () => {
-    const result = filterSessionsByTag(sessions, 'クラブA');
+    const result = filterSessionsByTag(sessions, ['クラブA']);
     expect(result).toHaveLength(2);
     expect(result.every((s) => s.clubTags?.includes('クラブA'))).toBe(true);
   });
 
-  test('空配列に対しても正常動作', () => {
-    expect(filterSessionsByTag([], null)).toHaveLength(0);
-    expect(filterSessionsByTag([], 'クラブA')).toHaveLength(0);
+  test('空セッション配列に対しても正常動作', () => {
+    expect(filterSessionsByTag([], [])).toHaveLength(0);
+    expect(filterSessionsByTag([], ['クラブA'])).toHaveLength(0);
   });
 });
 
