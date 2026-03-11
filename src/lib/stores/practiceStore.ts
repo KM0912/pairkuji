@@ -14,6 +14,7 @@ type State = {
   settings: PracticeSettings | null;
   players: PracticePlayer[];
   rounds: Round[];
+  sessions: PracticeSession[];
   isLoading: boolean;
   isInitialLoad: boolean;
   error: string | null;
@@ -21,6 +22,7 @@ type State = {
 
 type Actions = {
   load: () => Promise<void>;
+  loadSessions: () => Promise<void>;
   startPractice: (courts: number, memberIds: number[]) => Promise<void>;
   toggleStatus: (memberId: number) => Promise<void>;
   generateNextRound: () => Promise<void>;
@@ -36,6 +38,7 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
   settings: null,
   players: [],
   rounds: [],
+  sessions: [],
   isLoading: false,
   isInitialLoad: false,
   error: null,
@@ -60,6 +63,17 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
         error: e instanceof Error ? e.message : 'Failed to load practice',
         isLoading: false,
         isInitialLoad: true,
+      });
+    }
+  },
+
+  loadSessions: async () => {
+    try {
+      const sessions = await db.practiceSessions.toArray();
+      set({ sessions });
+    } catch (e: unknown) {
+      set({
+        error: e instanceof Error ? e.message : 'Failed to load sessions',
       });
     }
   },
