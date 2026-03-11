@@ -49,11 +49,11 @@ export function FullscreenDisplay({
   const restingPlayers = getRestingPlayers();
 
   return (
-    <div className="fixed inset-0 z-50 bg-background overflow-auto">
+    <div className="fixed inset-0 z-modal bg-background overflow-auto">
       {/* Header */}
       <div className="sticky top-0 bg-background border-b border-border z-10">
         <div className="flex items-center justify-between p-3">
-          <h1 className="font-bold text-foreground text-lg">
+          <h1 className="font-heading font-bold text-foreground text-title">
             🏸 第{roundNumber}ラウンド
           </h1>
           <button
@@ -79,7 +79,7 @@ export function FullscreenDisplay({
               >
                 {/* Court title */}
                 <div className="text-center mb-3">
-                  <h2 className="font-bold text-foreground text-lg">
+                  <h2 className="font-heading font-bold text-foreground text-title">
                     COURT {court.courtNo}
                   </h2>
                 </div>
@@ -97,9 +97,9 @@ export function FullscreenDisplay({
                         return (
                           <button
                             key={id}
-                            className={`flex items-center gap-1.5 bg-card border rounded-md w-full min-w-0 transition-all duration-200 active:scale-95 p-2 min-h-[36px] ${
+                            className={`flex items-center gap-1.5 bg-card border rounded-md w-full min-w-0 transition-all duration-fast active:scale-[0.97] p-2 min-h-[36px] ${
                               substituting === id
-                                ? 'border-yellow-400 bg-yellow-50 ring-2 ring-yellow-300'
+                                ? 'border-warning bg-warning/10 ring-2 ring-warning/30'
                                 : 'border-primary/30 hover:bg-primary/10 hover:border-primary/40'
                             }`}
                             onClick={() => onPlayerClick(id)}
@@ -133,9 +133,9 @@ export function FullscreenDisplay({
                         return (
                           <button
                             key={id}
-                            className={`flex items-center gap-1.5 bg-card border rounded-md w-full min-w-0 transition-all duration-200 active:scale-95 p-2 min-h-[36px] ${
+                            className={`flex items-center gap-1.5 bg-card border rounded-md w-full min-w-0 transition-all duration-fast active:scale-[0.97] p-2 min-h-[36px] ${
                               substituting === id
-                                ? 'border-yellow-400 bg-yellow-50 ring-2 ring-yellow-300'
+                                ? 'border-warning bg-warning/10 ring-2 ring-warning/30'
                                 : 'border-primary/30 hover:bg-primary/10 hover:border-primary/40'
                             }`}
                             onClick={() => onPlayerClick(id)}
@@ -175,9 +175,9 @@ export function FullscreenDisplay({
                   return (
                     <button
                       key={id}
-                      className={`flex items-center gap-1.5 bg-card border border-border rounded-full transition-all duration-200 active:scale-95 px-2.5 py-1.5 min-h-[32px] ${
+                      className={`flex items-center gap-1.5 bg-card border border-border rounded-full transition-all duration-fast active:scale-[0.97] px-2.5 py-1.5 min-h-[32px] ${
                         substituting === id
-                          ? 'border-yellow-400 bg-yellow-50 ring-2 ring-yellow-300'
+                          ? 'border-warning bg-warning/10 ring-2 ring-warning/30'
                           : 'hover:bg-muted'
                       }`}
                       onClick={() => onPlayerClick(id)}

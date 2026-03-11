@@ -31,7 +31,7 @@ export function PlayerNumber({
   return (
     <span
       className={`
-        inline-flex items-center justify-center rounded-full font-bold shadow-sm
+        inline-flex items-center justify-center rounded-full font-bold shadow-level-1
         ${variantStyles[variant]}
         ${sizeStyles[size]}
         ${className}

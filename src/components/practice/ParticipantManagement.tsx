@@ -35,7 +35,7 @@ export function ParticipantManagement({
               return (
                 <div
                   key={p.memberId}
-                  className="flex items-center justify-between rounded-lg border bg-card px-3 py-2 shadow-sm border-border"
+                  className="flex items-center justify-between rounded-lg border bg-card px-3 py-2 shadow-level-1 border-border"
                 >
                   <div className="flex items-center space-x-2 flex-1 min-w-0">
                     <PlayerNumber
@@ -44,15 +44,15 @@ export function ParticipantManagement({
                       size="sm"
                     />
                     <span className="truncate">{m.name}</span>
-                    <span className="text-xs text-muted-foreground flex-shrink-0">
+                    <span className="text-small text-muted-foreground flex-shrink-0">
                       {matchCounts.get(p.memberId) || 0}試合
                     </span>
                   </div>
                   <button
-                    className={`text-sm px-3 py-1 rounded-full border-2 transition flex-shrink-0 font-medium ${
+                    className={`text-caption px-3 py-1 rounded-full border-2 transition-all duration-fast flex-shrink-0 font-medium ${
                       p.status === 'active'
-                        ? 'bg-gradient-to-r from-emerald-50 to-emerald-100 border-emerald-400 text-emerald-700 hover:from-emerald-100 hover:to-emerald-200 shadow-sm'
-                        : 'bg-gradient-to-r from-amber-50 to-amber-100 border-amber-400 text-amber-700 hover:from-amber-100 hover:to-amber-200 shadow-sm'
+                        ? 'bg-gradient-to-r from-emerald-50 to-emerald-100 border-emerald-400 text-emerald-700 hover:from-emerald-100 hover:to-emerald-200 shadow-level-1'
+                        : 'bg-gradient-to-r from-amber-50 to-amber-100 border-amber-400 text-amber-700 hover:from-amber-100 hover:to-amber-200 shadow-level-1'
                     }`}
                     onClick={() => toggleStatus(p.memberId)}
                     aria-label={`${m.name}のステータスを切り替え`}

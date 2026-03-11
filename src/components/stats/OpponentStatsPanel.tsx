@@ -53,18 +53,18 @@ export function OpponentStatsPanel({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <div className="text-xs text-muted-foreground">
+        <div className="text-small text-muted-foreground">
           未対戦 {neverMetPairs}/{totalPairs}
         </div>
       </div>
 
       {totalPairs === 0 ? (
-        <div className="text-sm text-muted-foreground">
+        <div className="text-caption text-muted-foreground">
           参加者が不足しているため、対戦相手統計はまだ表示できません。
         </div>
       ) : (
         <div className="space-y-3">
-          <div className="flex items-baseline justify-between text-xs text-muted-foreground">
+          <div className="flex items-baseline justify-between text-small text-muted-foreground">
             <span>出場番号の組み合わせと対戦相手回数</span>
             <span className="font-medium text-foreground">
               組み合わせ {totalPairs}

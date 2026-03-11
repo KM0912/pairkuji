@@ -150,7 +150,7 @@ export function ParticipantSelection({
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="メンバー名で検索"
-                  className="w-full pl-10 pr-4 py-3 border rounded-lg text-base min-h-[48px] border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
+                  className="w-full pl-10 pr-4 py-3 border rounded-lg text-body min-h-[48px] border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-fast"
                   aria-label="メンバー検索"
                 />
                 {searchTerm && (
@@ -198,7 +198,7 @@ export function ParticipantSelection({
                       );
                     })
                   ) : (
-                    <div className="col-span-full text-center py-8 text-muted-foreground text-sm">
+                    <div className="col-span-full text-center py-8 text-muted-foreground text-caption">
                       {searchTerm
                         ? '検索条件に一致するメンバーがいません'
                         : '表示できるメンバーがいません'}

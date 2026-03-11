@@ -163,7 +163,7 @@ export default function MembersPage() {
               </InputGroupAddon>
             </InputGroup>
           </div>
-          <p className="mt-2 text-xs text-muted-foreground">
+          <p className="mt-2 text-small text-muted-foreground">
             {isLoading
               ? '読み込み中…'
               : `${filteredMembers.length} 名が表示されています`}
@@ -187,7 +187,7 @@ export default function MembersPage() {
             return (
               <div
                 key={member.id}
-                className={`group rounded-xl border-2 bg-card shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 ${
+                className={`group rounded-xl border-2 bg-card shadow-level-1 hover:shadow-level-2 hover:-translate-y-0.5 transition-all duration-normal ease-out-expo ${
                   isFlashing
                     ? 'ring-2 ring-primary/40 bg-primary/10 border-primary/30'
                     : 'border-border/60'
@@ -202,7 +202,7 @@ export default function MembersPage() {
                       {inPractice && (
                         <div className="flex items-center gap-1">
                           <div className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse"></div>
-                          <span className="text-xs text-accent font-medium">
+                          <span className="text-small text-accent font-medium">
                             練習に参加中
                           </span>
                         </div>
@@ -405,15 +405,15 @@ export default function MembersPage() {
         </Dialog>
 
         {toast && (
-          <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-foreground text-background px-5 py-3 rounded-xl shadow-2xl z-50 text-sm font-medium animate-in fade-in-0 slide-in-from-bottom-4 duration-300">
+          <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-foreground text-background px-5 py-3 rounded-xl shadow-level-3 z-toast text-caption font-medium animate-in fade-in-0 slide-in-from-bottom-4 duration-slow">
             {toast}
           </div>
         )}
       </div>
 
       {/* Fixed Bottom Buttons */}
-      <div className="fixed bottom-24 left-4 right-4 z-30">
-        <div className="max-w-6xl mx-auto">
+      <div className="fixed bottom-24 left-4 right-4 z-overlay">
+        <div className="max-w-2xl mx-auto">
           <div className="flex gap-3">
             <Button onClick={openAddModal} className="flex-1 shadow-2xl">
               <span className="inline-flex items-center gap-2 font-semibold">

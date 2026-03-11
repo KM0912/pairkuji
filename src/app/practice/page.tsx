@@ -226,33 +226,33 @@ export default function PracticePage() {
               variant="outline"
               size="sm"
               onClick={() => setShowRoundSummary(true)}
-              className="flex-1 min-w-0 text-base sm:text-sm shadow-sm hover:shadow-md"
+              className="flex-1 min-w-0 text-base sm:text-sm shadow-level-1 hover:shadow-level-2"
             >
               <Shuffle className="w-4 h-4" />
-              <span className="sm:text-inherit text-xs font-semibold">ラウンド</span>
-              <span className="sm:text-inherit text-xs font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded">{rounds.length}</span>
+              <span className="sm:text-inherit text-small font-semibold">ラウンド</span>
+              <span className="sm:text-inherit text-small font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded">{rounds.length}</span>
             </Button>
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setShowCourtModal(true)}
-              className="flex-1 min-w-0 text-base sm:text-sm shadow-sm hover:shadow-md"
+              className="flex-1 min-w-0 text-base sm:text-sm shadow-level-1 hover:shadow-level-2"
             >
               <PiCourtBasketball className="w-4 h-4" />
-              <span className="sm:text-inherit text-xs font-semibold">コート</span>
-              <span className="sm:text-inherit text-xs font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded">{settings.courts}</span>
+              <span className="sm:text-inherit text-small font-semibold">コート</span>
+              <span className="sm:text-inherit text-small font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded">{settings.courts}</span>
             </Button>
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={handleOpenParticipants}
-              className="flex-1 min-w-0 text-base sm:text-sm shadow-sm hover:shadow-md"
+              className="flex-1 min-w-0 text-base sm:text-sm shadow-level-1 hover:shadow-level-2"
             >
               <Users className="w-4 h-4" />
-              <span className="sm:text-inherit text-xs font-semibold">参加者</span>
-              <span className="sm:text-inherit text-xs font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded">{players.length}</span>
+              <span className="sm:text-inherit text-small font-semibold">参加者</span>
+              <span className="sm:text-inherit text-small font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded">{players.length}</span>
             </Button>
           </div>
 
@@ -316,8 +316,8 @@ export default function PracticePage() {
 
       {/* Fixed Bottom Buttons */}
       {settings && (
-        <div className="fixed bottom-24 left-4 right-4 z-30">
-          <div className="max-w-6xl mx-auto">
+        <div className="fixed bottom-24 left-4 right-4 z-overlay">
+          <div className="max-w-2xl mx-auto">
             <div className="flex gap-3">
               <Button
                 onClick={handleResetClick}
@@ -328,7 +328,7 @@ export default function PracticePage() {
               </Button>
               <Button
                 onClick={handleGenerateNextRound}
-                className="flex-1 shadow-2xl hover:shadow-3xl"
+                className="flex-1 shadow-level-3"
                 disabled={
                   players.filter((p) => p.status === 'active').length < 4
                 }

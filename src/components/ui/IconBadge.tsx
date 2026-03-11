@@ -18,8 +18,8 @@ interface IconBadgeProps {
 const variantStyles = {
   primary: 'text-primary',
   secondary: 'text-accent',
-  success: 'text-primary',
-  warning: 'text-amber-700',
+  success: 'text-success',
+  warning: 'text-warning',
   danger: 'text-destructive',
   neutral: 'text-muted-foreground',
 };

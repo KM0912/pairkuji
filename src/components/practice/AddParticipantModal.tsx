@@ -50,9 +50,9 @@ export function AddParticipantModal({
                     type="button"
                     onClick={() => toggle(id)}
                     aria-pressed={checked}
-                    className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all duration-150 ${
+                    className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all duration-fast ${
                       checked
-                        ? 'bg-primary/10 border-primary/30 shadow-sm'
+                        ? 'bg-primary/10 border-primary/30 shadow-level-1'
                         : 'bg-card border-border hover:bg-muted'
                     }`}
                     title={m.name}
@@ -85,7 +85,7 @@ export function AddParticipantModal({
             )}
           </div>
           <div className="mt-4">
-            <p className="text-xs text-muted-foreground mb-4">
+            <p className="text-small text-muted-foreground mb-4">
               途中参加者は、
               <span className="font-bold">
                 最も試合数が少ない選手(出場可)の 試合数 - 1

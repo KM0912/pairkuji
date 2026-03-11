@@ -1,11 +1,23 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
+import { Barlow, Barlow_Condensed } from 'next/font/google';
 import Script from 'next/script';
 import './globals.css';
 import { BottomNavigation } from '../components/layout/BottomNavigation';
 import { Header } from '../components/layout/Header';
 
-const inter = Inter({ subsets: ['latin'] });
+const barlow = Barlow({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-barlow',
+  display: 'swap',
+});
+
+const barlowCondensed = Barlow_Condensed({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-barlow-condensed',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -136,7 +148,7 @@ export default function RootLayout({
 
   return (
     <html lang="ja">
-      <body className={`${inter.className} overflow-x-hidden`}>
+      <body className={`${barlow.variable} ${barlowCondensed.variable} font-body overflow-x-hidden`}>
         {/* 構造化データ */}
         <Script
           id="structured-data"
@@ -163,7 +175,7 @@ export default function RootLayout({
         <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20">
           <Header />
           <main className="pb-20">
-            <div className="max-w-6xl mx-auto px-4 py-6">{children}</div>
+            <div className="max-w-2xl mx-auto px-4 py-6">{children}</div>
           </main>
         </div>
         <BottomNavigation />
