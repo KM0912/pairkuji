@@ -1,6 +1,6 @@
-import { X, History, Users } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { History, Users } from 'lucide-react';
 import { PlayerNumber } from '@/components/ui/PlayerNumber';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import type { Round } from '@/types/round';
 import type { Member } from '@/types/member';
 
@@ -17,31 +17,19 @@ export function RoundHistory({
   rounds,
   memberMap,
 }: RoundHistoryProps) {
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="w-full max-w-4xl max-h-[85vh] rounded-2xl bg-card shadow-xl border border-border overflow-hidden">
-        <div className="flex items-center justify-between border-b px-5 py-4">
-          <div className="flex items-center gap-2">
-            <History className="w-5 h-5 text-foreground" />
-            <h2 className="text-lg font-semibold text-foreground">
-              ラウンド履歴
-            </h2>
-            <span className="text-sm text-muted-foreground">
-              ({rounds.length}ラウンド)
-            </span>
-          </div>
-          <Button
-            variant="default"
-            size="sm"
-            onClick={onClose}
-            className="w-auto px-2 py-1 text-muted-foreground hover:text-foreground shadow-none hover:shadow-none border-transparent"
-            aria-label="閉じる"
-          >
-            <X className="w-4 h-4" />
-          </Button>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-4xl max-h-[85vh] rounded-2xl border-2 border-border/50 p-0 overflow-hidden">
+        <div className="flex items-center gap-2 border-b px-5 py-4">
+          <History className="w-5 h-5 text-foreground" />
+          <DialogTitle className="text-lg font-semibold text-foreground">
+            ラウンド履歴
+          </DialogTitle>
+          <span className="text-sm text-muted-foreground">
+            ({rounds.length}ラウンド)
+          </span>
         </div>
+        <DialogDescription className="sr-only">過去のラウンドの組み合わせ履歴</DialogDescription>
 
         <div className="overflow-auto max-h-[70vh] px-5 py-4">
           {rounds.length === 0 ? (
@@ -180,7 +168,7 @@ export function RoundHistory({
             </div>
           )}
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

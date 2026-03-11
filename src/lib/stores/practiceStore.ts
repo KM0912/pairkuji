@@ -53,9 +53,9 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
         isLoading: false,
         isInitialLoad: true,
       });
-    } catch (e: any) {
+    } catch (e: unknown) {
       set({
-        error: e?.message ?? 'Failed to load practice',
+        error: e instanceof Error ? e.message : 'Failed to load practice',
         isLoading: false,
         isInitialLoad: true,
       });
@@ -93,8 +93,8 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
       );
 
       await get().load();
-    } catch (e: any) {
-      set({ error: e?.message ?? 'Failed to start practice' });
+    } catch (e: unknown) {
+      set({ error: e instanceof Error ? e.message : 'Failed to start practice' });
     }
   },
 
@@ -112,20 +112,21 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
           p.memberId === memberId ? updated : p
         ),
       });
-    } catch (e: any) {
-      set({ error: e?.message ?? 'Failed to toggle status' });
+    } catch (e: unknown) {
+      set({ error: e instanceof Error ? e.message : 'Failed to toggle status' });
     }
   },
 
   generateNextRound: async () => {
     const state = get();
     const s = state.settings;
-    if (!s) return;
+    if (!s || state.isLoading) return;
+    set({ isLoading: true, error: null });
     try {
       const activePlayers = state.players.filter((p) => p.status === 'active');
 
       if (activePlayers.length < 4) {
-        set({ error: '参加者が4名未満のため組み合わせを生成できません' });
+        set({ error: '参加者が4名未満のため組み合わせを生成できません', isLoading: false });
         return;
       }
 
@@ -155,9 +156,10 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
           currentRound: nextNo,
           updatedAt: new Date().toISOString(),
         },
+        isLoading: false,
       });
-    } catch (e: any) {
-      set({ error: e?.message ?? 'Failed to generate round' });
+    } catch (e: unknown) {
+      set({ error: e instanceof Error ? e.message : 'Failed to generate round', isLoading: false });
     }
   },
 
@@ -175,8 +177,8 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
         }
       );
       set({ settings: null, players: [], rounds: [] });
-    } catch (e: any) {
-      set({ error: e?.message ?? 'Failed to reset practice' });
+    } catch (e: unknown) {
+      set({ error: e instanceof Error ? e.message : 'Failed to reset practice' });
     }
   },
 
@@ -217,8 +219,8 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
 
       await db.practicePlayers.put(newPlayer);
       set({ players: [...state.players, newPlayer] });
-    } catch (e: any) {
-      set({ error: e?.message ?? 'Failed to add participant' });
+    } catch (e: unknown) {
+      set({ error: e instanceof Error ? e.message : 'Failed to add participant' });
     }
   },
 
@@ -240,12 +242,12 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
           if (id === fromMemberId) return toMemberId;
           if (id === toMemberId) return fromMemberId;
           return id;
-        }),
+        }) as [number, number],
         pairB: court.pairB.map((id) => {
           if (id === fromMemberId) return toMemberId;
           if (id === toMemberId) return fromMemberId;
           return id;
-        }),
+        }) as [number, number],
       }));
 
       // Update rests - swap fromMemberId and toMemberId
@@ -288,8 +290,8 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
       const updatedRounds = [...state.rounds];
       updatedRounds[updatedRounds.length - 1] = updatedRound;
       set({ rounds: updatedRounds });
-    } catch (e: any) {
-      set({ error: e?.message ?? 'Failed to substitute player' });
+    } catch (e: unknown) {
+      set({ error: e instanceof Error ? e.message : 'Failed to substitute player' });
     }
   },
 
@@ -306,8 +308,8 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
 
       await db.practiceSettings.put(updatedSettings);
       set({ settings: updatedSettings });
-    } catch (e: any) {
-      set({ error: e?.message ?? 'Failed to update courts' });
+    } catch (e: unknown) {
+      set({ error: e instanceof Error ? e.message : 'Failed to update courts' });
     }
   },
 

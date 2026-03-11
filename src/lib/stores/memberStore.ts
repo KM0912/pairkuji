@@ -31,9 +31,9 @@ export const useMemberStore = create<State & Actions>((set, get) => ({
     try {
       const list = await db.members.orderBy('createdAt').reverse().toArray();
       set({ members: list, isLoading: false, isInitialLoad: true });
-    } catch (e: any) {
+    } catch (e: unknown) {
       set({
-        error: e?.message ?? 'Failed to load members',
+        error: e instanceof Error ? e.message : 'Failed to load members',
         isLoading: false,
         isInitialLoad: true,
       });
@@ -52,8 +52,8 @@ export const useMemberStore = create<State & Actions>((set, get) => ({
     try {
       const id = await db.members.add(member as Member);
       set({ members: [{ id, ...member }, ...get().members] });
-    } catch (e: any) {
-      set({ error: e?.message ?? 'Failed to add member' });
+    } catch (e: unknown) {
+      set({ error: e instanceof Error ? e.message : 'Failed to add member' });
     }
   },
 
@@ -68,8 +68,8 @@ export const useMemberStore = create<State & Actions>((set, get) => ({
       };
       await db.members.put(updated);
       set({ members: get().members.map((m) => (m.id === id ? updated : m)) });
-    } catch (e: any) {
-      set({ error: e?.message ?? 'Failed to update member' });
+    } catch (e: unknown) {
+      set({ error: e instanceof Error ? e.message : 'Failed to update member' });
     }
   },
 
@@ -77,8 +77,8 @@ export const useMemberStore = create<State & Actions>((set, get) => ({
     try {
       await db.members.delete(id);
       set({ members: get().members.filter((m) => m.id !== id) });
-    } catch (e: any) {
-      set({ error: e?.message ?? 'Failed to delete member' });
+    } catch (e: unknown) {
+      set({ error: e instanceof Error ? e.message : 'Failed to delete member' });
     }
   },
 

@@ -1,7 +1,7 @@
 export interface CourtMatch {
   courtNo: number;
-  pairA: number[]; // memberIds length 2
-  pairB: number[]; // memberIds length 2
+  pairA: [number, number]; // memberIds
+  pairB: [number, number]; // memberIds
 }
 
 export interface Round {

@@ -55,6 +55,7 @@ export function ParticipantManagement({
                         : 'bg-gradient-to-r from-amber-50 to-amber-100 border-amber-400 text-amber-700 hover:from-amber-100 hover:to-amber-200 shadow-sm'
                     }`}
                     onClick={() => toggleStatus(p.memberId)}
+                    aria-label={`${m.name}のステータスを切り替え`}
                   >
                     {p.status === 'active' ? '出場可' : '休憩'}
                   </button>

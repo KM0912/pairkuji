@@ -1,4 +1,5 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-// 練習ページにリダイレクト
-export { default } from './practice/page';
+export default function Home() {
+  redirect('/practice');
+}

@@ -69,9 +69,7 @@ export function CourtManagement({
                                 className="text-sm font-semibold text-left truncate text-foreground"
                                 title={name}
                               >
-                                {name.length > 12
-                                  ? name.substring(0, 12) + '...'
-                                  : name}
+                                {name}
                               </div>
                             </div>
                           </button>
@@ -108,9 +106,7 @@ export function CourtManagement({
                                 className="text-sm font-semibold text-left truncate text-foreground"
                                 title={name}
                               >
-                                {name.length > 12
-                                  ? name.substring(0, 12) + '...'
-                                  : name}
+                                {name}
                               </div>
                             </div>
                           </button>
@@ -168,9 +164,7 @@ export function CourtManagement({
                             className="truncate max-w-[100px] text-left"
                             title={name}
                           >
-                            {name.length > 12
-                              ? name.substring(0, 12) + '...'
-                              : name}
+                            {name}
                           </span>
                         </button>
                       );

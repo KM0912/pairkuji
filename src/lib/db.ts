@@ -25,7 +25,7 @@ export class PairkujiDB extends Dexie {
 
     this.on('populate', async () => {
       const now = new Date().toISOString();
-      await this.members.bulkAdd([
+      const seedMembers: Omit<Member, 'id'>[] = [
         {
           name: 'Aくん',
           isActive: true,
@@ -50,7 +50,8 @@ export class PairkujiDB extends Dexie {
           createdAt: now,
           updatedAt: now,
         },
-      ]);
+      ];
+      await this.members.bulkAdd(seedMembers as Member[]);
     });
   }
 }

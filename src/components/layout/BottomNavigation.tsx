@@ -14,21 +14,21 @@ export const BottomNavigation: React.FC = () => {
       label: 'メンバー',
       icon: <Users className="w-6 h-6" />,
       paths: ['/members'],
-      href: '/members',
+      href: '/members' as const,
     },
     {
       id: 'practice',
       label: 'ダブルス',
       icon: <Zap className="w-6 h-6" />,
       paths: ['/practice', '/'],
-      href: '/practice',
+      href: '/practice' as const,
     },
     {
       id: 'stats',
       label: '統計',
       icon: <BarChart3 className="w-6 h-6" />,
       paths: ['/stats'],
-      href: '/stats',
+      href: '/stats' as const,
     },
   ];
 
@@ -44,11 +44,11 @@ export const BottomNavigation: React.FC = () => {
   const activeTab = getActiveTab();
 
   const handleTabClick = (tab: (typeof tabs)[0]) => {
-    router.push(tab.href as any);
+    router.push(tab.href);
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-border/50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] safe-area-pb w-full">
+    <nav className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t border-border/50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] safe-area-pb w-full">
       <div className="flex px-2 max-w-full">
         {tabs.map((tab) => {
           const isActive = activeTab?.id === tab.id;

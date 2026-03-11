@@ -27,13 +27,6 @@ export function FullscreenDisplay({
   onPlayerClick,
   onGenerateNextRound,
 }: FullscreenDisplayProps) {
-  // Keep body scrollable in fullscreen
-  useEffect(() => {
-    return () => {
-      // Only cleanup, don't prevent scrolling
-    };
-  }, []);
-
   // Escape key to close
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -110,6 +103,7 @@ export function FullscreenDisplay({
                                 : 'border-primary/30 hover:bg-primary/10 hover:border-primary/40'
                             }`}
                             onClick={() => onPlayerClick(id)}
+                            aria-label={`${name}を選択して入れ替え`}
                           >
                             <PlayerNumber
                               number={number}
@@ -145,6 +139,7 @@ export function FullscreenDisplay({
                                 : 'border-primary/30 hover:bg-primary/10 hover:border-primary/40'
                             }`}
                             onClick={() => onPlayerClick(id)}
+                            aria-label={`${name}を選択して入れ替え`}
                           >
                             <PlayerNumber
                               number={number}
@@ -186,6 +181,7 @@ export function FullscreenDisplay({
                           : 'hover:bg-muted'
                       }`}
                       onClick={() => onPlayerClick(id)}
+                      aria-label={`${name}を選択して入れ替え`}
                     >
                       <PlayerNumber
                         number={number}

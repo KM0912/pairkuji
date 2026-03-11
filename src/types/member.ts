@@ -1,5 +1,5 @@
 export interface Member {
-  id?: number;
+  id: number;
   name: string;
   isActive: boolean;
   createdAt: string;
@@ -7,4 +7,6 @@ export interface Member {
 }
 
 export type NewMember = Omit<Member, 'id' | 'createdAt' | 'updatedAt'>;
+
+export type NewMemberInput = Omit<Member, 'id' | 'createdAt' | 'updatedAt'>;
 

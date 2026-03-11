@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { type Member } from '@/types/member';
 import { Button } from '../ui/button';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 interface AddParticipantModalProps {
   isOpen: boolean;
@@ -17,8 +18,6 @@ export function AddParticipantModal({
 }: AddParticipantModalProps) {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
-  if (!isOpen) return null;
-
   const toggle = (id: number) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
@@ -32,10 +31,10 @@ export function AddParticipantModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-card rounded-lg w-full max-w-sm mx-4 border border-border">
-        <div className="p-6">
-          <h2 className="text-lg font-semibold mb-2">参加者を追加</h2>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-sm rounded-2xl border-2 border-border/50 p-6">
+        <DialogTitle className="text-lg font-semibold mb-2">参加者を追加</DialogTitle>
+        <DialogDescription className="sr-only">練習に参加する選手を選択してください</DialogDescription>
           {availableMembers.length === 0 ? (
             <div className="text-center text-muted-foreground py-4">
               追加できる選手がいません
@@ -109,8 +108,7 @@ export function AddParticipantModal({
                 : '追加する'}
             </Button>
           </div>
-        </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

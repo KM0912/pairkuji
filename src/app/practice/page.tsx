@@ -8,13 +8,12 @@ import { ParticipantManagement } from '@/components/practice/ParticipantManageme
 import { CourtManagement } from '@/components/practice/CourtManagement';
 import { AddParticipantModal } from '@/components/practice/AddParticipantModal';
 import { SubstitutionHint } from '@/components/practice/SubstitutionHint';
-import { FullscreenDisplay } from '@/components/practice/FullscreenDisplay';
-import { RoundHistory } from '@/components/stats/RoundHistory';
 import { Button } from '@/components/ui/button';
 import { CourtSelector } from '@/components/ui/CourtSelector';
 import { Spinner } from '@/components/ui/spinner';
-import { Users, AlertTriangle, RotateCcw, Shuffle, X } from 'lucide-react';
+import { Users, AlertTriangle, RotateCcw, Shuffle } from 'lucide-react';
 import { PiCourtBasketball } from 'react-icons/pi';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 export default function PracticePage() {
   const {
@@ -48,10 +47,8 @@ export default function PracticePage() {
   const [showCourtModal, setShowCourtModal] = useState(false);
   const [pendingCourts, setPendingCourts] = useState<number>(courts);
   const [showParticipantModal, setShowParticipantModal] = useState(false);
-  const [showFullscreen, setShowFullscreen] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showGenerateConfirm, setShowGenerateConfirm] = useState(false);
-  const [showRoundHistory, setShowRoundHistory] = useState(false);
 
   useEffect(() => {
     loadMembers();
@@ -262,22 +259,6 @@ export default function PracticePage() {
           {/* コート管理 */}
           <div ref={combosRef} className="space-y-6 pb-16">
             <div>
-              {/* TODO: フルスクリーン機能を使用するか検討 */}
-              {/* TODO: 不要な場合は関連する処理をすべて削除する */}
-              {/* {latestRound && (
-                <div className="mb-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowFullscreen(true)}
-                    className="w-full"
-                  >
-                    <Maximize />
-                    フルスクリーン表示
-                  </Button>
-                </div>
-              )} */}
               <CourtManagement
                 players={players}
                 latestRound={latestRound}
@@ -292,59 +273,46 @@ export default function PracticePage() {
       )}
 
       {/* Court count modal */}
-      {showCourtModal && settings && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
-          <div className="w-full max-w-md rounded-2xl bg-card shadow-2xl border-2 border-border/50 p-6 space-y-6 animate-in fade-in-0 zoom-in-95 duration-200">
-            <div className="flex items-center justify-between">
-              <h2 className="text-base font-semibold text-foreground">
-                コート数を変更
-              </h2>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowCourtModal(false)}
-                aria-label="閉じる"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-3">
-                コート数
-              </label>
-              <div className="bg-muted rounded-lg p-3 border border-border">
-                <CourtSelector
-                  courts={pendingCourts}
-                  setCourts={setPendingCourts}
-                  size="sm"
-                />
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <Button
-                type="button"
-                size="sm"
-                variant="secondary"
-                onClick={() => setShowCourtModal(false)}
-                className="flex-1 px-4 py-2 text-sm"
-              >
-                キャンセル
-              </Button>
-              <Button
-                type="button"
-                variant="default"
-                size="sm"
-                onClick={handleConfirmCourts}
-                className="flex-1 px-4 py-2 text-sm"
-                disabled={pendingCourts === settings.courts}
-              >
-                更新
-              </Button>
+      <Dialog open={showCourtModal && !!settings} onOpenChange={(open) => !open && setShowCourtModal(false)}>
+        <DialogContent className="max-w-md rounded-2xl border-2 border-border/50 p-6 space-y-6">
+          <DialogTitle className="text-base font-semibold text-foreground">
+            コート数を変更
+          </DialogTitle>
+          <DialogDescription className="sr-only">コート数を変更します</DialogDescription>
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-3">
+              コート数
+            </label>
+            <div className="bg-muted rounded-lg p-3 border border-border">
+              <CourtSelector
+                courts={pendingCourts}
+                setCourts={setPendingCourts}
+              />
             </div>
           </div>
-        </div>
-      )}
+          <div className="flex gap-3">
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              onClick={() => setShowCourtModal(false)}
+              className="flex-1 px-4 py-2 text-sm"
+            >
+              キャンセル
+            </Button>
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              onClick={handleConfirmCourts}
+              className="flex-1 px-4 py-2 text-sm"
+              disabled={!settings || pendingCourts === settings.courts}
+            >
+              更新
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Fixed Bottom Buttons */}
       {settings && (
@@ -389,76 +357,56 @@ export default function PracticePage() {
       />
 
       {/* Round summary modal */}
-      {showRoundSummary && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
-          <div className="w-full max-w-md rounded-2xl bg-card shadow-2xl border-2 border-border/50 animate-in fade-in-0 zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b px-4 py-3">
-              <h2 className="text-sm font-semibold text-foreground">
-                ラウンド履歴
-              </h2>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowRoundSummary(false)}
-                aria-label="閉じる"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-            <div className="max-h-72 overflow-auto px-4 py-3 space-y-2 text-sm">
-              {rounds.length === 0 ? (
-                <p className="text-muted-foreground">
-                  まだラウンドがありません。
-                </p>
-              ) : (
-                rounds
-                  .slice()
-                  .reverse()
-                  .map((round) => (
-                    <div
-                      key={round.roundNo}
-                      className="flex items-center justify-between rounded-lg border border-border bg-muted px-3 py-2"
-                    >
-                      <div className="font-medium text-foreground">
-                        ラウンド {round.roundNo}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        コート {round.courts.length} / 休憩 {round.rests.length}
-                      </div>
-                    </div>
-                  ))
-              )}
-            </div>
+      <Dialog open={showRoundSummary} onOpenChange={(open) => !open && setShowRoundSummary(false)}>
+        <DialogContent className="max-w-md rounded-2xl border-2 border-border/50 p-0">
+          <div className="border-b px-4 py-3">
+            <DialogTitle className="text-sm font-semibold text-foreground">
+              ラウンド履歴
+            </DialogTitle>
           </div>
-        </div>
-      )}
+          <DialogDescription className="sr-only">過去のラウンド一覧</DialogDescription>
+          <div className="max-h-72 overflow-auto px-4 py-3 space-y-2 text-sm">
+            {rounds.length === 0 ? (
+              <p className="text-muted-foreground">
+                まだラウンドがありません。
+              </p>
+            ) : (
+              rounds
+                .slice()
+                .reverse()
+                .map((round) => (
+                  <div
+                    key={round.roundNo}
+                    className="flex items-center justify-between rounded-lg border border-border bg-muted px-3 py-2"
+                  >
+                    <div className="font-medium text-foreground">
+                      ラウンド {round.roundNo}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      コート {round.courts.length} / 休憩 {round.rests.length}
+                    </div>
+                  </div>
+                ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Participant management modal */}
-      {showParticipantModal && settings && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
-          <div className="w-full max-w-3xl rounded-2xl bg-card shadow-2xl border-2 border-border/50 animate-in fade-in-0 zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b px-5 py-4">
-              <div>
-                <h2 className="text-base font-semibold text-foreground">
-                  参加者の管理
-                </h2>
-                <p className="text-xs text-muted-foreground">
-                  出場可 {players.filter((p) => p.status === 'active').length} /
-                  全体 {players.length}
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowParticipantModal(false)}
-                aria-label="閉じる"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-            <div className="h-[60vh] px-5 py-4">
+      <Dialog open={showParticipantModal && !!settings} onOpenChange={(open) => !open && setShowParticipantModal(false)}>
+        <DialogContent className="max-w-3xl rounded-2xl border-2 border-border/50 p-0">
+          <div className="border-b px-5 py-4">
+            <DialogTitle className="text-base font-semibold text-foreground">
+              参加者の管理
+            </DialogTitle>
+            <p className="text-xs text-muted-foreground">
+              出場可 {players.filter((p) => p.status === 'active').length} /
+              全体 {players.length}
+            </p>
+          </div>
+          <DialogDescription className="sr-only">参加者のステータスを管理します</DialogDescription>
+          <div className="h-[60vh] px-5 py-4">
+            {settings && (
               <ParticipantManagement
                 settings={settings}
                 players={players}
@@ -468,110 +416,85 @@ export default function PracticePage() {
                 toggleStatus={toggleStatus}
                 onShowAddParticipant={() => setShowAddParticipant(true)}
               />
-            </div>
+            )}
           </div>
-        </div>
-      )}
-
-      {/* Fullscreen display */}
-      {showFullscreen && latestRound && (
-        <FullscreenDisplay
-          round={latestRound}
-          memberMap={memberMap}
-          playerMap={playerMap}
-          roundNumber={rounds.length}
-          substituting={substituting}
-          onClose={() => setShowFullscreen(false)}
-          onPlayerClick={onPlayerClick}
-          onGenerateNextRound={handleGenerateNextRound}
-        />
-      )}
+        </DialogContent>
+      </Dialog>
 
       {/* Reset confirmation modal */}
-      {showResetConfirm && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-card rounded-2xl w-full max-w-sm mx-4 shadow-2xl border-2 border-border/50 animate-in fade-in-0 zoom-in-95 duration-200">
-            <div className="p-6">
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 mx-auto mb-4 bg-destructive/10 rounded-full flex items-center justify-center">
-                  <AlertTriangle className="w-8 h-8 text-destructive" />
-                </div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">
-                  練習をリセットしますか？
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  すべてのラウンドデータが削除され、元に戻すことはできません。
-                </p>
-              </div>
-
-              <div className="flex gap-3">
-                <Button
-                  variant="secondary"
-                  onClick={handleCancelReset}
-                  className="flex-1"
-                >
-                  キャンセル
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={handleReset}
-                  className="flex-1"
-                >
-                  リセット
-                </Button>
-              </div>
+      <Dialog open={showResetConfirm} onOpenChange={(open) => !open && setShowResetConfirm(false)}>
+        <DialogContent className="max-w-sm rounded-2xl border-2 border-border/50 p-6">
+          <DialogTitle className="sr-only">練習をリセット</DialogTitle>
+          <DialogDescription className="sr-only">練習データをリセットする確認ダイアログ</DialogDescription>
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 mx-auto mb-4 bg-destructive/10 rounded-full flex items-center justify-center">
+              <AlertTriangle className="w-8 h-8 text-destructive" />
             </div>
+            <h3 className="text-lg font-semibold text-foreground mb-2">
+              練習をリセットしますか？
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              すべてのラウンドデータが削除され、元に戻すことはできません。
+            </p>
           </div>
-        </div>
-      )}
+
+          <div className="flex gap-3">
+            <Button
+              variant="secondary"
+              onClick={handleCancelReset}
+              className="flex-1"
+            >
+              キャンセル
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleReset}
+              className="flex-1"
+            >
+              リセット
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Generate round confirmation modal */}
-      {showGenerateConfirm && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-card rounded-2xl w-full max-w-sm mx-4 shadow-2xl border-2 border-border/50 animate-in fade-in-0 zoom-in-95 duration-200">
-            <div className="p-6">
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
-                  <Shuffle className="w-8 h-8 text-primary" />
-                </div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">
-                  ラウンド {rounds.length + 1} を生成しますか？
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  新しい組み合わせが作成されます。
-                </p>
-              </div>
-
-              <div className="flex gap-3">
-                <Button
-                  onClick={() => setShowGenerateConfirm(false)}
-                  variant="secondary"
-                  className="flex-1"
-                >
-                  キャンセル
-                </Button>
-                <Button
-                  onClick={async () => {
-                    setShowGenerateConfirm(false);
-                    await executeGenerateNextRound();
-                  }}
-                  className="flex-1"
-                >
-                  生成する
-                </Button>
-              </div>
+      <Dialog open={showGenerateConfirm} onOpenChange={(open) => !open && setShowGenerateConfirm(false)}>
+        <DialogContent className="max-w-sm rounded-2xl border-2 border-border/50 p-6">
+          <DialogTitle className="sr-only">ラウンド生成の確認</DialogTitle>
+          <DialogDescription className="sr-only">新しいラウンドを生成する確認ダイアログ</DialogDescription>
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
+              <Shuffle className="w-8 h-8 text-primary" />
             </div>
+            <h3 className="text-lg font-semibold text-foreground mb-2">
+              ラウンド {rounds.length + 1} を生成しますか？
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              新しい組み合わせが作成されます。
+            </p>
           </div>
-        </div>
-      )}
 
-      {/* Round history modal */}
-      <RoundHistory
-        isOpen={showRoundHistory}
-        onClose={() => setShowRoundHistory(false)}
-        rounds={rounds}
-        memberMap={memberMap}
-      />
+          <div className="flex gap-3">
+            <Button
+              onClick={() => setShowGenerateConfirm(false)}
+              variant="secondary"
+              className="flex-1"
+            >
+              キャンセル
+            </Button>
+            <Button
+              onClick={async () => {
+                setShowGenerateConfirm(false);
+                await executeGenerateNextRound();
+              }}
+              className="flex-1"
+            >
+              生成する
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }

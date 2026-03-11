@@ -4,7 +4,6 @@ interface CourtSelectorProps {
   courts: number;
   setCourts: (courts: number) => void;
   maxCourts?: number;
-  size?: 'sm' | 'md';
   className?: string;
 }
 
@@ -19,7 +18,7 @@ export function CourtSelector({
       <Button
         type="button"
         size="sm"
-        variant="default"
+        variant="outline"
         onClick={() => setCourts(Math.max(1, courts - 1))}
         className={
           'rounded-full bg-card hover:bg-muted shadow-sm border-border flex items-center justify-center'
@@ -35,7 +34,7 @@ export function CourtSelector({
       <Button
         type="button"
         size="sm"
-        variant="default"
+        variant="outline"
         onClick={() => setCourts(Math.min(maxCourts, courts + 1))}
         className={
           'rounded-full bg-card hover:bg-muted shadow-sm border-border flex items-center justify-center'

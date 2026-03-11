@@ -12,6 +12,7 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from '@/components/ui/input-group';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 interface EditingMember {
   id: number;
@@ -269,101 +270,101 @@ export default function MembersPage() {
         )}
 
         {/* 選手追加モーダル */}
-        {isAddModalOpen && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-card rounded-2xl w-full max-w-sm shadow-2xl border-2 border-border/50 animate-in fade-in-0 zoom-in-95 duration-200">
-              <div className="p-6">
-                <h2 className="text-lg font-semibold mb-4">選手を追加</h2>
-                <form onSubmit={handleAdd} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">
-                      名前
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full border rounded-lg px-3 py-2 bg-card border-border focus:outline-none focus:ring-2 focus:ring-primary"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="選手名を入力"
-                      required
-                      autoFocus
-                    />
-                  </div>
-                  <div className="flex gap-3 pt-4">
-                    <Button
-                      type="button"
-                      onClick={closeAddModal}
-                      variant="secondary"
-                      className="flex-1"
-                    >
-                      キャンセル
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={!name.trim()}
-                      variant="default"
-                      className="flex-1"
-                    >
-                      追加
-                    </Button>
-                  </div>
-                </form>
+        <Dialog open={isAddModalOpen} onOpenChange={(open) => !open && closeAddModal()}>
+          <DialogContent className="max-w-sm rounded-2xl border-2 border-border/50 p-6">
+            <DialogTitle className="text-lg font-semibold mb-4">選手を追加</DialogTitle>
+            <DialogDescription className="sr-only">新しい選手を追加します</DialogDescription>
+            <form onSubmit={handleAdd} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">
+                  名前
+                </label>
+                <input
+                  type="text"
+                  className="w-full border rounded-lg px-3 py-2 bg-card border-border focus:outline-none focus:ring-2 focus:ring-primary"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="選手名を入力"
+                  required
+                  autoFocus
+                />
               </div>
-            </div>
-          </div>
-        )}
-
-        {editingMember && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-card rounded-2xl w-full max-w-sm shadow-2xl border-2 border-border/50 animate-in fade-in-0 zoom-in-95 duration-200">
-              <div className="p-6">
-                <h2 className="text-lg font-semibold mb-4">選手情報を編集</h2>
-                <form onSubmit={handleEditSave} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">
-                      名前
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full border rounded-lg px-3 py-2 bg-card border-border focus:outline-none focus:ring-2 focus:ring-primary"
-                      value={editingMember.name}
-                      onChange={(e) =>
-                        setEditingMember({
-                          ...editingMember,
-                          name: e.target.value,
-                        })
-                      }
-                      required
-                    />
-                  </div>
-                  <div className="flex gap-3 pt-4">
-                    <Button
-                      type="button"
-                      onClick={closeEditModal}
-                      variant="secondary"
-                      className="flex-1"
-                    >
-                      キャンセル
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={!editingMember.name.trim()}
-                      variant="default"
-                      className="flex-1"
-                    >
-                      保存
-                    </Button>
-                  </div>
-                </form>
+              <div className="flex gap-3 pt-4">
+                <Button
+                  type="button"
+                  onClick={closeAddModal}
+                  variant="secondary"
+                  className="flex-1"
+                >
+                  キャンセル
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={!name.trim()}
+                  variant="default"
+                  className="flex-1"
+                >
+                  追加
+                </Button>
               </div>
-            </div>
-          </div>
-        )}
+            </form>
+          </DialogContent>
+        </Dialog>
 
-        {deletingMember && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-card rounded-2xl w-full max-w-sm mx-4 shadow-2xl border-2 border-border/50 animate-in fade-in-0 zoom-in-95 duration-200">
-              <div className="p-6">
+        {/* 選手編集モーダル */}
+        <Dialog open={!!editingMember} onOpenChange={(open) => !open && closeEditModal()}>
+          <DialogContent className="max-w-sm rounded-2xl border-2 border-border/50 p-6">
+            <DialogTitle className="text-lg font-semibold mb-4">選手情報を編集</DialogTitle>
+            <DialogDescription className="sr-only">選手の名前を編集します</DialogDescription>
+            {editingMember && (
+              <form onSubmit={handleEditSave} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1">
+                    名前
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full border rounded-lg px-3 py-2 bg-card border-border focus:outline-none focus:ring-2 focus:ring-primary"
+                    value={editingMember.name}
+                    onChange={(e) =>
+                      setEditingMember({
+                        ...editingMember,
+                        name: e.target.value,
+                      })
+                    }
+                    required
+                  />
+                </div>
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    type="button"
+                    onClick={closeEditModal}
+                    variant="secondary"
+                    className="flex-1"
+                  >
+                    キャンセル
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={!editingMember.name.trim()}
+                    variant="default"
+                    className="flex-1"
+                  >
+                    保存
+                  </Button>
+                </div>
+              </form>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* 削除確認モーダル */}
+        <Dialog open={!!deletingMember} onOpenChange={(open) => !open && handleCancelDelete()}>
+          <DialogContent className="max-w-sm rounded-2xl border-2 border-border/50 p-6">
+            <DialogTitle className="sr-only">選手の削除</DialogTitle>
+            <DialogDescription className="sr-only">選手を削除する確認ダイアログ</DialogDescription>
+            {deletingMember && (
+              <>
                 <div className="text-center mb-6">
                   <div className="w-16 h-16 mx-auto mb-4 bg-destructive/10 rounded-full flex items-center justify-center">
                     <Trash2 className="w-8 h-8 text-destructive" />
@@ -398,10 +399,10 @@ export default function MembersPage() {
                     削除
                   </Button>
                 </div>
-              </div>
-            </div>
-          </div>
-        )}
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
 
         {toast && (
           <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-foreground text-background px-5 py-3 rounded-xl shadow-2xl z-50 text-sm font-medium animate-in fade-in-0 slide-in-from-bottom-4 duration-300">

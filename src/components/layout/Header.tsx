@@ -9,7 +9,7 @@ interface HeaderProps {}
 export function Header({}: HeaderProps) {
   return (
     <>
-      <div className="sticky top-0 z-40 w-full backdrop-blur-md bg-white/80 border-b border-border/50 shadow-sm">
+      <div className="sticky top-0 z-40 w-full backdrop-blur-md bg-background/80 border-b border-border/50 shadow-sm">
         <div className="h-16 flex items-center justify-between max-w-6xl mx-auto px-4">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2.5">
