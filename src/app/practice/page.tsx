@@ -36,6 +36,7 @@ export default function PracticePage() {
     addParticipant,
     substitutePlayer,
     updateCourts,
+    recordResult,
   } = usePracticeStore();
 
   const [courts, setCourts] = useState(2);
@@ -266,6 +267,7 @@ export default function PracticePage() {
                 playerMap={playerMap}
                 substituting={substituting}
                 onPlayerClick={onPlayerClick}
+                onRecordResult={recordResult}
               />
             </div>
           </div>

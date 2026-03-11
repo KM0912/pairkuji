@@ -1,9 +1,11 @@
 import { type Member } from '@/types/member';
 import { type PracticePlayer } from '@/types/practice';
-import { type Round } from '@/types/round';
+import { type Round, type MatchResult } from '@/types/round';
 import { PiCourtBasketball } from 'react-icons/pi';
 import { IconBadge } from '../ui/IconBadge';
 import { PlayerNumber } from '../ui/PlayerNumber';
+import { Trophy } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface CourtManagementProps {
   players: PracticePlayer[];
@@ -12,6 +14,7 @@ interface CourtManagementProps {
   playerMap: Map<number, PracticePlayer>;
   substituting: number | null;
   onPlayerClick: (memberId: number) => Promise<void>;
+  onRecordResult?: (roundNo: number, courtNo: number, result: MatchResult) => Promise<void>;
 }
 
 export function CourtManagement({
@@ -21,7 +24,15 @@ export function CourtManagement({
   playerMap,
   substituting,
   onPlayerClick,
+  onRecordResult,
 }: CourtManagementProps) {
+  const handleResultClick = (roundNo: number, courtNo: number, currentResult: MatchResult | undefined, side: 'pairA' | 'pairB') => {
+    if (!onRecordResult) return;
+    // タップで切り替え: 同じ側を再タップ → 未登録に戻す
+    const newResult: MatchResult = currentResult === side ? null : side;
+    onRecordResult(roundNo, courtNo, newResult);
+  };
+
   return (
     <section>
       {latestRound ? (
@@ -39,10 +50,23 @@ export function CourtManagement({
                     </div>
                     <span className="font-heading text-caption tracking-wider uppercase">COURT {cm.courtNo}</span>
                   </div>
+                  {cm.result != null && (
+                    <span className="text-xs font-medium text-success">
+                      <Trophy className="w-3.5 h-3.5 inline-block mr-0.5" />
+                      {cm.result === 'pairA' ? '左' : '右'}
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-stretch gap-2">
                   {/* Team A */}
-                  <div className="flex-1 rounded-lg border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 p-2 min-w-0 shadow-level-1">
+                  <div
+                    className={cn(
+                      'flex-1 rounded-lg border-2 p-2 min-w-0 shadow-level-1 transition-all duration-fast',
+                      cm.result === 'pairA'
+                        ? 'border-success/50 bg-gradient-to-br from-success/15 to-success/5'
+                        : 'border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5'
+                    )}
+                  >
                     <div className="space-y-1">
                       {cm.pairA.map((id) => {
                         const member = memberMap.get(id);
@@ -76,10 +100,32 @@ export function CourtManagement({
                         );
                       })}
                     </div>
+                    {/* Team A 勝利ボタン */}
+                    {onRecordResult && (
+                      <button
+                        className={cn(
+                          'w-full mt-2 py-1.5 rounded-md text-xs font-semibold transition-all duration-fast active:scale-[0.97] min-h-[44px]',
+                          cm.result === 'pairA'
+                            ? 'bg-success text-success-foreground shadow-level-1'
+                            : 'bg-muted/80 text-muted-foreground hover:bg-success/20 hover:text-success border border-border/50'
+                        )}
+                        onClick={() => handleResultClick(latestRound.roundNo, cm.courtNo, cm.result, 'pairA')}
+                      >
+                        <Trophy className="w-3.5 h-3.5 inline-block mr-1" />
+                        {cm.result === 'pairA' ? 'WIN' : '勝ち'}
+                      </button>
+                    )}
                   </div>
 
                   {/* Team B */}
-                  <div className="flex-1 rounded-lg border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 p-2 min-w-0 shadow-level-1">
+                  <div
+                    className={cn(
+                      'flex-1 rounded-lg border-2 p-2 min-w-0 shadow-level-1 transition-all duration-fast',
+                      cm.result === 'pairB'
+                        ? 'border-success/50 bg-gradient-to-br from-success/15 to-success/5'
+                        : 'border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5'
+                    )}
+                  >
                     <div className="space-y-1">
                       {cm.pairB.map((id) => {
                         const member = memberMap.get(id);
@@ -113,6 +159,21 @@ export function CourtManagement({
                         );
                       })}
                     </div>
+                    {/* Team B 勝利ボタン */}
+                    {onRecordResult && (
+                      <button
+                        className={cn(
+                          'w-full mt-2 py-1.5 rounded-md text-xs font-semibold transition-all duration-fast active:scale-[0.97] min-h-[44px]',
+                          cm.result === 'pairB'
+                            ? 'bg-success text-success-foreground shadow-level-1'
+                            : 'bg-muted/80 text-muted-foreground hover:bg-success/20 hover:text-success border border-border/50'
+                        )}
+                        onClick={() => handleResultClick(latestRound.roundNo, cm.courtNo, cm.result, 'pairB')}
+                      >
+                        <Trophy className="w-3.5 h-3.5 inline-block mr-1" />
+                        {cm.result === 'pairB' ? 'WIN' : '勝ち'}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

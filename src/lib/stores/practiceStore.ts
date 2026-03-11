@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { db } from '@/lib/db';
 import type { PracticePlayer, PracticeSettings } from '@/types/practice';
-import type { Round, CourtMatch } from '@/types/round';
+import type { Round, CourtMatch, MatchResult } from '@/types/round';
+import type { PracticeSession } from '@/types/practiceSession';
 import {
   generateFairRound,
   calculatePlayerStats,
@@ -27,6 +28,7 @@ type Actions = {
   addParticipant: (memberId: number) => Promise<void>;
   substitutePlayer: (fromMemberId: number, toMemberId: number) => Promise<void>;
   updateCourts: (courts: number) => Promise<void>;
+  recordResult: (roundNo: number, courtNo: number, result: MatchResult) => Promise<void>;
   clearError: () => void;
 };
 
@@ -164,13 +166,27 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
   },
 
   resetPractice: async () => {
+    const state = get();
     try {
       await db.transaction(
         'rw',
         db.practiceSettings,
         db.practicePlayers,
         db.rounds,
+        db.practiceSessions,
         async () => {
+          // ラウンドが1つ以上ある場合、セッションをアーカイブ
+          if (state.settings && state.rounds.length > 0) {
+            const session: PracticeSession = {
+              startedAt: state.settings.startedAt ?? new Date().toISOString(),
+              endedAt: new Date().toISOString(),
+              courts: state.settings.courts,
+              playerIds: state.players.map((p) => p.memberId),
+              rounds: state.rounds,
+            };
+            await db.practiceSessions.add(session);
+          }
+
           await db.practiceSettings.clear();
           await db.practicePlayers.clear();
           await db.rounds.clear();
@@ -310,6 +326,28 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
       set({ settings: updatedSettings });
     } catch (e: unknown) {
       set({ error: e instanceof Error ? e.message : 'Failed to update courts' });
+    }
+  },
+
+  recordResult: async (roundNo, courtNo, result) => {
+    const state = get();
+    const roundIndex = state.rounds.findIndex((r) => r.roundNo === roundNo);
+    if (roundIndex === -1) return;
+
+    try {
+      const round = state.rounds[roundIndex]!;
+      const updatedCourts = round.courts.map((court) =>
+        court.courtNo === courtNo ? { ...court, result } : court
+      );
+      const updatedRound: Round = { ...round, courts: updatedCourts };
+
+      await db.rounds.put(updatedRound);
+
+      const updatedRounds = [...state.rounds];
+      updatedRounds[roundIndex] = updatedRound;
+      set({ rounds: updatedRounds });
+    } catch (e: unknown) {
+      set({ error: e instanceof Error ? e.message : 'Failed to record result' });
     }
   },
 

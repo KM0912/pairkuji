@@ -1,13 +1,15 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { usePracticeStore } from '@/lib/stores/practiceStore';
 import { useMemberStore } from '@/lib/stores/memberStore';
 import { PairStatsPanel } from '@/components/stats/PairStatsPanel';
 import { OpponentStatsPanel } from '@/components/stats/OpponentStatsPanel';
+import { WinRatePanel } from '@/components/stats/WinRatePanel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Spinner } from '@/components/ui/spinner';
 import { BarChart3 } from 'lucide-react';
+import { calculateWinRates } from '@/lib/winRateCalculator';
 
 export default function StatsPage() {
   const {
@@ -94,6 +96,11 @@ export default function StatsPage() {
     return counts;
   }, [rounds]);
 
+  // 勝率の計算（現在のセッションのみ）
+  const winRates = useMemo(() => {
+    return calculateWinRates(rounds);
+  }, [rounds]);
+
   const isLoading = membersLoading || practiceLoading;
   const isInitialLoading = !membersInitialLoad || !practiceInitialLoad;
 
@@ -126,11 +133,16 @@ export default function StatsPage() {
 
   return (
     <div className="bg-background">
-      <Tabs defaultValue="pair" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+      <Tabs defaultValue="winrate" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="winrate">勝率</TabsTrigger>
           <TabsTrigger value="pair">ペア統計</TabsTrigger>
-          <TabsTrigger value="opponent">対戦相手統計</TabsTrigger>
+          <TabsTrigger value="opponent">対戦相手</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="winrate" className="mt-6">
+          <WinRatePanel memberMap={memberMap} winRates={winRates} />
+        </TabsContent>
 
         <TabsContent value="pair" className="mt-6">
           <PairStatsPanel players={players} pairCounts={pairCounts} />

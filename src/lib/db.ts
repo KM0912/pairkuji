@@ -3,6 +3,7 @@ import type { Member } from '@/types/member';
 import type { PracticeSettings, PracticePlayer } from '@/types/practice';
 import type { Round } from '@/types/round';
 import type { PairStats } from '@/types/pairs';
+import type { PracticeSession } from '@/types/practiceSession';
 
 export class PairkujiDB extends Dexie {
   members!: Table<Member, number>;
@@ -10,6 +11,7 @@ export class PairkujiDB extends Dexie {
   practicePlayers!: Table<PracticePlayer, number>; // memberId as primary key
   rounds!: Table<Round, number>;
   pairStats!: Table<PairStats, number>;
+  practiceSessions!: Table<PracticeSession, number>;
 
   constructor() {
     super('pairkuji');
@@ -21,6 +23,16 @@ export class PairkujiDB extends Dexie {
       practicePlayers: 'memberId, playerNumber, status, createdAt', // memberId as primary key
       rounds: 'roundNo',
       pairStats: '++id, sessionId, lastUpdated',
+    });
+
+    // Version 2: Add practiceSessions table for archiving
+    this.version(2).stores({
+      members: '++id, name, isActive, createdAt, updatedAt',
+      practiceSettings: 'id, updatedAt',
+      practicePlayers: 'memberId, playerNumber, status, createdAt',
+      rounds: 'roundNo',
+      pairStats: '++id, sessionId, lastUpdated',
+      practiceSessions: '++id, startedAt, endedAt',
     });
 
     this.on('populate', async () => {
