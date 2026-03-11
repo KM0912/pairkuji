@@ -7,7 +7,7 @@ import { db } from '@/lib/db';
 import { Spinner } from '@/components/ui/spinner';
 import { WinRatePanel } from '@/components/stats/WinRatePanel';
 import { calculateWinRates } from '@/lib/winRateCalculator';
-import { ArrowLeft, Trophy, Building2 } from 'lucide-react';
+import { ArrowLeft, Trophy, Tag } from 'lucide-react';
 import { PiCourtBasketball } from 'react-icons/pi';
 import { IconBadge } from '@/components/ui/IconBadge';
 import { cn } from '@/lib/utils';
@@ -123,7 +123,7 @@ export default function SessionDetailPage() {
                   key={tag}
                   className="inline-flex items-center gap-0.5 text-xs font-medium text-primary"
                 >
-                  <Building2 className="w-3 h-3" />
+                  <Tag className="w-3 h-3" />
                   {tag}
                 </span>
               ))}

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useMemberStore } from '@/lib/stores/memberStore';
 import { db } from '@/lib/db';
 import { Spinner } from '@/components/ui/spinner';
-import { History, ChevronRight, Trophy, Building2 } from 'lucide-react';
+import { History, ChevronRight, Trophy, Tag } from 'lucide-react';
 import type { PracticeSession } from '@/types/practiceSession';
 
 export default function HistoryPage() {
@@ -120,7 +120,7 @@ export default function HistoryPage() {
                       key={tag}
                       className="inline-flex items-center gap-0.5 text-xs font-medium text-primary"
                     >
-                      <Building2 className="w-3 h-3" />
+                      <Tag className="w-3 h-3" />
                       {tag}
                     </span>
                   ))}
