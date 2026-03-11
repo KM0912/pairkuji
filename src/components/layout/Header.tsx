@@ -1,5 +1,6 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { HelpModal } from '../modals/help/HelpModal';
 import { FeedbackForm } from '../modals/feedback/FeedbackForm';
@@ -7,6 +8,11 @@ import { FeedbackForm } from '../modals/feedback/FeedbackForm';
 interface HeaderProps {}
 
 export function Header({}: HeaderProps) {
+  const pathname = usePathname();
+
+  // LPページでは非表示
+  if (pathname === '/') return null;
+
   return (
     <>
       <div className="sticky top-0 z-sticky w-full backdrop-blur-md bg-background/80 border-b border-border/50 shadow-level-1">

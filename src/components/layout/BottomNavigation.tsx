@@ -43,6 +43,9 @@ export const BottomNavigation: React.FC = () => {
 
   const activeTab = getActiveTab();
 
+  // LPページでは非表示
+  if (pathname === '/') return null;
+
   const handleTabClick = (tab: (typeof tabs)[0]) => {
     router.push(tab.href);
   };
