@@ -11,6 +11,8 @@ import { SubstitutionHint } from '@/components/practice/SubstitutionHint';
 import { Button } from '@/components/ui/button';
 import { CourtSelector } from '@/components/ui/CourtSelector';
 import { Spinner } from '@/components/ui/spinner';
+import { SessionStatsModal } from '@/components/practice/SessionStatsModal';
+import { calculateWinRates } from '@/lib/winRateCalculator';
 import { Users, AlertTriangle, RotateCcw, Shuffle } from 'lucide-react';
 import { PiCourtBasketball } from 'react-icons/pi';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -121,6 +123,58 @@ export default function PracticePage() {
 
     return counts;
   }, [rounds, players]);
+
+  // ペア統計の計算
+  const pairCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    if (!rounds || rounds.length === 0) return counts;
+
+    rounds.forEach((round) => {
+      round.courts.forEach((court) => {
+        const pairA = [court.pairA[0], court.pairA[1]]
+          .filter((id): id is number => id !== undefined)
+          .sort((a, b) => a - b);
+        const pairB = [court.pairB[0], court.pairB[1]]
+          .filter((id): id is number => id !== undefined)
+          .sort((a, b) => a - b);
+
+        if (pairA.length === 2) {
+          const key = `${pairA[0]}-${pairA[1]}`;
+          counts.set(key, (counts.get(key) || 0) + 1);
+        }
+        if (pairB.length === 2) {
+          const key = `${pairB[0]}-${pairB[1]}`;
+          counts.set(key, (counts.get(key) || 0) + 1);
+        }
+      });
+    });
+
+    return counts;
+  }, [rounds]);
+
+  // 対戦相手統計の計算
+  const opponentCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    if (!rounds || rounds.length === 0) return counts;
+
+    rounds.forEach((round) => {
+      round.courts.forEach((court) => {
+        court.pairA.forEach((player1: number) => {
+          court.pairB.forEach((player2: number) => {
+            const key = `${Math.min(player1, player2)}-${Math.max(player1, player2)}`;
+            counts.set(key, (counts.get(key) || 0) + 1);
+          });
+        });
+      });
+    });
+
+    return counts;
+  }, [rounds]);
+
+  // 勝率の計算
+  const winRates = useMemo(() => {
+    return calculateWinRates(rounds);
+  }, [rounds]);
 
   const availableMembers = members.filter(
     (m) => m.isActive && !players.some((p) => p.memberId === m.id)
@@ -358,41 +412,17 @@ export default function PracticePage() {
         playerMap={playerMap}
       />
 
-      {/* Round summary modal */}
-      <Dialog open={showRoundSummary} onOpenChange={(open) => !open && setShowRoundSummary(false)}>
-        <DialogContent className="max-w-md rounded-2xl border-2 border-border/50 p-0">
-          <div className="border-b px-4 py-3">
-            <DialogTitle className="text-sm font-semibold text-foreground">
-              ラウンド履歴
-            </DialogTitle>
-          </div>
-          <DialogDescription className="sr-only">過去のラウンド一覧</DialogDescription>
-          <div className="max-h-72 overflow-auto px-4 py-3 space-y-2 text-sm">
-            {rounds.length === 0 ? (
-              <p className="text-muted-foreground">
-                まだラウンドがありません。
-              </p>
-            ) : (
-              rounds
-                .slice()
-                .reverse()
-                .map((round) => (
-                  <div
-                    key={round.roundNo}
-                    className="flex items-center justify-between rounded-lg border border-border bg-muted px-3 py-2"
-                  >
-                    <div className="font-medium text-foreground">
-                      ラウンド {round.roundNo}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      コート {round.courts.length} / 休憩 {round.rests.length}
-                    </div>
-                  </div>
-                ))
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Round summary & session stats modal */}
+      <SessionStatsModal
+        open={showRoundSummary}
+        onOpenChange={(open) => !open && setShowRoundSummary(false)}
+        rounds={rounds}
+        players={players}
+        memberMap={memberMap}
+        pairCounts={pairCounts}
+        opponentCounts={opponentCounts}
+        winRates={winRates}
+      />
 
       {/* Participant management modal */}
       <Dialog open={showParticipantModal && !!settings} onOpenChange={(open) => !open && setShowParticipantModal(false)}>
