@@ -143,7 +143,7 @@ export default function MembersPage() {
       <div className="space-y-6 pb-16">
         <div className="mb-4">
           <div className="relative">
-            <InputGroup>
+            <InputGroup className="bg-white dark:bg-input/30">
               <InputGroupInput
                 aria-label="選手検索"
                 value={searchTerm}
