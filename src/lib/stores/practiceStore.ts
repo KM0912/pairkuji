@@ -31,6 +31,10 @@ type Actions = {
   substitutePlayer: (fromMemberId: number, toMemberId: number) => Promise<void>;
   updateCourts: (courts: number) => Promise<void>;
   recordResult: (roundNo: number, courtNo: number, result: MatchResult) => Promise<void>;
+  updateSessionResult: (sessionId: number, roundNo: number, courtNo: number, result: MatchResult) => Promise<void>;
+  updateSessionTags: (sessionId: number, tags: string[]) => Promise<void>;
+  deleteSessionCourt: (sessionId: number, roundNo: number, courtNo: number) => Promise<void>;
+  deleteSession: (sessionId: number) => Promise<void>;
   clearError: () => void;
 };
 
@@ -364,6 +368,82 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
       set({ rounds: updatedRounds });
     } catch (e: unknown) {
       set({ error: e instanceof Error ? e.message : 'Failed to record result' });
+    }
+  },
+
+  updateSessionResult: async (sessionId, roundNo, courtNo, result) => {
+    try {
+      const session = await db.practiceSessions.get(sessionId);
+      if (!session) return;
+
+      const updatedRounds = session.rounds.map((round) => {
+        if (round.roundNo !== roundNo) return round;
+        return {
+          ...round,
+          courts: round.courts.map((court) =>
+            court.courtNo === courtNo ? { ...court, result } : court
+          ),
+        };
+      });
+
+      await db.practiceSessions.update(sessionId, { rounds: updatedRounds });
+      set({
+        sessions: get().sessions.map((s) =>
+          s.id === sessionId ? { ...s, rounds: updatedRounds } : s
+        ),
+      });
+    } catch (e: unknown) {
+      set({ error: e instanceof Error ? e.message : 'Failed to update session result' });
+    }
+  },
+
+  updateSessionTags: async (sessionId, tags) => {
+    try {
+      await db.practiceSessions.update(sessionId, { clubTags: tags });
+      set({
+        sessions: get().sessions.map((s) =>
+          s.id === sessionId ? { ...s, clubTags: tags } : s
+        ),
+      });
+    } catch (e: unknown) {
+      set({ error: e instanceof Error ? e.message : 'Failed to update session tags' });
+    }
+  },
+
+  deleteSessionCourt: async (sessionId, roundNo, courtNo) => {
+    try {
+      const session = await db.practiceSessions.get(sessionId);
+      if (!session) return;
+
+      const updatedRounds = session.rounds
+        .map((round) => {
+          if (round.roundNo !== roundNo) return round;
+          return {
+            ...round,
+            courts: round.courts.filter((court) => court.courtNo !== courtNo),
+          };
+        })
+        .filter((round) => round.courts.length > 0);
+
+      await db.practiceSessions.update(sessionId, { rounds: updatedRounds });
+      set({
+        sessions: get().sessions.map((s) =>
+          s.id === sessionId ? { ...s, rounds: updatedRounds } : s
+        ),
+      });
+    } catch (e: unknown) {
+      set({ error: e instanceof Error ? e.message : 'Failed to delete court' });
+    }
+  },
+
+  deleteSession: async (sessionId) => {
+    try {
+      await db.practiceSessions.delete(sessionId);
+      set({
+        sessions: get().sessions.filter((s) => s.id !== sessionId),
+      });
+    } catch (e: unknown) {
+      set({ error: e instanceof Error ? e.message : 'Failed to delete session' });
     }
   },
 
