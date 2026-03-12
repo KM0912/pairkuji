@@ -46,21 +46,26 @@ export class PairkujiDB extends Dexie {
     });
 
     // Version 4: clubTag → clubTags (multiple tags as array)
-    this.version(4).stores({
-      members: '++id, name, isActive, createdAt, updatedAt',
-      practiceSettings: 'id, updatedAt',
-      practicePlayers: 'memberId, playerNumber, status, createdAt',
-      rounds: 'roundNo',
-      pairStats: '++id, sessionId, lastUpdated',
-      practiceSessions: '++id, startedAt, endedAt, *clubTags',
-    }).upgrade((tx) => {
-      return tx.table('practiceSessions').toCollection().modify((session) => {
-        if (session.clubTag) {
-          session.clubTags = [session.clubTag];
-        }
-        delete session.clubTag;
+    this.version(4)
+      .stores({
+        members: '++id, name, isActive, createdAt, updatedAt',
+        practiceSettings: 'id, updatedAt',
+        practicePlayers: 'memberId, playerNumber, status, createdAt',
+        rounds: 'roundNo',
+        pairStats: '++id, sessionId, lastUpdated',
+        practiceSessions: '++id, startedAt, endedAt, *clubTags',
+      })
+      .upgrade((tx) => {
+        return tx
+          .table('practiceSessions')
+          .toCollection()
+          .modify((session) => {
+            if (session.clubTag) {
+              session.clubTags = [session.clubTag];
+            }
+            delete session.clubTag;
+          });
       });
-    });
 
     this.on('populate', async () => {
       const now = new Date().toISOString();
@@ -95,4 +100,13 @@ export class PairkujiDB extends Dexie {
   }
 }
 
-export const db = new PairkujiDB();
+declare global {
+  // eslint-disable-next-line no-var
+  var _pairkujiDb: PairkujiDB | undefined;
+}
+
+// 開発時（HMR）に Dexie インスタンスが複数作られないようにする
+export const db = globalThis._pairkujiDb ?? new PairkujiDB();
+if (process.env.NODE_ENV !== 'production') {
+  globalThis._pairkujiDb = db;
+}

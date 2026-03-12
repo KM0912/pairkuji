@@ -73,7 +73,20 @@ export default function Home() {
   }, [router]);
 
   if (status === 'loading') {
-    return null;
+    return (
+      <div className="fixed inset-0 z-modal bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Image
+            src="/icon-192.png"
+            alt="ペアくじ"
+            width={64}
+            height={64}
+            className="rounded-2xl animate-pulse"
+            priority
+          />
+        </div>
+      </div>
+    );
   }
 
   return (
