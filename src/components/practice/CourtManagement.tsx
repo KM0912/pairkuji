@@ -122,7 +122,7 @@ export function CourtManagement({
                           'w-full mt-2 py-1.5 rounded-md text-xs font-semibold transition-all duration-fast active:scale-[0.97] min-h-[44px]',
                           cm.result === 'pairA'
                             ? 'bg-accent text-accent-foreground shadow-level-1'
-                            : 'bg-muted/80 text-muted-foreground hover:bg-accent/20 hover:text-accent border border-border/50'
+                            : 'bg-muted/80 text-muted-foreground [@media(hover:hover)]:hover:bg-accent/20 [@media(hover:hover)]:hover:text-accent border border-border/50'
                         )}
                         onClick={() =>
                           handleResultClick(
@@ -188,7 +188,7 @@ export function CourtManagement({
                           'w-full mt-2 py-1.5 rounded-md text-xs font-semibold transition-all duration-fast active:scale-[0.97] min-h-[44px]',
                           cm.result === 'pairB'
                             ? 'bg-accent text-accent-foreground shadow-level-1'
-                            : 'bg-muted/80 text-muted-foreground hover:bg-accent/20 hover:text-accent border border-border/50'
+                            : 'bg-muted/80 text-muted-foreground [@media(hover:hover)]:hover:bg-accent/20 [@media(hover:hover)]:hover:text-accent border border-border/50'
                         )}
                         onClick={() =>
                           handleResultClick(
