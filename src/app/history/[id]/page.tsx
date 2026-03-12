@@ -167,7 +167,7 @@ export default function SessionDetailPage() {
                         COURT {court.courtNo}
                       </span>
                       {court.result != null && (
-                        <span className="text-xs text-success ml-auto">
+                        <span className="text-xs text-accent ml-auto">
                           <Trophy className="w-3 h-3 inline-block mr-0.5" />
                           {court.result === 'pairA' ? '左' : '右'}
                         </span>
@@ -178,7 +178,7 @@ export default function SessionDetailPage() {
                         className={cn(
                           'flex-1 rounded-md border p-2 text-xs',
                           court.result === 'pairA'
-                            ? 'border-success/50 bg-success/10'
+                            ? 'border-accent/50 bg-accent/10'
                             : 'border-border bg-muted/30'
                         )}
                       >
@@ -193,7 +193,7 @@ export default function SessionDetailPage() {
                         className={cn(
                           'flex-1 rounded-md border p-2 text-xs',
                           court.result === 'pairB'
-                            ? 'border-success/50 bg-success/10'
+                            ? 'border-accent/50 bg-accent/10'
                             : 'border-border bg-muted/30'
                         )}
                       >

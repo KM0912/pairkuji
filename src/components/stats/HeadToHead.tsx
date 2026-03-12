@@ -87,8 +87,8 @@ export function HeadToHead({
           {(nemesis || prey) && (
             <div className="grid grid-cols-2 gap-2">
               {prey && prey.winRate !== null && prey.winRate > 0 && (
-                <div className="rounded-lg border border-success/30 bg-success/5 px-3 py-2">
-                  <div className="flex items-center gap-1 text-[10px] text-success font-medium mb-1">
+                <div className="rounded-lg border border-accent/30 bg-accent/5 px-3 py-2">
+                  <div className="flex items-center gap-1 text-[10px] text-accent font-medium mb-1">
                     <Target className="w-3 h-3" />
                     カモ
                   </div>
@@ -144,14 +144,14 @@ export function HeadToHead({
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       <div className="text-xs text-muted-foreground">
-                        <span className="text-success font-medium">{record.wins}W</span>
+                        <span className="text-accent font-medium">{record.wins}W</span>
                         {' '}
                         <span className="text-destructive font-medium">{record.losses}L</span>
                       </div>
                       <span
                         className={`text-xs font-bold min-w-[32px] text-right ${
                           record.winRate !== null && record.winRate >= 0.5
-                            ? 'text-success'
+                            ? 'text-accent'
                             : record.winRate !== null
                               ? 'text-destructive'
                               : 'text-muted-foreground'

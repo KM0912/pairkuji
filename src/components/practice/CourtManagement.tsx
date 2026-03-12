@@ -14,7 +14,11 @@ interface CourtManagementProps {
   playerMap: Map<number, PracticePlayer>;
   substituting: number | null;
   onPlayerClick: (memberId: number) => Promise<void>;
-  onRecordResult?: (roundNo: number, courtNo: number, result: MatchResult) => Promise<void>;
+  onRecordResult?: (
+    roundNo: number,
+    courtNo: number,
+    result: MatchResult
+  ) => Promise<void>;
 }
 
 export function CourtManagement({
@@ -26,7 +30,12 @@ export function CourtManagement({
   onPlayerClick,
   onRecordResult,
 }: CourtManagementProps) {
-  const handleResultClick = (roundNo: number, courtNo: number, currentResult: MatchResult | undefined, side: 'pairA' | 'pairB') => {
+  const handleResultClick = (
+    roundNo: number,
+    courtNo: number,
+    currentResult: MatchResult | undefined,
+    side: 'pairA' | 'pairB'
+  ) => {
     if (!onRecordResult) return;
     // タップで切り替え: 同じ側を再タップ → 未登録に戻す
     const newResult: MatchResult = currentResult === side ? null : side;
@@ -46,12 +55,18 @@ export function CourtManagement({
                 <div className="flex items-center justify-between mb-3">
                   <div className="inline-flex items-center gap-2 text-foreground font-bold">
                     <div className="p-1.5 rounded-lg bg-primary/10">
-                      <IconBadge icon={PiCourtBasketball} size="sm" className="text-primary" />
+                      <IconBadge
+                        icon={PiCourtBasketball}
+                        size="sm"
+                        className="text-primary"
+                      />
                     </div>
-                    <span className="font-heading text-caption tracking-wider uppercase">COURT {cm.courtNo}</span>
+                    <span className="font-heading text-caption tracking-wider uppercase">
+                      COURT {cm.courtNo}
+                    </span>
                   </div>
                   {cm.result != null && (
-                    <span className="text-xs font-medium text-success">
+                    <span className="text-xs font-medium text-accent">
                       <Trophy className="w-3.5 h-3.5 inline-block mr-0.5" />
                       {cm.result === 'pairA' ? '左' : '右'}
                     </span>
@@ -63,7 +78,7 @@ export function CourtManagement({
                     className={cn(
                       'flex-1 rounded-lg border-2 p-2 min-w-0 shadow-level-1 transition-all duration-fast',
                       cm.result === 'pairA'
-                        ? 'border-success/50 bg-gradient-to-br from-success/15 to-success/5'
+                        ? 'border-accent/50 bg-gradient-to-br from-accent/15 to-accent/5'
                         : 'border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5'
                     )}
                   >
@@ -106,10 +121,17 @@ export function CourtManagement({
                         className={cn(
                           'w-full mt-2 py-1.5 rounded-md text-xs font-semibold transition-all duration-fast active:scale-[0.97] min-h-[44px]',
                           cm.result === 'pairA'
-                            ? 'bg-success text-success-foreground shadow-level-1'
-                            : 'bg-muted/80 text-muted-foreground hover:bg-success/20 hover:text-success border border-border/50'
+                            ? 'bg-accent text-accent-foreground shadow-level-1'
+                            : 'bg-muted/80 text-muted-foreground hover:bg-accent/20 hover:text-accent border border-border/50'
                         )}
-                        onClick={() => handleResultClick(latestRound.roundNo, cm.courtNo, cm.result, 'pairA')}
+                        onClick={() =>
+                          handleResultClick(
+                            latestRound.roundNo,
+                            cm.courtNo,
+                            cm.result,
+                            'pairA'
+                          )
+                        }
                       >
                         <Trophy className="w-3.5 h-3.5 inline-block mr-1" />
                         {cm.result === 'pairA' ? 'WIN' : '勝ち'}
@@ -122,7 +144,7 @@ export function CourtManagement({
                     className={cn(
                       'flex-1 rounded-lg border-2 p-2 min-w-0 shadow-level-1 transition-all duration-fast',
                       cm.result === 'pairB'
-                        ? 'border-success/50 bg-gradient-to-br from-success/15 to-success/5'
+                        ? 'border-accent/50 bg-gradient-to-br from-accent/15 to-accent/5'
                         : 'border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5'
                     )}
                   >
@@ -165,10 +187,17 @@ export function CourtManagement({
                         className={cn(
                           'w-full mt-2 py-1.5 rounded-md text-xs font-semibold transition-all duration-fast active:scale-[0.97] min-h-[44px]',
                           cm.result === 'pairB'
-                            ? 'bg-success text-success-foreground shadow-level-1'
-                            : 'bg-muted/80 text-muted-foreground hover:bg-success/20 hover:text-success border border-border/50'
+                            ? 'bg-accent text-accent-foreground shadow-level-1'
+                            : 'bg-muted/80 text-muted-foreground hover:bg-accent/20 hover:text-accent border border-border/50'
                         )}
-                        onClick={() => handleResultClick(latestRound.roundNo, cm.courtNo, cm.result, 'pairB')}
+                        onClick={() =>
+                          handleResultClick(
+                            latestRound.roundNo,
+                            cm.courtNo,
+                            cm.result,
+                            'pairB'
+                          )
+                        }
                       >
                         <Trophy className="w-3.5 h-3.5 inline-block mr-1" />
                         {cm.result === 'pairB' ? 'WIN' : '勝ち'}

@@ -52,7 +52,7 @@ export function WinRatePanel({ memberMap, winRates }: WinRatePanelProps) {
               </div>
               <div className="flex items-center gap-3 shrink-0">
                 <div className="text-xs text-muted-foreground">
-                  <span className="text-success font-medium">{record.wins}W</span>
+                  <span className="text-accent font-medium">{record.wins}W</span>
                   {' '}
                   <span className="text-destructive font-medium">{record.losses}L</span>
                   {record.unrecorded > 0 && (
@@ -63,7 +63,7 @@ export function WinRatePanel({ memberMap, winRates }: WinRatePanelProps) {
                 </div>
                 <div className="flex items-center gap-1 min-w-[48px] justify-end">
                   {record.winRate !== null && (
-                    <Trophy className="w-3.5 h-3.5 text-success" />
+                    <Trophy className="w-3.5 h-3.5 text-accent" />
                   )}
                   <span
                     className={`text-sm font-bold ${

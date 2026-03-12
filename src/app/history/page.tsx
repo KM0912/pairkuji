@@ -131,7 +131,7 @@ export default function HistoryPage() {
                 <span>{session.playerIds.length}人</span>
                 <span>{roundCount}ラウンド</span>
                 {recordedCount > 0 && (
-                  <span className="flex items-center gap-0.5 text-success">
+                  <span className="flex items-center gap-0.5 text-accent">
                     <Trophy className="w-3 h-3" />
                     {recordedCount}/{totalMatches}
                   </span>

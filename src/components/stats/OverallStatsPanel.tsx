@@ -49,7 +49,7 @@ export function OverallStatsPanel({ memberMap, stats }: OverallStatsPanelProps) 
                 </div>
                 <div className="flex items-center gap-1 min-w-[48px] justify-end shrink-0">
                   {record.winRate !== null && (
-                    <Trophy className="w-3.5 h-3.5 text-success" />
+                    <Trophy className="w-3.5 h-3.5 text-accent" />
                   )}
                   <span
                     className={`text-sm font-bold ${
@@ -75,7 +75,7 @@ export function OverallStatsPanel({ memberMap, stats }: OverallStatsPanelProps) 
 
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <div>
-                  <span className="text-success font-medium">{record.wins}W</span>
+                  <span className="text-accent font-medium">{record.wins}W</span>
                   {' '}
                   <span className="text-destructive font-medium">{record.losses}L</span>
                   {record.unrecorded > 0 && (

@@ -53,7 +53,7 @@ export function PairCompatibility({
                 </div>
                 <div className="flex items-center gap-1 min-w-[48px] justify-end shrink-0">
                   {pair.winRate !== null && pair.winRate >= 0.6 && (
-                    <Trophy className="w-3.5 h-3.5 text-success" />
+                    <Trophy className="w-3.5 h-3.5 text-accent" />
                   )}
                   <span
                     className={`text-sm font-bold ${
@@ -79,7 +79,7 @@ export function PairCompatibility({
 
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <div>
-                  <span className="text-success font-medium">{pair.wins}W</span>
+                  <span className="text-accent font-medium">{pair.wins}W</span>
                   {' '}
                   <span className="text-destructive font-medium">{pair.losses}L</span>
                 </div>
