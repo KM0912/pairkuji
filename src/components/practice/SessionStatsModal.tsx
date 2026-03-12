@@ -17,6 +17,10 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
+import { Trophy } from 'lucide-react';
+import { PiCourtBasketball } from 'react-icons/pi';
+import { IconBadge } from '@/components/ui/IconBadge';
+import { cn } from '@/lib/utils';
 
 interface SessionStatsModalProps {
   open: boolean;
@@ -67,31 +71,94 @@ export function SessionStatsModal({
 
           <div className="max-h-[60vh] overflow-auto px-4 py-3">
             <TabsContent value="history" className="mt-0">
-              <div className="space-y-2 text-sm">
-                {rounds.length === 0 ? (
-                  <p className="text-muted-foreground">
-                    まだラウンドがありません。
-                  </p>
-                ) : (
-                  rounds
+              {rounds.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  まだラウンドがありません。
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {rounds
                     .slice()
                     .reverse()
                     .map((round) => (
-                      <div
-                        key={round.roundNo}
-                        className="flex items-center justify-between rounded-lg border border-border bg-muted px-3 py-2"
-                      >
-                        <div className="font-medium text-foreground">
+                      <div key={round.roundNo}>
+                        <div className="text-xs font-bold text-foreground mb-2">
                           ラウンド {round.roundNo}
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          コート {round.courts.length} / 休憩{' '}
-                          {round.rests.length}
+                        <div className="space-y-2">
+                          {round.courts.map((court) => (
+                            <div
+                              key={court.courtNo}
+                              className="rounded-lg border border-border bg-card p-3"
+                            >
+                              <div className="flex items-center gap-2 mb-2">
+                                <IconBadge
+                                  icon={PiCourtBasketball}
+                                  size="sm"
+                                  className="text-primary"
+                                />
+                                <span className="text-xs font-semibold text-foreground">
+                                  COURT {court.courtNo}
+                                </span>
+                                {court.result != null && (
+                                  <span className="text-xs text-success ml-auto">
+                                    <Trophy className="w-3 h-3 inline-block mr-0.5" />
+                                    {court.result === 'pairA' ? '左' : '右'}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className={cn(
+                                    'flex-1 rounded-md border p-2 text-xs',
+                                    court.result === 'pairA'
+                                      ? 'border-success/50 bg-success/10'
+                                      : 'border-border bg-muted/30'
+                                  )}
+                                >
+                                  {court.pairA
+                                    .map(
+                                      (id) =>
+                                        memberMap.get(id)?.name ?? '???'
+                                    )
+                                    .join(' / ')}
+                                </div>
+                                <span className="text-xs text-muted-foreground font-bold">
+                                  vs
+                                </span>
+                                <div
+                                  className={cn(
+                                    'flex-1 rounded-md border p-2 text-xs',
+                                    court.result === 'pairB'
+                                      ? 'border-success/50 bg-success/10'
+                                      : 'border-border bg-muted/30'
+                                  )}
+                                >
+                                  {court.pairB
+                                    .map(
+                                      (id) =>
+                                        memberMap.get(id)?.name ?? '???'
+                                    )
+                                    .join(' / ')}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                          {round.rests.length > 0 && (
+                            <div className="text-xs text-muted-foreground px-1">
+                              休憩: {round.rests
+                                .map(
+                                  (id) =>
+                                    memberMap.get(id)?.name ?? '???'
+                                )
+                                .join('、')}
+                            </div>
+                          )}
                         </div>
                       </div>
-                    ))
-                )}
-              </div>
+                    ))}
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="winrate" className="mt-0">
