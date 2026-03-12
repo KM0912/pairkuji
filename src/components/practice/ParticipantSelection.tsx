@@ -1,6 +1,11 @@
 import { type Member } from '@/types/member';
 import { useState, useMemo } from 'react';
 import { Search, X, Users, AlertTriangle, Play } from 'lucide-react';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '../ui/input-group';
 import { PiCourtBasketball } from 'react-icons/pi';
 import { Button } from '../ui/button';
 import {
@@ -146,29 +151,24 @@ export function ParticipantSelection({
               </div>
 
               {/* 検索 */}
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="w-5 h-5 text-muted-foreground" />
-                </div>
-                <input
-                  type="text"
+              <InputGroup>
+                <InputGroupInput
+                  aria-label="メンバー検索"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="メンバー名で検索"
-                  className="w-full pl-10 pr-4 py-3 border rounded-lg text-body min-h-[48px] border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-fast"
-                  aria-label="メンバー検索"
+                  placeholder="名前で検索"
                 />
-                {searchTerm && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchTerm('')}
-                    className="absolute inset-y-0 right-0 px-3 text-muted-foreground hover:text-foreground"
-                    aria-label="検索をクリア"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
+                <InputGroupAddon>
+                  <Search className="w-5 h-5 text-muted-foreground" />
+                </InputGroupAddon>
+                <InputGroupAddon
+                  align="inline-end"
+                  onClick={() => setSearchTerm('')}
+                  aria-label="検索をクリア"
+                >
+                  {searchTerm && <X className="w-4 h-4" />}
+                </InputGroupAddon>
+              </InputGroup>
 
               {/* メンバーリスト */}
               <Card>
