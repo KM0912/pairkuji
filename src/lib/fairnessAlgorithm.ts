@@ -16,6 +16,13 @@ const PAIR_SELECTION_ATTEMPTS = 6;
 const RESTRICTED_PARTNER_CANDIDATES = 3;
 const COURT_MATCH_JITTER = 0.001;
 
+// 統合評価: 複数の休憩候補を生成し、ペア/コート配置まで含めた総合スコアで最良候補を選ぶ
+const INTEGRATED_CANDIDATE_COUNT = 5;
+// 統合評価の重み: 休憩の公平性を最優先、ペア/対戦の質で差をつける
+const REST_SCORE_WEIGHT = 1.0;
+const PAIR_SCORE_WEIGHT = 0.3;
+const MATCH_SCORE_WEIGHT = 0.3;
+
 // 休憩者選定評価の重み付け
 const REST_CANDIDATE_BUFFER = 4;
 const PLAYED_VARIANCE_WEIGHT = 320;
@@ -28,6 +35,8 @@ const RECENT_OVERLAP_PENALTY = 36;
 const OLDER_OVERLAP_PENALTY = 16;
 const REPEAT_SET_PENALTY = 220;
 const REST_SELECTION_JITTER = 0.0001;
+// 途中参加者の試合数不足ボーナス上限: avgMatchCountとの差がこの値を超えないよう制限
+const DEFICIT_CAP = 2;
 
 type Pair = [number, number];
 
@@ -326,8 +335,15 @@ function scoreRestCombination(
     minPredictedRest = Math.min(minPredictedRest, predictedRestCount);
 
     if (willRest) {
-      if (basePlayedCount === context.minPlayed) {
-        score += LOW_PLAYED_REST_PENALTY;
+      const avgPlayed =
+        Array.from(context.basePlayedMap.values()).reduce((s, v) => s + v, 0) /
+        context.basePlayedMap.size;
+      const deficit = Math.min(
+        Math.max(avgPlayed - basePlayedCount, 0),
+        DEFICIT_CAP
+      );
+      if (deficit > 0) {
+        score += LOW_PLAYED_REST_PENALTY * deficit;
       }
 
       const currentStreak = context.currentRestStreaks.get(id) ?? 0;
@@ -385,21 +401,29 @@ function scoreRestCombination(
   return score;
 }
 
-function findBestRestCombination(
+function findTopRestCombinations(
   candidateIds: number[],
   restSlots: number,
-  context: RestSelectionContext
-): number[] | null {
-  let bestRestCombo: number[] | null = null;
-  let bestScore = Number.POSITIVE_INFINITY;
+  context: RestSelectionContext,
+  topN: number = INTEGRATED_CANDIDATE_COUNT
+): number[][] {
+  const topCombos: { combo: number[]; score: number }[] = [];
+  let worstTopScore = Number.POSITIVE_INFINITY;
   const combinationBuffer: number[] = [];
 
   const backtrack = (start: number) => {
     if (combinationBuffer.length === restSlots) {
       const currentScore = scoreRestCombination(combinationBuffer, context);
-      if (currentScore < bestScore) {
-        bestScore = currentScore;
-        bestRestCombo = [...combinationBuffer];
+      if (topCombos.length < topN || currentScore < worstTopScore) {
+        topCombos.push({ combo: [...combinationBuffer], score: currentScore });
+        topCombos.sort((a, b) => a.score - b.score);
+        if (topCombos.length > topN) {
+          topCombos.pop();
+        }
+        worstTopScore =
+          topCombos.length > 0
+            ? topCombos[topCombos.length - 1]!.score
+            : Number.POSITIVE_INFINITY;
       }
       return;
     }
@@ -414,18 +438,18 @@ function findBestRestCombination(
 
   backtrack(0);
 
-  return bestRestCombo;
+  return topCombos.map((entry) => entry.combo);
 }
 
-function selectRestPlayers(
+function selectRestCandidates(
   players: PracticePlayer[],
   stats: Map<number, PlayerStats>,
   totalPlayersNeeded: number,
   rounds: Round[]
-): { playing: PracticePlayer[]; restIds: number[] } {
+): { candidates: { playing: PracticePlayer[]; restIds: number[] }[] } {
   const restSlots = Math.max(players.length - totalPlayersNeeded, 0);
   if (restSlots === 0) {
-    return { playing: players, restIds: [] };
+    return { candidates: [{ playing: players, restIds: [] }] };
   }
 
   const context = buildRestSelectionContext(
@@ -436,9 +460,15 @@ function selectRestPlayers(
   );
 
   const candidateIds = collectRestCandidates(players, restSlots, context);
-  const bestRestCombo =
-    findBestRestCombination(candidateIds, restSlots, context) ??
-    [...context.playerIds]
+  const topCombos = findTopRestCombinations(
+    candidateIds,
+    restSlots,
+    context,
+    INTEGRATED_CANDIDATE_COUNT
+  );
+
+  if (topCombos.length === 0) {
+    const fallbackCombo = [...context.playerIds]
       .sort((a, b) => {
         const playedA = context.basePlayedMap.get(a) ?? 0;
         const playedB = context.basePlayedMap.get(b) ?? 0;
@@ -449,12 +479,24 @@ function selectRestPlayers(
         return a - b;
       })
       .slice(0, restSlots);
+    const restIdSet = new Set(fallbackCombo);
+    const playing = players.filter(
+      (player) => !restIdSet.has(player.memberId)
+    );
+    const restIds = Array.from(restIdSet).sort((a, b) => a - b);
+    return { candidates: [{ playing, restIds }] };
+  }
 
-  const restIdSet = new Set(bestRestCombo);
-  const playing = players.filter((player) => !restIdSet.has(player.memberId));
-  const restIds = Array.from(restIdSet).sort((a, b) => a - b);
+  const candidates = topCombos.map((combo) => {
+    const restIdSet = new Set(combo);
+    const playing = players.filter(
+      (player) => !restIdSet.has(player.memberId)
+    );
+    const restIds = Array.from(restIdSet).sort((a, b) => a - b);
+    return { playing, restIds };
+  });
 
-  return { playing, restIds };
+  return { candidates };
 }
 
 function buildPairs(
@@ -611,6 +653,39 @@ function buildCourtsFromPairs(
   }));
 }
 
+function evaluateCandidate(
+  restIds: number[],
+  courts: CourtMatch[],
+  stats: Map<number, PlayerStats>,
+  restContext: RestSelectionContext,
+  opponentFrequency: Map<string, number>
+): number {
+  // 休憩の公平性スコア（低いほど良い）
+  const restScore = scoreRestCombination(restIds, restContext);
+
+  // ペアペナルティの合計（低いほど良い）
+  let pairScore = 0;
+  for (const court of courts) {
+    pairScore += computePairPenalty(court.pairA[0], court.pairA[1], stats);
+    pairScore += computePairPenalty(court.pairB[0], court.pairB[1], stats);
+  }
+
+  // 対戦ペナルティの合計（低いほど良い）
+  let matchScore = 0;
+  for (const court of courts) {
+    matchScore += computeMatchPenalty(court.pairA, court.pairB, stats);
+    matchScore +=
+      sumOpponentFrequency(court.pairA, court.pairB, opponentFrequency) *
+      OPPONENT_FREQUENCY_WEIGHT;
+  }
+
+  return (
+    restScore * REST_SCORE_WEIGHT +
+    pairScore * PAIR_SCORE_WEIGHT +
+    matchScore * MATCH_SCORE_WEIGHT
+  );
+}
+
 export function calculatePlayerStats(
   playerIds: number[],
   rounds: Round[],
@@ -754,19 +829,46 @@ export function generateFairRound(
   }
 
   const totalPlayersNeeded = courtsToUse * 4;
-  // 休憩→ペア→コートの順で最適化を進める
-  const { playing, restIds } = selectRestPlayers(
+  const opponentFrequency = buildOpponentFrequencyMap(rounds);
+
+  // 複数の休憩候補を生成し、各候補でペア構築・コート配置まで実行して総合評価
+  const { candidates } = selectRestCandidates(
     activePlayers,
     playerStats,
     totalPlayersNeeded,
     rounds
   );
-  const playingIds = playing.map((player) => player.memberId);
-  const pairs = buildPairs(playingIds, playerStats);
-  const opponentFrequency = buildOpponentFrequencyMap(rounds);
-  const courts = buildCourtsFromPairs(pairs, playerStats, opponentFrequency);
 
-  return { courts, rests: restIds };
+  const restContext = buildRestSelectionContext(
+    activePlayers,
+    playerStats,
+    rounds,
+    totalPlayersNeeded
+  );
+
+  let bestScore = Number.POSITIVE_INFINITY;
+  let bestResult: { courts: CourtMatch[]; rests: number[] } | null = null;
+
+  for (const candidate of candidates) {
+    const playingIds = candidate.playing.map((player) => player.memberId);
+    const pairs = buildPairs(playingIds, playerStats);
+    const courts = buildCourtsFromPairs(pairs, playerStats, opponentFrequency);
+
+    const score = evaluateCandidate(
+      candidate.restIds,
+      courts,
+      playerStats,
+      restContext,
+      opponentFrequency
+    );
+
+    if (score < bestScore) {
+      bestScore = score;
+      bestResult = { courts, rests: candidate.restIds };
+    }
+  }
+
+  return bestResult ?? { courts: [], rests: playerIds.sort((a, b) => a - b) };
 }
 
 // 対戦履歴（個人間の対戦回数）マップを構築
