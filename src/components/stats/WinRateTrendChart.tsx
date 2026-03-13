@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import type { Member } from '@/types/member';
 import type { SessionWinRate } from '@/lib/statsCalculator';
+import { getDisplayName } from '@/lib/utils';
 
 interface WinRateTrendChartProps {
   memberMap: Map<number, Member>;
@@ -183,8 +184,7 @@ export function WinRateTrendChart({
       {/* プレイヤー選択チップ */}
       <div className="flex flex-wrap gap-1.5">
         {allPlayerIds.map((id, i) => {
-          const member = memberMap.get(id);
-          const name = member?.name ?? '???';
+          const name = getDisplayName(memberMap, id);
           const isSelected = selectedIds.has(id);
           const color = isSelected
             ? CHART_COLORS[

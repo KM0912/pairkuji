@@ -67,30 +67,55 @@ export class PairkujiDB extends Dexie {
           });
       });
 
+    // Version 5: Add isDeleted soft-delete flag to members
+    this.version(5)
+      .stores({
+        members: '++id, name, isActive, isDeleted, createdAt, updatedAt',
+        practiceSettings: 'id, updatedAt',
+        practicePlayers: 'memberId, playerNumber, status, createdAt',
+        rounds: 'roundNo',
+        pairStats: '++id, sessionId, lastUpdated',
+        practiceSessions: '++id, startedAt, endedAt, *clubTags',
+      })
+      .upgrade((tx) => {
+        return tx
+          .table('members')
+          .toCollection()
+          .modify((member) => {
+            if (member.isDeleted === undefined) {
+              member.isDeleted = false;
+            }
+          });
+      });
+
     this.on('populate', async () => {
       const now = new Date().toISOString();
       const seedMembers: Omit<Member, 'id'>[] = [
         {
           name: 'Aくん',
           isActive: true,
+          isDeleted: false,
           createdAt: now,
           updatedAt: now,
         },
         {
           name: 'Bさん',
           isActive: true,
+          isDeleted: false,
           createdAt: now,
           updatedAt: now,
         },
         {
           name: 'Cくん',
           isActive: true,
+          isDeleted: false,
           createdAt: now,
           updatedAt: now,
         },
         {
           name: 'Dさん',
           isActive: true,
+          isDeleted: false,
           createdAt: now,
           updatedAt: now,
         },

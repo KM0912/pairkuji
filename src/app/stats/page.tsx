@@ -24,10 +24,10 @@ import {
 
 export default function StatsPage() {
   const {
-    members,
+    allMembers,
     isLoading: membersLoading,
     isInitialLoad: membersInitialLoad,
-    load: loadMembers,
+    loadAll: loadAllMembers,
   } = useMemberStore();
   const {
     rounds,
@@ -42,15 +42,15 @@ export default function StatsPage() {
   const [clubFilter, setClubFilter] = useState<string[]>([]);
 
   useEffect(() => {
-    loadMembers();
+    loadAllMembers();
     load();
     loadSessions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const memberMap = useMemo(
-    () => new Map(members.map((m) => [m.id!, m])),
-    [members]
+    () => new Map(allMembers.map((m) => [m.id!, m])),
+    [allMembers]
   );
 
   const tags = useMemo(() => getUniqueTags(sessions), [sessions]);

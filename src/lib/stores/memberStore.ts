@@ -4,6 +4,7 @@ import type { Member } from '@/types/member';
 
 type State = {
   members: Member[];
+  allMembers: Member[];
   isLoading: boolean;
   isInitialLoad: boolean;
   error: string | null;
@@ -11,6 +12,7 @@ type State = {
 
 type Actions = {
   load: () => Promise<void>;
+  loadAll: () => Promise<void>;
   add: (name: string) => Promise<void>;
   update: (
     id: number,
@@ -22,6 +24,7 @@ type Actions = {
 
 export const useMemberStore = create<State & Actions>((set, get) => ({
   members: [],
+  allMembers: [],
   isLoading: false,
   isInitialLoad: false,
   error: null,
@@ -29,11 +32,26 @@ export const useMemberStore = create<State & Actions>((set, get) => ({
   load: async () => {
     set({ isLoading: true, error: null });
     try {
-      const list = await db.members.orderBy('createdAt').reverse().toArray();
+      const all = await db.members.orderBy('createdAt').reverse().toArray();
+      const list = all.filter((m) => !m.isDeleted);
       set({ members: list, isLoading: false, isInitialLoad: true });
     } catch (e: unknown) {
       set({
         error: e instanceof Error ? e.message : 'Failed to load members',
+        isLoading: false,
+        isInitialLoad: true,
+      });
+    }
+  },
+
+  loadAll: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const list = await db.members.orderBy('createdAt').reverse().toArray();
+      set({ allMembers: list, isLoading: false, isInitialLoad: true });
+    } catch (e: unknown) {
+      set({
+        error: e instanceof Error ? e.message : 'Failed to load all members',
         isLoading: false,
         isInitialLoad: true,
       });
@@ -45,6 +63,7 @@ export const useMemberStore = create<State & Actions>((set, get) => ({
     const member: Omit<Member, 'id'> = {
       name: name.trim(),
       isActive: true,
+      isDeleted: false,
       createdAt: now,
       updatedAt: now,
     };
@@ -75,8 +94,14 @@ export const useMemberStore = create<State & Actions>((set, get) => ({
 
   remove: async (id) => {
     try {
-      await db.members.delete(id);
-      set({ members: get().members.filter((m) => m.id !== id) });
+      const now = new Date().toISOString();
+      await db.members.update(id, { isDeleted: true, updatedAt: now });
+      set({
+        members: get().members.filter((m) => m.id !== id),
+        allMembers: get().allMembers.map((m) =>
+          m.id === id ? { ...m, isDeleted: true, updatedAt: now } : m
+        ),
+      });
     } catch (e: unknown) {
       set({ error: e instanceof Error ? e.message : 'Failed to delete member' });
     }

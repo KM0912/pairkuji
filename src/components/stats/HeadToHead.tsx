@@ -5,6 +5,7 @@ import type { Member } from '@/types/member';
 import type { PracticeSession } from '@/types/practiceSession';
 import type { Round } from '@/types/round';
 import { calculateHeadToHead } from '@/lib/statsCalculator';
+import { getDisplayName } from '@/lib/utils';
 import { Swords, ShieldAlert, Target } from 'lucide-react';
 
 interface HeadToHeadProps {
@@ -62,7 +63,7 @@ export function HeadToHead({
       {/* プレイヤー選択 */}
       <div className="flex flex-wrap gap-1.5">
         {playerIds.map((id) => {
-          const name = memberMap.get(id)?.name ?? '???';
+          const name = getDisplayName(memberMap, id);
           const isSelected = selectedPlayerId === id;
 
           return (
@@ -93,7 +94,7 @@ export function HeadToHead({
                     カモ
                   </div>
                   <div className="text-xs font-semibold text-foreground truncate">
-                    {memberMap.get(prey.opponentId)?.name ?? '???'}
+                    {getDisplayName(memberMap, prey.opponentId)}
                   </div>
                   <div className="text-[10px] text-muted-foreground">
                     {prey.wins}W {prey.losses}L ({Math.round(prey.winRate * 100)}%)
@@ -107,7 +108,7 @@ export function HeadToHead({
                     天敵
                   </div>
                   <div className="text-xs font-semibold text-foreground truncate">
-                    {memberMap.get(nemesis.opponentId)?.name ?? '???'}
+                    {getDisplayName(memberMap, nemesis.opponentId)}
                   </div>
                   <div className="text-[10px] text-muted-foreground">
                     {nemesis.wins}W {nemesis.losses}L ({Math.round(nemesis.winRate * 100)}%)
@@ -125,7 +126,7 @@ export function HeadToHead({
           ) : (
             <div className="space-y-1.5">
               {records.map((record) => {
-                const name = memberMap.get(record.opponentId)?.name ?? '???';
+                const name = getDisplayName(memberMap, record.opponentId);
                 const winRateText =
                   record.winRate !== null
                     ? `${Math.round(record.winRate * 100)}%`

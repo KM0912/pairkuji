@@ -20,7 +20,7 @@ import {
 import { Trophy } from 'lucide-react';
 import { PiCourtBasketball } from 'react-icons/pi';
 import { IconBadge } from '@/components/ui/IconBadge';
-import { cn } from '@/lib/utils';
+import { cn, getDisplayName } from '@/lib/utils';
 
 interface SessionStatsModalProps {
   open: boolean;
@@ -119,7 +119,7 @@ export function SessionStatsModal({
                                   {court.pairA
                                     .map(
                                       (id) =>
-                                        memberMap.get(id)?.name ?? '???'
+                                        getDisplayName(memberMap, id)
                                     )
                                     .join(' / ')}
                                 </div>
@@ -137,7 +137,7 @@ export function SessionStatsModal({
                                   {court.pairB
                                     .map(
                                       (id) =>
-                                        memberMap.get(id)?.name ?? '???'
+                                        getDisplayName(memberMap, id)
                                     )
                                     .join(' / ')}
                                 </div>
@@ -149,7 +149,7 @@ export function SessionStatsModal({
                               休憩: {round.rests
                                 .map(
                                   (id) =>
-                                    memberMap.get(id)?.name ?? '???'
+                                    getDisplayName(memberMap, id)
                                 )
                                 .join('、')}
                             </div>

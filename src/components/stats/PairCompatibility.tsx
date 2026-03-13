@@ -1,5 +1,6 @@
 import type { Member } from '@/types/member';
 import type { PairWinRate } from '@/lib/statsCalculator';
+import { getDisplayName } from '@/lib/utils';
 import { Trophy, Users } from 'lucide-react';
 
 interface PairCompatibilityProps {
@@ -27,8 +28,8 @@ export function PairCompatibility({
 
       <div className="space-y-2">
         {pairWinRates.map((pair, index) => {
-          const name1 = memberMap.get(pair.player1)?.name ?? '???';
-          const name2 = memberMap.get(pair.player2)?.name ?? '???';
+          const name1 = getDisplayName(memberMap, pair.player1);
+          const name2 = getDisplayName(memberMap, pair.player2);
           const winRateText =
             pair.winRate !== null
               ? `${Math.round(pair.winRate * 100)}%`

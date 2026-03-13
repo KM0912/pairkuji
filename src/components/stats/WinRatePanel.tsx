@@ -1,5 +1,6 @@
 import type { Member } from '@/types/member';
 import type { WinRateRecord } from '@/lib/winRateCalculator';
+import { getDisplayName } from '@/lib/utils';
 import { Trophy } from 'lucide-react';
 
 interface WinRatePanelProps {
@@ -32,8 +33,7 @@ export function WinRatePanel({ memberMap, winRates }: WinRatePanelProps) {
 
       <div className="space-y-2">
         {sortedRecords.map((record) => {
-          const member = memberMap.get(record.playerId);
-          const name = member?.name ?? '???';
+          const name = getDisplayName(memberMap, record.playerId);
           const total = record.wins + record.losses;
           const winRateText =
             record.winRate !== null

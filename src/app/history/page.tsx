@@ -5,23 +5,24 @@ import { useRouter } from 'next/navigation';
 import { useMemberStore } from '@/lib/stores/memberStore';
 import { db } from '@/lib/db';
 import { Spinner } from '@/components/ui/spinner';
+import { getDisplayName } from '@/lib/utils';
 import { History, ChevronRight, Trophy, Tag } from 'lucide-react';
 import type { PracticeSession } from '@/types/practiceSession';
 
 export default function HistoryPage() {
   const router = useRouter();
   const {
-    members,
+    allMembers,
     isLoading: membersLoading,
     isInitialLoad: membersInitialLoad,
-    load: loadMembers,
+    loadAll: loadAllMembers,
   } = useMemberStore();
 
   const [sessions, setSessions] = useState<PracticeSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadMembers();
+    loadAllMembers();
     db.practiceSessions
       .orderBy('startedAt')
       .reverse()
@@ -37,8 +38,8 @@ export default function HistoryPage() {
   }, []);
 
   const memberMap = useMemo(
-    () => new Map(members.map((m) => [m.id!, m])),
-    [members]
+    () => new Map(allMembers.map((m) => [m.id!, m])),
+    [allMembers]
   );
 
   if (isLoading || membersLoading || !membersInitialLoad) {
@@ -83,7 +84,7 @@ export default function HistoryPage() {
             0
           );
           const playerNames = session.playerIds
-            .map((id) => memberMap.get(id)?.name ?? '???')
+            .map((id) => getDisplayName(memberMap, id))
             .slice(0, 4);
           const remainingCount = session.playerIds.length - playerNames.length;
 

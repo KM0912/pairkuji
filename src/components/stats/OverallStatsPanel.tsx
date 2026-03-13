@@ -1,5 +1,6 @@
 import type { Member } from '@/types/member';
 import type { OverallPlayerStats } from '@/lib/statsCalculator';
+import { getDisplayName } from '@/lib/utils';
 import { Trophy } from 'lucide-react';
 
 interface OverallStatsPanelProps {
@@ -24,8 +25,7 @@ export function OverallStatsPanel({ memberMap, stats }: OverallStatsPanelProps) 
 
       <div className="space-y-2">
         {stats.map((record, index) => {
-          const member = memberMap.get(record.playerId);
-          const name = member?.name ?? '???';
+          const name = getDisplayName(memberMap, record.playerId);
           const winRateText =
             record.winRate !== null
               ? `${Math.round(record.winRate * 100)}%`

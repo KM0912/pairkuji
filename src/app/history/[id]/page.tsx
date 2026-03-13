@@ -11,7 +11,7 @@ import { calculateWinRates } from '@/lib/winRateCalculator';
 import { ArrowLeft, Trophy, Tag, X, Plus, Trash2 } from 'lucide-react';
 import { PiCourtBasketball } from 'react-icons/pi';
 import { IconBadge } from '@/components/ui/IconBadge';
-import { cn } from '@/lib/utils';
+import { cn, getDisplayName } from '@/lib/utils';
 import { getUniqueTags } from '@/lib/statsCalculator';
 import type { PracticeSession } from '@/types/practiceSession';
 import type { MatchResult } from '@/types/round';
@@ -20,10 +20,10 @@ export default function SessionDetailPage() {
   const params = useParams();
   const router = useRouter();
   const {
-    members,
+    allMembers,
     isLoading: membersLoading,
     isInitialLoad: membersInitialLoad,
-    load: loadMembers,
+    loadAll: loadAllMembers,
   } = useMemberStore();
 
   const {
@@ -64,15 +64,15 @@ export default function SessionDetailPage() {
   }, [sessionId]);
 
   useEffect(() => {
-    loadMembers();
+    loadAllMembers();
     loadSessions();
     loadSession();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
 
   const memberMap = useMemo(
-    () => new Map(members.map((m) => [m.id!, m])),
-    [members]
+    () => new Map(allMembers.map((m) => [m.id!, m])),
+    [allMembers]
   );
 
   const winRates = useMemo(() => {
@@ -377,7 +377,7 @@ export default function SessionDetailPage() {
                         )}
                       >
                         {court.pairA
-                          .map((id) => memberMap.get(id)?.name ?? '???')
+                          .map((id) => getDisplayName(memberMap, id))
                           .join(' / ')}
                       </div>
                       <span className="text-xs text-muted-foreground font-bold">
@@ -392,7 +392,7 @@ export default function SessionDetailPage() {
                         )}
                       >
                         {court.pairB
-                          .map((id) => memberMap.get(id)?.name ?? '???')
+                          .map((id) => getDisplayName(memberMap, id))
                           .join(' / ')}
                       </div>
                     </div>
