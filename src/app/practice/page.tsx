@@ -364,7 +364,7 @@ export default function PracticePage() {
               variant="default"
               size="sm"
               onClick={handleConfirmCourts}
-              className="flex-1 px-4 py-2 text-sm"
+              className="flex-1 px-4 py-2"
               disabled={!settings || pendingCourts === settings.courts}
             >
               更新
@@ -392,7 +392,7 @@ export default function PracticePage() {
                   players.filter((p) => p.status === 'active').length < 4
                 }
               >
-                <span className="inline-flex items-center gap-2 font-bold text-base">
+                <span className="inline-flex items-center gap-2 font-bold">
                   <Shuffle className="w-5 h-5" />
                   次の組み合わせを生成
                 </span>

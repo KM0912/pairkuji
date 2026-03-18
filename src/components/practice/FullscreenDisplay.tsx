@@ -209,7 +209,6 @@ export function FullscreenDisplay({
           variant="default"
           onClick={onGenerateNextRound}
           className="w-full"
-          size="sm"
         >
           <span className="inline-flex items-center gap-2">
             <Shuffle className="w-4 h-4" />

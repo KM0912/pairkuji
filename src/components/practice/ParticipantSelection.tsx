@@ -94,10 +94,7 @@ export function ParticipantSelection({
             </CardHeader>
             <CardContent>
               <div className="bg-muted rounded-lg p-2">
-                <CourtSelector
-                  courts={courts}
-                  setCourts={setCourts}
-                />
+                <CourtSelector courts={courts} setCourts={setCourts} />
                 {runnableCourts < courts && selected.length >= 4 && (
                   <div className="mt-2 text-xs text-amber-600 bg-amber-50 px-2 py-1.5 rounded border border-amber-200">
                     参加者数により実際は{runnableCourts}コートで開始されます
@@ -216,17 +213,15 @@ export function ParticipantSelection({
 
           {/* タグ */}
           {onClubTagsChange && (
-            <TagSelector
-              value={clubTags ?? []}
-              onChange={onClubTagsChange}
-            />
+            <TagSelector value={clubTags ?? []} onChange={onClubTagsChange} />
           )}
 
           <div className="sticky bottom-2">
             <Button
               type="submit"
               variant="default"
-              className="w-full text-lg font-bold shadow-2xl"
+              size="lg"
+              className="w-full font-bold shadow-2xl"
               disabled={selected.length < minToStart}
             >
               {selected.length < minToStart ? (
