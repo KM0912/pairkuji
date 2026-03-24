@@ -17,7 +17,7 @@ import {
   countOpponentOccurrencesInRounds,
   countPairOccurrencesInRounds,
 } from '@/lib/statsCalculator';
-import { Users, AlertTriangle, RotateCcw, Shuffle } from 'lucide-react';
+import { Users, AlertTriangle, CircleStop, Shuffle } from 'lucide-react';
 import { PiCourtBasketball } from 'react-icons/pi';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
@@ -346,11 +346,15 @@ export default function PracticePage() {
           <div className="max-w-2xl mx-auto">
             <div className="flex gap-3">
               <Button
+                type="button"
                 onClick={handleResetClick}
                 variant="destructiveOutline"
-                title="練習をリセット"
+                className="shrink-0 whitespace-nowrap px-4"
+                title="練習を終了し、セッションデータをリセットします"
+                aria-label="練習を終了し、データをリセット"
               >
-                <RotateCcw className="w-4 h-4" />
+                <CircleStop className="w-4 h-4" aria-hidden />
+                練習終了
               </Button>
               <Button
                 onClick={handleGenerateNextRound}
@@ -426,14 +430,14 @@ export default function PracticePage() {
       {/* Reset confirmation modal */}
       <Dialog open={showResetConfirm} onOpenChange={(open) => !open && setShowResetConfirm(false)}>
         <DialogContent className="max-w-sm rounded-2xl border-2 border-border/50 p-6">
-          <DialogTitle className="sr-only">練習をリセット</DialogTitle>
-          <DialogDescription className="sr-only">練習データをリセットする確認ダイアログ</DialogDescription>
+          <DialogTitle className="sr-only">練習を終了</DialogTitle>
+          <DialogDescription className="sr-only">練習終了の確認ダイアログ</DialogDescription>
           <div className="text-center mb-6">
             <div className="w-16 h-16 mx-auto mb-4 bg-destructive/10 rounded-full flex items-center justify-center">
               <AlertTriangle className="w-8 h-8 text-destructive" />
             </div>
             <h3 className="text-lg font-semibold text-foreground mb-2">
-              練習をリセットしますか？
+              練習を終了しますか？
             </h3>
             <p className="text-sm text-muted-foreground">
               すべてのラウンドデータが削除され、元に戻すことはできません。
@@ -453,7 +457,7 @@ export default function PracticePage() {
               onClick={handleReset}
               className="flex-1"
             >
-              リセット
+              終了する
             </Button>
           </div>
         </DialogContent>
