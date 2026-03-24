@@ -1177,6 +1177,23 @@ describe('連続出場・連続休憩の制約テスト', () => {
   });
 });
 
+describe('ペア内の並び（playerNumber 昇順）', () => {
+  test('4人特例でも memberId 順ではなく表示番号の若い方が先', () => {
+    const createdAt = new Date().toISOString();
+    const players: PracticePlayer[] = [
+      { memberId: 10, playerNumber: 4, status: 'active', createdAt },
+      { memberId: 20, playerNumber: 1, status: 'active', createdAt },
+      { memberId: 30, playerNumber: 3, status: 'active', createdAt },
+      { memberId: 40, playerNumber: 2, status: 'active', createdAt },
+    ];
+    const result = generateFairRound(players, 1, []);
+    const court = result.courts[0]!;
+    // memberId 昇順 10,20 / 30,40 だが、表示番号は 1,4 と 2,3
+    expect(court.pairA).toEqual([20, 10]);
+    expect(court.pairB).toEqual([40, 30]);
+  });
+});
+
 // --- エッジケーステスト ---
 
 describe('エッジケーステスト', () => {

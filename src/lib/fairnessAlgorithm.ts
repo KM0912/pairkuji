@@ -40,6 +40,26 @@ const DEFICIT_CAP = 2;
 
 type Pair = [number, number];
 
+/** ペア内を playerNumber 昇順（同値のとき memberId 昇順）に並べる */
+function orderPairByPlayerNumber(
+  memberIdA: number,
+  memberIdB: number,
+  playerNumberByMemberId: Map<number, number>
+): Pair {
+  const na =
+    playerNumberByMemberId.get(memberIdA) ?? Number.POSITIVE_INFINITY;
+  const nb =
+    playerNumberByMemberId.get(memberIdB) ?? Number.POSITIVE_INFINITY;
+  if (na !== nb) {
+    return na < nb
+      ? [memberIdA, memberIdB]
+      : [memberIdB, memberIdA];
+  }
+  return memberIdA < memberIdB
+    ? [memberIdA, memberIdB]
+    : [memberIdB, memberIdA];
+}
+
 interface RestSelectionContext {
   playerIds: number[];
   stats: Map<number, PlayerStats>;
@@ -501,7 +521,8 @@ function selectRestCandidates(
 
 function buildPairs(
   playerIds: number[],
-  stats: Map<number, PlayerStats>
+  stats: Map<number, PlayerStats>,
+  playerNumberByMemberId: Map<number, number>
 ): Pair[] {
   if (playerIds.length % 2 !== 0) {
     throw new Error('Number of players must be even to form pairs.');
@@ -552,7 +573,11 @@ function buildPairs(
         candidatePool[Math.floor(Math.random() * candidatePool.length)];
       if (!chosen) break;
 
-      const pair = [base, chosen.partnerId].sort((x, y) => x - y) as Pair;
+      const pair = orderPairByPlayerNumber(
+        base,
+        chosen.partnerId,
+        playerNumberByMemberId
+      );
       attemptPairs.push(pair);
       attemptScore += chosen.cost;
       unused.delete(base);
@@ -570,7 +595,11 @@ function buildPairs(
     const fallback: Pair[] = [];
     const ordered = [...playerIds];
     for (let i = 0; i < ordered.length; i += 2) {
-      const pair = [ordered[i]!, ordered[i + 1]!].sort((a, b) => a - b) as Pair;
+      const pair = orderPairByPlayerNumber(
+        ordered[i]!,
+        ordered[i + 1]!,
+        playerNumberByMemberId
+      );
       fallback.push(pair);
     }
     return fallback;
@@ -780,6 +809,10 @@ export function generateFairRound(
   maxCourts: number,
   rounds: Round[]
 ): { courts: CourtMatch[]; rests: number[] } {
+  const playerNumberByMemberId = new Map<number, number>(
+    activePlayers.map((p) => [p.memberId, p.playerNumber])
+  );
+
   if (activePlayers.length < 4) {
     return {
       courts: [],
@@ -793,21 +826,31 @@ export function generateFairRound(
     const ids = activePlayers.map((p) => p.memberId).sort((a, b) => a - b);
     const [p1, p2, p3, p4] = ids as [number, number, number, number];
     const patternIndex = rounds.length % 3;
+    const rawA: Pair =
+      patternIndex === 0
+        ? [p1, p2]
+        : patternIndex === 1
+          ? [p1, p3]
+          : [p1, p4];
+    const rawB: Pair =
+      patternIndex === 0
+        ? [p3, p4]
+        : patternIndex === 1
+          ? [p2, p4]
+          : [p2, p3];
     const courts: CourtMatch[] = [
       {
         courtNo: 1,
-        pairA:
-          patternIndex === 0
-            ? [p1, p2]
-            : patternIndex === 1
-              ? [p1, p3]
-              : [p1, p4],
-        pairB:
-          patternIndex === 0
-            ? [p3, p4]
-            : patternIndex === 1
-              ? [p2, p4]
-              : [p2, p3],
+        pairA: orderPairByPlayerNumber(
+          rawA[0],
+          rawA[1],
+          playerNumberByMemberId
+        ),
+        pairB: orderPairByPlayerNumber(
+          rawB[0],
+          rawB[1],
+          playerNumberByMemberId
+        ),
       },
     ];
     return { courts, rests: [] };
@@ -851,7 +894,7 @@ export function generateFairRound(
 
   for (const candidate of candidates) {
     const playingIds = candidate.playing.map((player) => player.memberId);
-    const pairs = buildPairs(playingIds, playerStats);
+    const pairs = buildPairs(playingIds, playerStats, playerNumberByMemberId);
     const courts = buildCourtsFromPairs(pairs, playerStats, opponentFrequency);
 
     const score = evaluateCandidate(
