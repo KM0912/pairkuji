@@ -1,5 +1,6 @@
 import { type Member } from '@/types/member';
 import { type PracticePlayer, type PracticeSettings } from '@/types/practice';
+import { cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { PlayerNumber } from '../ui/PlayerNumber';
 
@@ -48,17 +49,19 @@ export function ParticipantManagement({
                       {matchCounts.get(p.memberId) || 0}試合
                     </span>
                   </div>
-                  <button
-                    className={`text-caption px-3 py-1 rounded-full border-2 transition-all duration-fast flex-shrink-0 font-medium ${
-                      p.status === 'active'
-                        ? 'bg-gradient-to-r from-emerald-50 to-emerald-100 border-emerald-400 text-emerald-700 hover:from-emerald-100 hover:to-emerald-200 shadow-level-1'
-                        : 'bg-gradient-to-r from-amber-50 to-amber-100 border-amber-400 text-amber-700 hover:from-amber-100 hover:to-amber-200 shadow-level-1'
-                    }`}
-                    onClick={() => toggleStatus(p.memberId)}
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={p.status === 'active' ? 'success' : 'outline'}
+                    className={cn(
+                      'shrink-0 min-w-[4.25rem]',
+                      p.status === 'rest' && 'text-muted-foreground'
+                    )}
+                    onClick={() => void toggleStatus(p.memberId)}
                     aria-label={`${m.name}のステータスを切り替え`}
                   >
                     {p.status === 'active' ? '出場可' : '休憩'}
-                  </button>
+                  </Button>
                 </div>
               );
             })}
