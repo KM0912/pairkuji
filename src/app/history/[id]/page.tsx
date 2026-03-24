@@ -7,12 +7,19 @@ import { usePracticeStore } from '@/lib/stores/practiceStore';
 import { db } from '@/lib/db';
 import { Spinner } from '@/components/ui/spinner';
 import { WinRatePanel } from '@/components/stats/WinRatePanel';
+import { PairStatsPanel } from '@/components/stats/PairStatsPanel';
+import { OpponentStatsPanel } from '@/components/stats/OpponentStatsPanel';
 import { calculateWinRates } from '@/lib/winRateCalculator';
+import {
+  countOpponentOccurrencesInRounds,
+  countPairOccurrencesInRounds,
+} from '@/lib/statsCalculator';
 import { ArrowLeft, Trophy, Tag, X, Plus, Trash2 } from 'lucide-react';
 import { PiCourtBasketball } from 'react-icons/pi';
 import { IconBadge } from '@/components/ui/IconBadge';
 import { cn, getDisplayName } from '@/lib/utils';
 import { getUniqueTags } from '@/lib/statsCalculator';
+import type { PracticePlayer } from '@/types/practice';
 import type { PracticeSession } from '@/types/practiceSession';
 import type { MatchResult } from '@/types/round';
 
@@ -79,6 +86,33 @@ export default function SessionDetailPage() {
     if (!session) return new Map();
     return calculateWinRates(session.rounds);
   }, [session]);
+
+  const pairCounts = useMemo(() => {
+    if (!session) return new Map<string, number>();
+    return countPairOccurrencesInRounds(session.rounds);
+  }, [session]);
+
+  const opponentCounts = useMemo(() => {
+    if (!session) return new Map<string, number>();
+    return countOpponentOccurrencesInRounds(session.rounds);
+  }, [session]);
+
+  /** 履歴には出場番号が無いため、表示名順で並べた仮の PracticePlayer を使う */
+  const sessionPlayersForStats = useMemo((): PracticePlayer[] => {
+    if (!session) return [];
+    const sortedIds = [...session.playerIds].sort((a, b) =>
+      getDisplayName(memberMap, a).localeCompare(
+        getDisplayName(memberMap, b),
+        'ja'
+      )
+    );
+    return sortedIds.map((memberId, index) => ({
+      memberId,
+      playerNumber: index + 1,
+      status: 'active',
+      createdAt: session.startedAt,
+    }));
+  }, [session, memberMap]);
 
   const pastTags = useMemo(() => getUniqueTags(sessions), [sessions]);
 
@@ -302,6 +336,32 @@ export default function SessionDetailPage() {
           勝率
         </h2>
         <WinRatePanel memberMap={memberMap} winRates={winRates} />
+      </div>
+
+      {/* ペア・対戦回数（セッション内） */}
+      <div className="mb-6 space-y-6">
+        <div>
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+            ペアの回数
+          </h2>
+          <PairStatsPanel
+            players={sessionPlayersForStats}
+            pairCounts={pairCounts}
+            useDisplayNames
+            memberMap={memberMap}
+          />
+        </div>
+        <div>
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+            対戦相手の回数
+          </h2>
+          <OpponentStatsPanel
+            players={sessionPlayersForStats}
+            opponentCounts={opponentCounts}
+            useDisplayNames
+            memberMap={memberMap}
+          />
+        </div>
       </div>
 
       {/* ラウンド詳細 */}

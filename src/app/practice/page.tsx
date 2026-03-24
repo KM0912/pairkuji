@@ -13,6 +13,10 @@ import { CourtSelector } from '@/components/ui/CourtSelector';
 import { Spinner } from '@/components/ui/spinner';
 import { SessionStatsModal } from '@/components/practice/SessionStatsModal';
 import { calculateWinRates } from '@/lib/winRateCalculator';
+import {
+  countOpponentOccurrencesInRounds,
+  countPairOccurrencesInRounds,
+} from '@/lib/statsCalculator';
 import { Users, AlertTriangle, RotateCcw, Shuffle } from 'lucide-react';
 import { PiCourtBasketball } from 'react-icons/pi';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -125,52 +129,15 @@ export default function PracticePage() {
     return counts;
   }, [rounds, players]);
 
-  // ペア統計の計算
-  const pairCounts = useMemo(() => {
-    const counts = new Map<string, number>();
-    if (!rounds || rounds.length === 0) return counts;
+  const pairCounts = useMemo(
+    () => countPairOccurrencesInRounds(rounds),
+    [rounds]
+  );
 
-    rounds.forEach((round) => {
-      round.courts.forEach((court) => {
-        const pairA = [court.pairA[0], court.pairA[1]]
-          .filter((id): id is number => id !== undefined)
-          .sort((a, b) => a - b);
-        const pairB = [court.pairB[0], court.pairB[1]]
-          .filter((id): id is number => id !== undefined)
-          .sort((a, b) => a - b);
-
-        if (pairA.length === 2) {
-          const key = `${pairA[0]}-${pairA[1]}`;
-          counts.set(key, (counts.get(key) || 0) + 1);
-        }
-        if (pairB.length === 2) {
-          const key = `${pairB[0]}-${pairB[1]}`;
-          counts.set(key, (counts.get(key) || 0) + 1);
-        }
-      });
-    });
-
-    return counts;
-  }, [rounds]);
-
-  // 対戦相手統計の計算
-  const opponentCounts = useMemo(() => {
-    const counts = new Map<string, number>();
-    if (!rounds || rounds.length === 0) return counts;
-
-    rounds.forEach((round) => {
-      round.courts.forEach((court) => {
-        court.pairA.forEach((player1: number) => {
-          court.pairB.forEach((player2: number) => {
-            const key = `${Math.min(player1, player2)}-${Math.max(player1, player2)}`;
-            counts.set(key, (counts.get(key) || 0) + 1);
-          });
-        });
-      });
-    });
-
-    return counts;
-  }, [rounds]);
+  const opponentCounts = useMemo(
+    () => countOpponentOccurrencesInRounds(rounds),
+    [rounds]
+  );
 
   // 勝率の計算
   const winRates = useMemo(() => {

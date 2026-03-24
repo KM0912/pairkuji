@@ -401,3 +401,44 @@ export function calculateHeadToHead(
     return 0;
   });
 }
+
+/**
+ * ラウンド集合から、同一コートでチームメイトになった回数（メンバーID昇順の "a-b" キー）
+ */
+export function countPairOccurrencesInRounds(rounds: Round[]): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const round of rounds) {
+    for (const court of round.courts) {
+      for (const pair of [court.pairA, court.pairB] as const) {
+        const sorted = [pair[0], pair[1]]
+          .filter((id): id is number => id !== undefined)
+          .sort((a, b) => a - b);
+        if (sorted.length === 2) {
+          const key = `${sorted[0]}-${sorted[1]}`;
+          counts.set(key, (counts.get(key) || 0) + 1);
+        }
+      }
+    }
+  }
+  return counts;
+}
+
+/**
+ * ラウンド集合から、ネットを挟んで対戦した回数（メンバーID昇順の "a-b" キー）
+ */
+export function countOpponentOccurrencesInRounds(
+  rounds: Round[]
+): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const round of rounds) {
+    for (const court of round.courts) {
+      for (const player1 of court.pairA) {
+        for (const player2 of court.pairB) {
+          const key = `${Math.min(player1, player2)}-${Math.max(player1, player2)}`;
+          counts.set(key, (counts.get(key) || 0) + 1);
+        }
+      }
+    }
+  }
+  return counts;
+}

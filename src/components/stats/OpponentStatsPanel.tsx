@@ -1,13 +1,19 @@
+import { getDisplayName } from '@/lib/utils';
+import type { Member } from '@/types/member';
 import { type PracticePlayer } from '@/types/practice';
 
 interface OpponentStatsPanelProps {
   players: PracticePlayer[];
   opponentCounts: Map<string, number>;
+  useDisplayNames?: boolean;
+  memberMap?: Map<number, Member>;
 }
 
 export function OpponentStatsPanel({
   players,
   opponentCounts,
+  useDisplayNames = false,
+  memberMap,
 }: OpponentStatsPanelProps) {
   const sortedPlayers = [...players].sort(
     (a, b) => a.playerNumber - b.playerNumber
@@ -65,7 +71,11 @@ export function OpponentStatsPanel({
       ) : (
         <div className="space-y-3">
           <div className="flex items-baseline justify-between text-small text-muted-foreground">
-            <span>出場番号の組み合わせと対戦相手回数</span>
+            <span>
+              {useDisplayNames
+                ? '表示名の組み合わせと対戦回数'
+                : '出場番号の組み合わせと対戦相手回数'}
+            </span>
             <span className="font-medium text-foreground">
               組み合わせ {totalPairs}
             </span>
@@ -74,22 +84,34 @@ export function OpponentStatsPanel({
             {allPairs.map(({ key, player1, player2, count }) => (
               <div
                 key={key}
-                className={`flex items-center justify-between rounded-lg border px-2 py-1.5 text-xs ${
+                className={`flex items-center justify-between gap-1 rounded-lg border px-2 py-1.5 text-xs ${
                   count > 0
                     ? 'bg-amber-50 border-amber-200 text-amber-700'
                     : 'bg-muted border-border text-muted-foreground'
                 }`}
               >
-                <div className="flex items-center gap-1">
-                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-foreground text-background text-[11px] font-semibold">
-                    {player1.playerNumber}
-                  </span>
-                  <span className="text-[10px] text-muted-foreground">vs</span>
-                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-foreground text-background text-[11px] font-semibold">
-                    {player2.playerNumber}
-                  </span>
-                </div>
-                <span className="text-xs font-semibold">{count}</span>
+                {useDisplayNames && memberMap ? (
+                  <div className="flex min-w-0 flex-1 items-center gap-0.5 text-[11px] leading-tight">
+                    <span className="truncate font-medium text-foreground">
+                      {getDisplayName(memberMap, player1.memberId)}
+                    </span>
+                    <span className="shrink-0 text-muted-foreground">vs</span>
+                    <span className="truncate font-medium text-foreground">
+                      {getDisplayName(memberMap, player2.memberId)}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1">
+                    <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-foreground text-background text-[11px] font-semibold">
+                      {player1.playerNumber}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">vs</span>
+                    <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-foreground text-background text-[11px] font-semibold">
+                      {player2.playerNumber}
+                    </span>
+                  </div>
+                )}
+                <span className="shrink-0 text-xs font-semibold">{count}</span>
               </div>
             ))}
           </div>
