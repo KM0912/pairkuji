@@ -3,7 +3,7 @@ import React from 'react';
 interface PlayerNumberProps {
   number: number | string;
   variant?: 'primary' | 'secondary' | 'neutral';
-  size?: 'xs' | 'sm' | 'md';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
 }
 
@@ -20,6 +20,8 @@ const sizeStyles = {
   xs: 'w-4 h-4 text-[10px]',
   sm: 'w-5 h-5 text-xs',
   md: 'w-6 h-6 text-xs',
+  lg: 'min-w-10 min-h-10 w-10 h-10 text-lg',
+  xl: 'min-w-14 min-h-14 w-14 h-14 text-2xl sm:text-3xl',
 };
 
 export function PlayerNumber({

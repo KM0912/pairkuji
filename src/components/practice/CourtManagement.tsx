@@ -1,3 +1,4 @@
+import { type CourtDisplayMode } from '@/hooks/useCourtDisplayMode';
 import { type Member } from '@/types/member';
 import { type PracticePlayer } from '@/types/practice';
 import { type Round, type MatchResult } from '@/types/round';
@@ -19,6 +20,8 @@ interface CourtManagementProps {
     courtNo: number,
     result: MatchResult
   ) => Promise<void>;
+  /** 番号を大きく表示し名前を隠す（投影・遠視用） */
+  courtDisplayMode?: CourtDisplayMode;
 }
 
 export function CourtManagement({
@@ -29,7 +32,9 @@ export function CourtManagement({
   substituting,
   onPlayerClick,
   onRecordResult,
+  courtDisplayMode = 'normal',
 }: CourtManagementProps) {
+  const numberEmphasis = courtDisplayMode === 'numberEmphasis';
   const handleResultClick = (
     roundNo: number,
     courtNo: number,
@@ -91,26 +96,35 @@ export function CourtManagement({
                         return (
                           <button
                             key={id}
-                            className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 transition-all duration-fast w-full min-w-0 min-h-[48px] active:scale-[0.97] border-2 ${
+                            type="button"
+                            className={cn(
+                              'rounded-lg transition-all duration-fast w-full min-w-0 active:scale-[0.97] border-2',
+                              numberEmphasis
+                                ? 'flex items-center justify-center px-2 py-2 min-h-[56px]'
+                                : 'flex items-center gap-2.5 px-3 py-2.5 min-h-[48px]',
                               substituting === id
                                 ? 'bg-warning/10 border-warning ring-2 ring-warning/30 shadow-level-2'
                                 : 'bg-white/80 border-primary/40 hover:bg-primary/15 hover:border-primary/50 hover:shadow-level-1'
-                            }`}
+                            )}
                             onClick={() => onPlayerClick(id)}
+                            title={numberEmphasis ? name : undefined}
+                            aria-label={`番号${number}、${name}を選択して入れ替え`}
                           >
                             <PlayerNumber
                               number={number}
                               variant="primary"
-                              size="xs"
+                              size={numberEmphasis ? 'lg' : 'xs'}
                             />
-                            <div className="flex-1 min-w-0">
-                              <div
-                                className="text-caption font-semibold text-left truncate text-foreground"
-                                title={name}
-                              >
-                                {name}
+                            {!numberEmphasis && (
+                              <div className="flex-1 min-w-0">
+                                <div
+                                  className="text-caption font-semibold text-left truncate text-foreground"
+                                  title={name}
+                                >
+                                  {name}
+                                </div>
                               </div>
-                            </div>
+                            )}
                           </button>
                         );
                       })}
@@ -157,26 +171,35 @@ export function CourtManagement({
                         return (
                           <button
                             key={id}
-                            className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 transition-all duration-fast w-full min-w-0 min-h-[48px] active:scale-[0.97] border-2 ${
+                            type="button"
+                            className={cn(
+                              'rounded-lg transition-all duration-fast w-full min-w-0 active:scale-[0.97] border-2',
+                              numberEmphasis
+                                ? 'flex items-center justify-center px-2 py-2 min-h-[56px]'
+                                : 'flex items-center gap-2.5 px-3 py-2.5 min-h-[48px]',
                               substituting === id
                                 ? 'bg-warning/10 border-warning ring-2 ring-warning/30 shadow-level-2'
                                 : 'bg-white/80 border-primary/40 hover:bg-primary/15 hover:border-primary/50 hover:shadow-level-1'
-                            }`}
+                            )}
                             onClick={() => onPlayerClick(id)}
+                            title={numberEmphasis ? name : undefined}
+                            aria-label={`番号${number}、${name}を選択して入れ替え`}
                           >
                             <PlayerNumber
                               number={number}
                               variant="primary"
-                              size="xs"
+                              size={numberEmphasis ? 'lg' : 'xs'}
                             />
-                            <div className="flex-1 min-w-0">
-                              <div
-                                className="text-caption font-semibold text-left truncate text-foreground"
-                                title={name}
-                              >
-                                {name}
+                            {!numberEmphasis && (
+                              <div className="flex-1 min-w-0">
+                                <div
+                                  className="text-caption font-semibold text-left truncate text-foreground"
+                                  title={name}
+                                >
+                                  {name}
+                                </div>
                               </div>
-                            </div>
+                            )}
                           </button>
                         );
                       })}
@@ -238,24 +261,33 @@ export function CourtManagement({
                       return (
                         <button
                           key={id}
-                          className={`inline-flex items-center gap-2 rounded-full border-2 px-3.5 py-2 text-caption font-medium transition-all duration-fast min-h-[44px] active:scale-[0.97] shadow-level-1 ${
+                          type="button"
+                          className={cn(
+                            'inline-flex items-center border-2 text-caption font-medium transition-all duration-fast active:scale-[0.97] shadow-level-1',
+                            numberEmphasis
+                              ? 'justify-center rounded-full px-2 py-2 min-h-[48px] min-w-[48px]'
+                              : 'gap-2 rounded-full px-3.5 py-2 min-h-[44px]',
                             substituting === id
                               ? 'bg-warning/10 border-warning text-warning-foreground ring-2 ring-warning/30 shadow-level-2'
                               : 'bg-white/90 border-border/60 text-foreground hover:bg-muted hover:border-border hover:shadow-level-2'
-                          }`}
+                          )}
                           onClick={() => onPlayerClick(id)}
+                          title={numberEmphasis ? name : undefined}
+                          aria-label={`番号${number}、${name}を選択して入れ替え`}
                         >
                           <PlayerNumber
                             number={number}
                             variant="neutral"
-                            size="xs"
+                            size={numberEmphasis ? 'lg' : 'xs'}
                           />
-                          <span
-                            className="truncate max-w-[100px] text-left"
-                            title={name}
-                          >
-                            {name}
-                          </span>
+                          {!numberEmphasis && (
+                            <span
+                              className="truncate max-w-[100px] text-left"
+                              title={name}
+                            >
+                              {name}
+                            </span>
+                          )}
                         </button>
                       );
                     })}

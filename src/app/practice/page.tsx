@@ -12,7 +12,9 @@ import { Button } from '@/components/ui/button';
 import { CourtSelector } from '@/components/ui/CourtSelector';
 import { Spinner } from '@/components/ui/spinner';
 import { SessionStatsModal } from '@/components/practice/SessionStatsModal';
+import { useCourtDisplayMode } from '@/hooks/useCourtDisplayMode';
 import { calculateWinRates } from '@/lib/winRateCalculator';
+import { cn } from '@/lib/utils';
 import {
   countOpponentOccurrencesInRounds,
   countPairOccurrencesInRounds,
@@ -57,6 +59,8 @@ export default function PracticePage() {
   const [showParticipantModal, setShowParticipantModal] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showGenerateConfirm, setShowGenerateConfirm] = useState(false);
+  const { mode: courtDisplayMode, setMode: setCourtDisplayMode } =
+    useCourtDisplayMode();
 
   useEffect(() => {
     loadMembers();
@@ -281,6 +285,42 @@ export default function PracticePage() {
             </Button>
           </div>
 
+          <div
+            className="flex items-center gap-2 mb-4 -mt-1"
+            role="group"
+            aria-label="コートの表示モード"
+          >
+            <span className="text-xs text-muted-foreground shrink-0">
+              表示
+            </span>
+            <div className="flex flex-1 rounded-lg border border-border bg-muted/50 p-0.5 gap-0.5">
+              <button
+                type="button"
+                onClick={() => setCourtDisplayMode('normal')}
+                className={cn(
+                  'flex-1 rounded-md py-1.5 text-xs font-semibold transition-all',
+                  courtDisplayMode === 'normal'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground'
+                )}
+              >
+                通常
+              </button>
+              <button
+                type="button"
+                onClick={() => setCourtDisplayMode('numberEmphasis')}
+                className={cn(
+                  'flex-1 rounded-md py-1.5 text-xs font-semibold transition-all',
+                  courtDisplayMode === 'numberEmphasis'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground'
+                )}
+              >
+                番号強調
+              </button>
+            </div>
+          </div>
+
           {/* コート管理 */}
           <div ref={combosRef} className="space-y-6 pb-16">
             <div>
@@ -292,6 +332,7 @@ export default function PracticePage() {
                 substituting={substituting}
                 onPlayerClick={onPlayerClick}
                 onRecordResult={recordResult}
+                courtDisplayMode={courtDisplayMode}
               />
             </div>
           </div>

@@ -1,10 +1,12 @@
 import { useEffect } from 'react';
+import { type CourtDisplayMode } from '@/hooks/useCourtDisplayMode';
 import { type Member } from '@/types/member';
 import { type PracticePlayer } from '@/types/practice';
 import { type Round } from '@/types/round';
 import { X, Shuffle } from 'lucide-react';
 import { PlayerNumber } from '../ui/PlayerNumber';
 import { Button } from '../ui/button';
+import { cn } from '@/lib/utils';
 
 interface FullscreenDisplayProps {
   round: Round;
@@ -15,6 +17,7 @@ interface FullscreenDisplayProps {
   onClose: () => void;
   onPlayerClick: (memberId: number) => Promise<void>;
   onGenerateNextRound: () => Promise<void>;
+  courtDisplayMode?: CourtDisplayMode;
 }
 
 export function FullscreenDisplay({
@@ -26,7 +29,9 @@ export function FullscreenDisplay({
   onClose,
   onPlayerClick,
   onGenerateNextRound,
+  courtDisplayMode = 'normal',
 }: FullscreenDisplayProps) {
+  const numberEmphasis = courtDisplayMode === 'numberEmphasis';
   // Escape key to close
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -97,25 +102,33 @@ export function FullscreenDisplay({
                         return (
                           <button
                             key={id}
-                            className={`flex items-center gap-1.5 bg-card border rounded-md w-full min-w-0 transition-all duration-fast active:scale-[0.97] p-2 min-h-[36px] ${
+                            type="button"
+                            className={cn(
+                              'bg-card border rounded-md w-full min-w-0 transition-all duration-fast active:scale-[0.97]',
+                              numberEmphasis
+                                ? 'flex items-center justify-center p-2 min-h-[52px]'
+                                : 'flex items-center gap-1.5 p-2 min-h-[36px]',
                               substituting === id
                                 ? 'border-warning bg-warning/10 ring-2 ring-warning/30'
                                 : 'border-primary/30 hover:bg-primary/10 hover:border-primary/40'
-                            }`}
+                            )}
                             onClick={() => onPlayerClick(id)}
-                            aria-label={`${name}を選択して入れ替え`}
+                            title={numberEmphasis ? name : undefined}
+                            aria-label={`番号${number}、${name}を選択して入れ替え`}
                           >
                             <PlayerNumber
                               number={number}
                               variant="primary"
-                              size="xs"
+                              size={numberEmphasis ? 'xl' : 'xs'}
                             />
-                            <div
-                              className="font-semibold text-foreground truncate text-sm"
-                              title={name}
-                            >
-                              {name}
-                            </div>
+                            {!numberEmphasis && (
+                              <div
+                                className="font-semibold text-foreground truncate text-sm"
+                                title={name}
+                              >
+                                {name}
+                              </div>
+                            )}
                           </button>
                         );
                       })}
@@ -133,25 +146,33 @@ export function FullscreenDisplay({
                         return (
                           <button
                             key={id}
-                            className={`flex items-center gap-1.5 bg-card border rounded-md w-full min-w-0 transition-all duration-fast active:scale-[0.97] p-2 min-h-[36px] ${
+                            type="button"
+                            className={cn(
+                              'bg-card border rounded-md w-full min-w-0 transition-all duration-fast active:scale-[0.97]',
+                              numberEmphasis
+                                ? 'flex items-center justify-center p-2 min-h-[52px]'
+                                : 'flex items-center gap-1.5 p-2 min-h-[36px]',
                               substituting === id
                                 ? 'border-warning bg-warning/10 ring-2 ring-warning/30'
                                 : 'border-primary/30 hover:bg-primary/10 hover:border-primary/40'
-                            }`}
+                            )}
                             onClick={() => onPlayerClick(id)}
-                            aria-label={`${name}を選択して入れ替え`}
+                            title={numberEmphasis ? name : undefined}
+                            aria-label={`番号${number}、${name}を選択して入れ替え`}
                           >
                             <PlayerNumber
                               number={number}
                               variant="primary"
-                              size="xs"
+                              size={numberEmphasis ? 'xl' : 'xs'}
                             />
-                            <div
-                              className="font-semibold text-foreground truncate text-sm"
-                              title={name}
-                            >
-                              {name}
-                            </div>
+                            {!numberEmphasis && (
+                              <div
+                                className="font-semibold text-foreground truncate text-sm"
+                                title={name}
+                              >
+                                {name}
+                              </div>
+                            )}
                           </button>
                         );
                       })}
@@ -175,25 +196,33 @@ export function FullscreenDisplay({
                   return (
                     <button
                       key={id}
-                      className={`flex items-center gap-1.5 bg-card border border-border rounded-full transition-all duration-fast active:scale-[0.97] px-2.5 py-1.5 min-h-[32px] ${
+                      type="button"
+                      className={cn(
+                        'bg-card border border-border rounded-full transition-all duration-fast active:scale-[0.97]',
+                        numberEmphasis
+                          ? 'flex items-center justify-center px-2 py-2 min-h-[44px] min-w-[44px]'
+                          : 'flex items-center gap-1.5 px-2.5 py-1.5 min-h-[32px]',
                         substituting === id
                           ? 'border-warning bg-warning/10 ring-2 ring-warning/30'
                           : 'hover:bg-muted'
-                      }`}
+                      )}
                       onClick={() => onPlayerClick(id)}
-                      aria-label={`${name}を選択して入れ替え`}
+                      title={numberEmphasis ? name : undefined}
+                      aria-label={`番号${number}、${name}を選択して入れ替え`}
                     >
                       <PlayerNumber
                         number={number}
                         variant="neutral"
-                        size="xs"
+                        size={numberEmphasis ? 'lg' : 'xs'}
                       />
-                      <div
-                        className="font-semibold text-foreground truncate text-sm max-w-[100px]"
-                        title={name}
-                      >
-                        {name}
-                      </div>
+                      {!numberEmphasis && (
+                        <div
+                          className="font-semibold text-foreground truncate text-sm max-w-[100px]"
+                          title={name}
+                        >
+                          {name}
+                        </div>
+                      )}
                     </button>
                   );
                 })}
