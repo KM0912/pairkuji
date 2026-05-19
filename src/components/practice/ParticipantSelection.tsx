@@ -20,6 +20,8 @@ import { PlayerNumber } from '../ui/PlayerNumber';
 import { SelectTile } from '../ui/SelectTile';
 import { CourtSelector } from '../ui/CourtSelector';
 import { TagSelector } from './TagSelector';
+import { SelectedParticipantsSortableList } from './SelectedParticipantsSortableList';
+import { cn } from '@/lib/utils';
 
 interface ParticipantSelectionProps {
   members: Member[];
@@ -27,6 +29,7 @@ interface ParticipantSelectionProps {
   setCourts: (courts: number) => void;
   selected: number[];
   onToggleSelect: (id: number) => void;
+  onReorderSelected: (orderedIds: number[]) => void;
   onStart: (e: React.FormEvent) => void;
   clubTags?: string[];
   onClubTagsChange?: (tags: string[]) => void;
@@ -38,6 +41,7 @@ export function ParticipantSelection({
   setCourts,
   selected,
   onToggleSelect,
+  onReorderSelected,
   onStart,
   clubTags,
   onClubTagsChange,
@@ -66,16 +70,34 @@ export function ParticipantSelection({
     }),
     [activeMembers.length, selected.length]
   );
+  const memberById = useMemo(
+    () => new Map(activeMembers.map((m) => [m.id!, m])),
+    [activeMembers]
+  );
+
+  const selectedMembersInOrder = useMemo(
+    () =>
+      selected
+        .map((id) => memberById.get(id))
+        .filter((m): m is Member => m != null),
+    [selected, memberById]
+  );
+
   const visibleMembers = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
-    let list = activeMembers;
-    if (viewFilter === 'selected')
-      list = list.filter((m) => selectedSet.has(m.id!));
+    let list: Member[] = activeMembers;
+    if (viewFilter === 'selected') list = selectedMembersInOrder;
     if (viewFilter === 'unselected')
       list = list.filter((m) => !selectedSet.has(m.id!));
     if (term) list = list.filter((m) => m.name.toLowerCase().includes(term));
     return list;
-  }, [activeMembers, viewFilter, selectedSet, searchTerm]);
+  }, [
+    activeMembers,
+    viewFilter,
+    selectedSet,
+    searchTerm,
+    selectedMembersInOrder,
+  ]);
 
   return (
     <div className="space-y-4">
@@ -169,8 +191,57 @@ export function ParticipantSelection({
 
               {/* メンバーリスト */}
               <Card>
-                <CardContent className="grid grid-cols-2 gap-3 p-3 max-h-80 overflow-auto">
-                  {visibleMembers.length > 0 ? (
+                <CardContent
+                  className={cn(
+                    'p-3 max-h-80 overflow-auto',
+                    viewFilter === 'selected'
+                      ? 'space-y-2'
+                      : 'grid grid-cols-2 gap-3'
+                  )}
+                >
+                  {viewFilter === 'selected' && !searchTerm.trim() ? (
+                    <SelectedParticipantsSortableList
+                      members={members}
+                      selected={selected}
+                      onReorder={onReorderSelected}
+                      onRemove={onToggleSelect}
+                    />
+                  ) : viewFilter === 'selected' && searchTerm.trim() ? (
+                    <>
+                      <p className="text-xs text-amber-600 bg-amber-50 px-2 py-1.5 rounded border border-amber-200">
+                        並べ替えは検索をクリアしてください
+                      </p>
+                      {visibleMembers.length > 0 ? (
+                        visibleMembers.map((member) => {
+                          const order = selected.indexOf(member.id!) + 1;
+                          return (
+                            <SelectTile
+                              key={member.id}
+                              selected
+                              onClick={() => onToggleSelect(member.id!)}
+                              aria-label={`ダブルス参加者から外す: ${member.name}`}
+                              title={member.name}
+                              size="sm"
+                              className="w-full justify-start text-left"
+                              left={
+                                <PlayerNumber
+                                  number={order}
+                                  variant="neutral"
+                                  size="xs"
+                                />
+                              }
+                            >
+                              {member.name}
+                            </SelectTile>
+                          );
+                        })
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground text-caption">
+                          検索条件に一致する参加者がいません
+                        </div>
+                      )}
+                    </>
+                  ) : visibleMembers.length > 0 ? (
                     visibleMembers.map((member) => {
                       const isSelected = selectedSet.has(member.id!);
                       const order = isSelected

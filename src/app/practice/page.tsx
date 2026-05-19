@@ -101,6 +101,10 @@ export default function PracticePage() {
     );
   };
 
+  const onReorderSelected = (orderedIds: number[]) => {
+    setSelected(orderedIds);
+  };
+
   const onStart = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selected.length < 4) return;
@@ -242,6 +246,7 @@ export default function PracticePage() {
           setCourts={setCourts}
           selected={selected}
           onToggleSelect={onToggleSelect}
+          onReorderSelected={onReorderSelected}
           onStart={onStart}
           clubTags={clubTags}
           onClubTagsChange={setClubTags}
