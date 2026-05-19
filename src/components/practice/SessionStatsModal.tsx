@@ -1,3 +1,4 @@
+import { Fragment, useMemo } from 'react';
 import type { Round } from '@/types/round';
 import type { PracticePlayer } from '@/types/practice';
 import type { Member } from '@/types/member';
@@ -5,6 +6,7 @@ import type { WinRateRecord } from '@/lib/winRateCalculator';
 import { WinRatePanel } from '@/components/stats/WinRatePanel';
 import { PairStatsPanel } from '@/components/stats/PairStatsPanel';
 import { OpponentStatsPanel } from '@/components/stats/OpponentStatsPanel';
+import { PlayerNumber } from '@/components/ui/PlayerNumber';
 import {
   Dialog,
   DialogContent,
@@ -33,6 +35,24 @@ interface SessionStatsModalProps {
   winRates: Map<number, WinRateRecord>;
 }
 
+function HistoryPlayerLabel({
+  memberId,
+  memberMap,
+  playerMap,
+}: {
+  memberId: number;
+  memberMap: Map<number, Member>;
+  playerMap: Map<number, PracticePlayer>;
+}) {
+  const number = playerMap.get(memberId)?.playerNumber ?? '?';
+  return (
+    <span className="inline-flex items-center gap-1 min-w-0">
+      <PlayerNumber number={number} variant="primary" size="xs" />
+      <span className="truncate">{getDisplayName(memberMap, memberId)}</span>
+    </span>
+  );
+}
+
 export function SessionStatsModal({
   open,
   onOpenChange,
@@ -43,6 +63,11 @@ export function SessionStatsModal({
   opponentCounts,
   winRates,
 }: SessionStatsModalProps) {
+  const playerMap = useMemo(
+    () => new Map(players.map((p) => [p.memberId, p])),
+    [players]
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md rounded-2xl border-2 border-border/50 p-0">
@@ -116,12 +141,22 @@ export function SessionStatsModal({
                                       : 'border-border bg-muted/30'
                                   )}
                                 >
-                                  {court.pairA
-                                    .map(
-                                      (id) =>
-                                        getDisplayName(memberMap, id)
-                                    )
-                                    .join(' / ')}
+                                  <div className="flex flex-wrap items-center gap-x-1 gap-y-1">
+                                    {court.pairA.map((id, index) => (
+                                      <Fragment key={id}>
+                                        {index > 0 && (
+                                          <span className="text-muted-foreground">
+                                            /
+                                          </span>
+                                        )}
+                                        <HistoryPlayerLabel
+                                          memberId={id}
+                                          memberMap={memberMap}
+                                          playerMap={playerMap}
+                                        />
+                                      </Fragment>
+                                    ))}
+                                  </div>
                                 </div>
                                 <span className="text-xs text-muted-foreground font-bold">
                                   vs
@@ -134,24 +169,39 @@ export function SessionStatsModal({
                                       : 'border-border bg-muted/30'
                                   )}
                                 >
-                                  {court.pairB
-                                    .map(
-                                      (id) =>
-                                        getDisplayName(memberMap, id)
-                                    )
-                                    .join(' / ')}
+                                  <div className="flex flex-wrap items-center gap-x-1 gap-y-1">
+                                    {court.pairB.map((id, index) => (
+                                      <Fragment key={id}>
+                                        {index > 0 && (
+                                          <span className="text-muted-foreground">
+                                            /
+                                          </span>
+                                        )}
+                                        <HistoryPlayerLabel
+                                          memberId={id}
+                                          memberMap={memberMap}
+                                          playerMap={playerMap}
+                                        />
+                                      </Fragment>
+                                    ))}
+                                  </div>
                                 </div>
                               </div>
                             </div>
                           ))}
                           {round.rests.length > 0 && (
-                            <div className="text-xs text-muted-foreground px-1">
-                              休憩: {round.rests
-                                .map(
-                                  (id) =>
-                                    getDisplayName(memberMap, id)
-                                )
-                                .join('、')}
+                            <div className="flex flex-wrap items-center gap-x-1 gap-y-1 text-xs text-muted-foreground px-1">
+                              <span className="shrink-0">休憩:</span>
+                              {round.rests.map((id, index) => (
+                                <Fragment key={id}>
+                                  {index > 0 && <span>、</span>}
+                                  <HistoryPlayerLabel
+                                    memberId={id}
+                                    memberMap={memberMap}
+                                    playerMap={playerMap}
+                                  />
+                                </Fragment>
+                              ))}
                             </div>
                           )}
                         </div>
