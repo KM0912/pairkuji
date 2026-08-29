@@ -1,752 +1,124 @@
+import {
+  createSchedulerState,
+  generateNextRound,
+  validateRound,
+  type Round as SchedulerRound,
+} from 'doubles-scheduler';
 import type { PlayerStats } from '@/types/stats';
 import type { CourtMatch, Round } from '@/types/round';
 import type { PracticePlayer } from '@/types/practice';
 
-// ペア・対戦の再登場に重み付けを行う定数
 const MAX_RECENT_RECORDS = 5;
-const PARTNER_PENALTY_BASE = 30;
-const PARTNER_PENALTY_DECAY = 6;
-const PARTNER_PENALTY_MIN = 6;
-const OPPONENT_PENALTY_BASE = 12;
-const OPPONENT_PENALTY_DECAY = 3;
-const OPPONENT_PENALTY_MIN = 2;
-// 過去の対戦回数（個人間の対戦頻度）に基づくペナルティの重み
-const OPPONENT_FREQUENCY_WEIGHT = 4;
-const PAIR_SELECTION_ATTEMPTS = 6;
-const RESTRICTED_PARTNER_CANDIDATES = 3;
-const COURT_MATCH_JITTER = 0.001;
-
-// 統合評価: 複数の休憩候補を生成し、ペア/コート配置まで含めた総合スコアで最良候補を選ぶ
-const INTEGRATED_CANDIDATE_COUNT = 5;
-// 統合評価の重み: 休憩の公平性を最優先、ペア/対戦の質で差をつける
-const REST_SCORE_WEIGHT = 1.0;
-const PAIR_SCORE_WEIGHT = 0.3;
-const MATCH_SCORE_WEIGHT = 0.3;
-
-// 休憩者選定評価の重み付け
-const REST_CANDIDATE_BUFFER = 4;
-const PLAYED_VARIANCE_WEIGHT = 320;
-const PLAYED_RANGE_WEIGHT = 140;
-const REST_VARIANCE_WEIGHT = 28;
-const REST_RANGE_WEIGHT = 18;
-const LOW_PLAYED_REST_PENALTY = 90;
-const CONSECUTIVE_REST_PENALTY = 180;
-const RECENT_OVERLAP_PENALTY = 36;
-const OLDER_OVERLAP_PENALTY = 16;
-const REPEAT_SET_PENALTY = 220;
-const REST_SELECTION_JITTER = 0.0001;
-// 途中参加者の試合数不足ボーナス上限: avgMatchCountとの差がこの値を超えないよう制限
-const DEFICIT_CAP = 2;
 
 type Pair = [number, number];
 
-/** ペア内を playerNumber 昇順（同値のとき memberId 昇順）に並べる */
+function pushRecent(list: number[], value: number): void {
+  list.push(value);
+  if (list.length > MAX_RECENT_RECORDS) {
+    list.shift();
+  }
+}
+
 function orderPairByPlayerNumber(
-  memberIdA: number,
-  memberIdB: number,
+  pair: Pair,
   playerNumberByMemberId: Map<number, number>
 ): Pair {
-  const na =
+  const [memberIdA, memberIdB] = pair;
+  const playerNumberA =
     playerNumberByMemberId.get(memberIdA) ?? Number.POSITIVE_INFINITY;
-  const nb =
+  const playerNumberB =
     playerNumberByMemberId.get(memberIdB) ?? Number.POSITIVE_INFINITY;
-  if (na !== nb) {
-    return na < nb
+
+  if (playerNumberA !== playerNumberB) {
+    return playerNumberA < playerNumberB
       ? [memberIdA, memberIdB]
       : [memberIdB, memberIdA];
   }
+
   return memberIdA < memberIdB
     ? [memberIdA, memberIdB]
     : [memberIdB, memberIdA];
 }
 
-interface RestSelectionContext {
-  playerIds: number[];
-  stats: Map<number, PlayerStats>;
-  basePlayedMap: Map<number, number>;
-  baseRestMap: Map<number, number>;
-  minPlayed: number;
-  maxPlayed: number;
-  minRest: number;
-  currentRestStreaks: Map<number, number>;
-  lastRestSet: Set<number>;
-  prevRestSet: Set<number>;
-  olderRestSet: Set<number>;
-  consecutivePenaltyMultiplier: number;
-  recentOverlapMultiplier: number;
-  olderOverlapMultiplier: number;
-}
-
-function shuffle<T>(input: T[]): T[] {
-  const array = [...input];
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j]!, array[i]!];
-  }
-  return array;
-}
-
-// 休憩候補の偏りスコア計算に使用する分散値
-function calculateVariance(values: number[]): number {
-  if (values.length === 0) return 0;
-  const average = values.reduce((sum, value) => sum + value, 0) / values.length;
-  const variance =
-    values.reduce((sum, value) => sum + Math.pow(value - average, 2), 0) /
-    values.length;
-  return variance;
-}
-
-function pushRecent(list: number[], value: number | undefined) {
-  if (value === undefined) return;
-  list.push(value);
-  if (list.length > MAX_RECENT_RECORDS) list.shift();
-}
-
-function calculateRecencyPenalty(
-  history: number[] | undefined,
-  target: number,
-  base: number,
-  decay: number,
-  minimum: number
-): number {
-  if (!history || history.length === 0) return 0;
-  const index = history.lastIndexOf(target);
-  if (index === -1) return 0;
-  const distanceFromEnd = history.length - index; // 1 = most recent
-  const penalty = base - (distanceFromEnd - 1) * decay;
-  return Math.max(penalty, minimum);
-}
-
-function computePairPenalty(
-  a: number,
-  b: number,
-  stats: Map<number, PlayerStats>
-): number {
-  const statA = stats.get(a);
-  const statB = stats.get(b);
-  const penaltyA = calculateRecencyPenalty(
-    statA?.recentPartners,
-    b,
-    PARTNER_PENALTY_BASE,
-    PARTNER_PENALTY_DECAY,
-    PARTNER_PENALTY_MIN
-  );
-  const penaltyB = calculateRecencyPenalty(
-    statB?.recentPartners,
-    a,
-    PARTNER_PENALTY_BASE,
-    PARTNER_PENALTY_DECAY,
-    PARTNER_PENALTY_MIN
-  );
-  return penaltyA + penaltyB;
-}
-
-function computeMatchPenalty(
-  pairA: Pair,
-  pairB: Pair,
-  stats: Map<number, PlayerStats>
-): number {
-  let penalty = 0;
-
-  pairA.forEach((playerA) => {
-    const statA = stats.get(playerA);
-    pairB.forEach((playerB) => {
-      penalty += calculateRecencyPenalty(
-        statA?.recentOpponents,
-        playerB,
-        OPPONENT_PENALTY_BASE,
-        OPPONENT_PENALTY_DECAY,
-        OPPONENT_PENALTY_MIN
-      );
-    });
-  });
-
-  pairB.forEach((playerB) => {
-    const statB = stats.get(playerB);
-    pairA.forEach((playerA) => {
-      penalty += calculateRecencyPenalty(
-        statB?.recentOpponents,
-        playerA,
-        OPPONENT_PENALTY_BASE,
-        OPPONENT_PENALTY_DECAY,
-        OPPONENT_PENALTY_MIN
-      );
-    });
-  });
-
-  return penalty;
-}
-
-function buildRestSelectionContext(
-  players: PracticePlayer[],
-  stats: Map<number, PlayerStats>,
-  rounds: Round[],
-  totalPlayersNeeded: number
-): RestSelectionContext {
-  const playerIds = players.map((player) => player.memberId);
-
-  const recentRestSets = rounds
-    .slice(-3)
-    .map((round) => new Set<number>(round.rests));
-  const lastRestSet =
-    recentRestSets[recentRestSets.length - 1] ?? new Set<number>();
-  const prevRestSet =
-    recentRestSets[recentRestSets.length - 2] ?? new Set<number>();
-  const olderRestSet =
-    recentRestSets[recentRestSets.length - 3] ?? new Set<number>();
-
-  const currentRestStreaks = new Map<number, number>();
-  playerIds.forEach((id) => {
-    let streak = 0;
-    for (let i = rounds.length - 1; i >= 0; i--) {
-      const round = rounds[i];
-      if (!round?.rests?.length) break;
-      if (round.rests.includes(id)) {
-        streak++;
-      } else {
-        break;
-      }
-    }
-    currentRestStreaks.set(id, streak);
-  });
-
-  const basePlayedMap = new Map<number, number>();
-  const baseRestMap = new Map<number, number>();
-  const playedCounts: number[] = [];
-  const restCounts: number[] = [];
-
-  playerIds.forEach((id) => {
-    const played = stats.get(id)?.playedCount ?? 0;
-    const rest = stats.get(id)?.restCount ?? 0;
-    basePlayedMap.set(id, played);
-    baseRestMap.set(id, rest);
-    playedCounts.push(played);
-    restCounts.push(rest);
-  });
-
-  const minPlayed = Math.min(...playedCounts);
-  const maxPlayed = Math.max(...playedCounts);
-  const minRest = Math.min(...restCounts);
-
-  const totalCapacity = totalPlayersNeeded || 1;
-  const participationRatio = players.length / totalCapacity;
-  const isDoubleCapacity = players.length === totalCapacity * 2;
-  const allPlayedEqual = playedCounts.every(
-    (count) => count === playedCounts[0]
-  );
-  const allowConsecutiveRest =
-    participationRatio > 1.5 && (!isDoubleCapacity || allPlayedEqual);
-
-  const consecutivePenaltyMultiplier = allowConsecutiveRest ? 0 : 1;
-  const recentOverlapMultiplier = allowConsecutiveRest ? 0 : 1;
-  const olderOverlapMultiplier = allowConsecutiveRest ? 0 : 1;
-
+function toSchedulerRound(round: Round): SchedulerRound<number> {
   return {
-    playerIds,
-    stats,
-    basePlayedMap,
-    baseRestMap,
-    minPlayed,
-    maxPlayed,
-    minRest,
-    currentRestStreaks,
-    lastRestSet,
-    prevRestSet,
-    olderRestSet,
-    consecutivePenaltyMultiplier,
-    recentOverlapMultiplier,
-    olderOverlapMultiplier,
+    id: `round-${round.roundNo}`,
+    matches: round.courts.map((court) => ({
+      id: `match-${round.roundNo}-${court.courtNo}`,
+      court: court.courtNo,
+      teamA: [...court.pairA],
+      teamB: [...court.pairB],
+      ...(court.result
+        ? {
+            result: {
+              winner: court.result === 'pairA' ? 'teamA' : 'teamB',
+            },
+          }
+        : {}),
+    })),
+    // Pairkuji passes only active players to this adapter. Its "rests" are
+    // therefore automatic capacity-based sit-outs, not explicit user rests.
+    restingPlayers: [],
+    sittingOutPlayers: [...round.rests],
   };
 }
 
-function collectRestCandidates(
-  players: PracticePlayer[],
-  restSlots: number,
-  context: RestSelectionContext
-): number[] {
-  const { stats, lastRestSet, prevRestSet, maxPlayed, minRest } = context;
-
-  const sortedByPriority = [...players].sort((a, b) => {
-    const statA = stats.get(a.memberId);
-    const statB = stats.get(b.memberId);
-    const playedA = statA?.playedCount ?? 0;
-    const playedB = statB?.playedCount ?? 0;
-    if (playedA !== playedB) return playedB - playedA;
-
-    const restA = statA?.restCount ?? 0;
-    const restB = statB?.restCount ?? 0;
-    if (restA !== restB) return restA - restB;
-
-    const inLastA = lastRestSet.has(a.memberId) ? 1 : 0;
-    const inLastB = lastRestSet.has(b.memberId) ? 1 : 0;
-    if (inLastA !== inLastB) return inLastA - inLastB;
-
-    const inPrevA = prevRestSet.has(a.memberId) ? 1 : 0;
-    const inPrevB = prevRestSet.has(b.memberId) ? 1 : 0;
-    if (inPrevA !== inPrevB) return inPrevA - inPrevB;
-
-    return a.memberId - b.memberId;
-  });
-
-  const basePoolSize = Math.max(
-    restSlots + REST_CANDIDATE_BUFFER,
-    Math.ceil(players.length / 2)
-  );
-  const candidateIdsSet = new Set<number>();
-
-  sortedByPriority
-    .slice(0, Math.min(players.length, basePoolSize))
-    .forEach((player) => {
-      candidateIdsSet.add(player.memberId);
-    });
-
-  players.forEach((player) => {
-    const played = context.basePlayedMap.get(player.memberId) ?? 0;
-    if (played >= maxPlayed) {
-      candidateIdsSet.add(player.memberId);
-    }
-    const rest = context.baseRestMap.get(player.memberId) ?? 0;
-    if (rest <= minRest) {
-      candidateIdsSet.add(player.memberId);
-    }
-  });
-
-  const candidateIds = Array.from(candidateIdsSet);
-  if (candidateIds.length < restSlots) {
-    candidateIds.push(
-      ...players
-        .map((player) => player.memberId)
-        .filter((id) => !candidateIdsSet.has(id))
-        .slice(0, restSlots - candidateIds.length)
-    );
+function normalizeCourtCount(maxCourts: number): number {
+  if (!Number.isFinite(maxCourts)) {
+    return 0;
   }
-
-  return Array.from(new Set(candidateIds)).sort((a, b) => a - b);
+  return Math.max(0, Math.floor(maxCourts));
 }
 
-function scoreRestCombination(
-  restCombo: number[],
-  context: RestSelectionContext
-): number {
-  const restSet = new Set(restCombo);
-  const predictedPlayed: number[] = [];
-  const predictedRest: number[] = [];
-  let maxPredictedPlayed = Number.NEGATIVE_INFINITY;
-  let minPredictedPlayed = Number.POSITIVE_INFINITY;
-  let maxPredictedRest = Number.NEGATIVE_INFINITY;
-  let minPredictedRest = Number.POSITIVE_INFINITY;
-  let score = 0;
-
-  context.playerIds.forEach((id) => {
-    const basePlayedCount = context.basePlayedMap.get(id) ?? 0;
-    const baseRestCount = context.baseRestMap.get(id) ?? 0;
-    const willRest = restSet.has(id);
-    const predictedPlayedCount = willRest
-      ? basePlayedCount
-      : basePlayedCount + 1;
-    const predictedRestCount = willRest ? baseRestCount + 1 : baseRestCount;
-
-    predictedPlayed.push(predictedPlayedCount);
-    predictedRest.push(predictedRestCount);
-
-    maxPredictedPlayed = Math.max(maxPredictedPlayed, predictedPlayedCount);
-    minPredictedPlayed = Math.min(minPredictedPlayed, predictedPlayedCount);
-    maxPredictedRest = Math.max(maxPredictedRest, predictedRestCount);
-    minPredictedRest = Math.min(minPredictedRest, predictedRestCount);
-
-    if (willRest) {
-      const avgPlayed =
-        Array.from(context.basePlayedMap.values()).reduce((s, v) => s + v, 0) /
-        context.basePlayedMap.size;
-      const deficit = Math.min(
-        Math.max(avgPlayed - basePlayedCount, 0),
-        DEFICIT_CAP
-      );
-      if (deficit > 0) {
-        score += LOW_PLAYED_REST_PENALTY * deficit;
-      }
-
-      const currentStreak = context.currentRestStreaks.get(id) ?? 0;
-      const predictedStreak = currentStreak + 1;
-      if (predictedStreak >= 2) {
-        score +=
-          CONSECUTIVE_REST_PENALTY *
-          (predictedStreak - 1) *
-          context.consecutivePenaltyMultiplier;
-      }
-
-      if (context.prevRestSet.has(id)) {
-        score += RECENT_OVERLAP_PENALTY * context.recentOverlapMultiplier;
-      }
-
-      if (context.olderRestSet.has(id)) {
-        score += OLDER_OVERLAP_PENALTY * context.olderOverlapMultiplier;
-      }
-    }
-  });
-
-  const playedVariance = calculateVariance(predictedPlayed);
-  const restVariance = calculateVariance(predictedRest);
-  const playedRange = maxPredictedPlayed - minPredictedPlayed;
-  const restRange = maxPredictedRest - minPredictedRest;
-
-  score += playedVariance * PLAYED_VARIANCE_WEIGHT;
-  score += playedRange * PLAYED_RANGE_WEIGHT;
-  score += restVariance * REST_VARIANCE_WEIGHT;
-  score += restRange * REST_RANGE_WEIGHT;
-
-  const matchesLast =
-    restCombo.length === context.lastRestSet.size &&
-    restCombo.every((id) => context.lastRestSet.has(id));
-  if (matchesLast) {
-    score += REPEAT_SET_PENALTY * 4;
+function normalizePlayedOffset(
+  playedOffset: number | undefined
+): number | undefined {
+  if (playedOffset === undefined) {
+    return undefined;
   }
-
-  const matchesPrev =
-    restCombo.length === context.prevRestSet.size &&
-    restCombo.every((id) => context.prevRestSet.has(id));
-  if (matchesPrev) {
-    score += REPEAT_SET_PENALTY;
-  }
-
-  const matchesOlder =
-    restCombo.length === context.olderRestSet.size &&
-    restCombo.every((id) => context.olderRestSet.has(id));
-  if (matchesOlder) {
-    score += REPEAT_SET_PENALTY / 2;
-  }
-
-  score += Math.random() * REST_SELECTION_JITTER;
-
-  return score;
+  return Number.isFinite(playedOffset)
+    ? Math.max(0, Math.floor(playedOffset))
+    : 0;
 }
 
-function findTopRestCombinations(
-  candidateIds: number[],
-  restSlots: number,
-  context: RestSelectionContext,
-  topN: number = INTEGRATED_CANDIDATE_COUNT
-): number[][] {
-  const topCombos: { combo: number[]; score: number }[] = [];
-  let worstTopScore = Number.POSITIVE_INFINITY;
-  const combinationBuffer: number[] = [];
-
-  const backtrack = (start: number) => {
-    if (combinationBuffer.length === restSlots) {
-      const currentScore = scoreRestCombination(combinationBuffer, context);
-      if (topCombos.length < topN || currentScore < worstTopScore) {
-        topCombos.push({ combo: [...combinationBuffer], score: currentScore });
-        topCombos.sort((a, b) => a.score - b.score);
-        if (topCombos.length > topN) {
-          topCombos.pop();
-        }
-        worstTopScore =
-          topCombos.length > 0
-            ? topCombos[topCombos.length - 1]!.score
-            : Number.POSITIVE_INFINITY;
-      }
-      return;
-    }
-
-    const remainingSlots = restSlots - combinationBuffer.length;
-    for (let i = start; i <= candidateIds.length - remainingSlots; i++) {
-      combinationBuffer.push(candidateIds[i]!);
-      backtrack(i + 1);
-      combinationBuffer.pop();
-    }
-  };
-
-  backtrack(0);
-
-  return topCombos.map((entry) => entry.combo);
+function assertUniquePlayerIds(players: PracticePlayer[]): void {
+  const memberIds = players.map((player) => player.memberId);
+  if (new Set(memberIds).size !== memberIds.length) {
+    throw new Error('参加者IDが重複しているため組み合わせを生成できません');
+  }
 }
 
-function selectRestCandidates(
-  players: PracticePlayer[],
-  stats: Map<number, PlayerStats>,
-  totalPlayersNeeded: number,
-  rounds: Round[]
-): { candidates: { playing: PracticePlayer[]; restIds: number[] }[] } {
-  const restSlots = Math.max(players.length - totalPlayersNeeded, 0);
-  if (restSlots === 0) {
-    return { candidates: [{ playing: players, restIds: [] }] };
-  }
-
-  const context = buildRestSelectionContext(
-    players,
-    stats,
-    rounds,
-    totalPlayersNeeded
-  );
-
-  const candidateIds = collectRestCandidates(players, restSlots, context);
-  const topCombos = findTopRestCombinations(
-    candidateIds,
-    restSlots,
-    context,
-    INTEGRATED_CANDIDATE_COUNT
-  );
-
-  if (topCombos.length === 0) {
-    const fallbackCombo = [...context.playerIds]
-      .sort((a, b) => {
-        const playedA = context.basePlayedMap.get(a) ?? 0;
-        const playedB = context.basePlayedMap.get(b) ?? 0;
-        if (playedA !== playedB) return playedB - playedA;
-        const restA = context.baseRestMap.get(a) ?? 0;
-        const restB = context.baseRestMap.get(b) ?? 0;
-        if (restA !== restB) return restA - restB;
-        return a - b;
-      })
-      .slice(0, restSlots);
-    const restIdSet = new Set(fallbackCombo);
-    const playing = players.filter(
-      (player) => !restIdSet.has(player.memberId)
-    );
-    const restIds = Array.from(restIdSet).sort((a, b) => a - b);
-    return { candidates: [{ playing, restIds }] };
-  }
-
-  const candidates = topCombos.map((combo) => {
-    const restIdSet = new Set(combo);
-    const playing = players.filter(
-      (player) => !restIdSet.has(player.memberId)
-    );
-    const restIds = Array.from(restIdSet).sort((a, b) => a - b);
-    return { playing, restIds };
-  });
-
-  return { candidates };
-}
-
-function buildPairs(
-  playerIds: number[],
-  stats: Map<number, PlayerStats>,
-  playerNumberByMemberId: Map<number, number>
-): Pair[] {
-  if (playerIds.length % 2 !== 0) {
-    throw new Error('Number of players must be even to form pairs.');
-  }
-
-  // 試合数が少ない順にソートしつつ、後段の試行でランダマイズ
-  const byNeed = [...playerIds].sort((a, b) => {
-    const playedA = stats.get(a)?.playedCount ?? 0;
-    const playedB = stats.get(b)?.playedCount ?? 0;
-    if (playedA !== playedB) return playedA - playedB;
-    return a - b;
-  });
-
-  const totalPairsNeeded = playerIds.length / 2;
-  let bestPairs: Pair[] = [];
-  let bestScore = Number.POSITIVE_INFINITY;
-
-  for (let attempt = 0; attempt < PAIR_SELECTION_ATTEMPTS; attempt++) {
-    const ordering = attempt === 0 ? [...byNeed] : shuffle(byNeed);
-    const unused = new Set(ordering);
-    const attemptPairs: Pair[] = [];
-    let attemptScore = 0;
-
-    while (unused.size > 0) {
-      const base = ordering.find((id) => unused.has(id));
-      if (base === undefined) break;
-
-      const others = Array.from(unused).filter((id) => id !== base);
-      if (others.length === 0) break;
-
-      const candidates = others
-        .map((partnerId) => {
-          const cost = computePairPenalty(base, partnerId, stats);
-          return {
-            partnerId,
-            cost,
-            orderScore: cost + Math.random() * 0.01,
-          };
-        })
-        .sort((a, b) => a.orderScore - b.orderScore);
-
-      const pickableCount = Math.max(
-        1,
-        Math.min(RESTRICTED_PARTNER_CANDIDATES, candidates.length)
-      );
-      const candidatePool = candidates.slice(0, pickableCount);
-      const chosen =
-        candidatePool[Math.floor(Math.random() * candidatePool.length)];
-      if (!chosen) break;
-
-      const pair = orderPairByPlayerNumber(
-        base,
-        chosen.partnerId,
-        playerNumberByMemberId
-      );
-      attemptPairs.push(pair);
-      attemptScore += chosen.cost;
-      unused.delete(base);
-      unused.delete(chosen.partnerId);
-    }
-
-    if (attemptPairs.length === totalPairsNeeded && attemptScore < bestScore) {
-      bestScore = attemptScore;
-      bestPairs = attemptPairs.map((pair) => [...pair] as Pair);
-    }
-  }
-
-  if (bestPairs.length === 0) {
-    // フォールバック: ソート順そのままに隣接でペアリング
-    const fallback: Pair[] = [];
-    const ordered = [...playerIds];
-    for (let i = 0; i < ordered.length; i += 2) {
-      const pair = orderPairByPlayerNumber(
-        ordered[i]!,
-        ordered[i + 1]!,
-        playerNumberByMemberId
-      );
-      fallback.push(pair);
-    }
-    return fallback;
-  }
-
-  return bestPairs;
-}
-
-function buildCourtsFromPairs(
-  pairs: Pair[],
-  stats: Map<number, PlayerStats>,
-  opponentFrequency: Map<string, number>
-): CourtMatch[] {
-  if (pairs.length % 2 !== 0) {
-    throw new Error('Pair count must be even to form courts.');
-  }
-  if (pairs.length === 0) return [];
-
-  let bestScore = Number.POSITIVE_INFINITY;
-  let bestArrangement: Array<{ pairA: Pair; pairB: Pair }> = [];
-
-  // ペア同士の組み合わせをバックトラックで探索し最小コストを求める
-  const search = (
-    remaining: number[],
-    current: Array<{ pairA: Pair; pairB: Pair }>,
-    score: number
-  ) => {
-    if (remaining.length === 0) {
-      if (score < bestScore) {
-        bestScore = score;
-        bestArrangement = current.map((assignment) => ({
-          pairA: [...assignment.pairA] as Pair,
-          pairB: [...assignment.pairB] as Pair,
-        }));
-      }
-      return;
-    }
-
-    const [firstIndex, ...rest] = remaining;
-    for (let i = 0; i < rest.length; i++) {
-      const secondIndex = rest[i]!;
-      const pairA = pairs[firstIndex!]!;
-      const pairB = pairs[secondIndex]!;
-      const matchPenalty =
-        computeMatchPenalty(pairA, pairB, stats) +
-        sumOpponentFrequency(pairA, pairB, opponentFrequency) *
-          OPPONENT_FREQUENCY_WEIGHT;
-      const jitter = Math.random() * COURT_MATCH_JITTER;
-      const nextScore = score + matchPenalty + jitter;
-      if (nextScore >= bestScore) continue;
-
-      const nextRemaining = rest.slice(0, i).concat(rest.slice(i + 1));
-      search(nextRemaining, [...current, { pairA, pairB }], nextScore);
-    }
-  };
-
-  search(
-    pairs.map((_, index) => index),
-    [],
-    0
-  );
-
-  if (bestArrangement.length === 0) {
-    // 最適化に失敗した場合は順番通りに割り当て
-    const fallback: CourtMatch[] = [];
-    for (let i = 0; i < pairs.length; i += 2) {
-      fallback.push({
-        courtNo: i / 2 + 1,
-        pairA: pairs[i]!,
-        pairB: pairs[i + 1]!,
-      });
-    }
-    return fallback;
-  }
-
-  return bestArrangement.map((assignment, index) => ({
-    courtNo: index + 1,
-    pairA: assignment.pairA,
-    pairB: assignment.pairB,
-  }));
-}
-
-function evaluateCandidate(
-  restIds: number[],
-  courts: CourtMatch[],
-  stats: Map<number, PlayerStats>,
-  restContext: RestSelectionContext,
-  opponentFrequency: Map<string, number>
-): number {
-  // 休憩の公平性スコア（低いほど良い）
-  const restScore = scoreRestCombination(restIds, restContext);
-
-  // ペアペナルティの合計（低いほど良い）
-  let pairScore = 0;
-  for (const court of courts) {
-    pairScore += computePairPenalty(court.pairA[0], court.pairA[1], stats);
-    pairScore += computePairPenalty(court.pairB[0], court.pairB[1], stats);
-  }
-
-  // 対戦ペナルティの合計（低いほど良い）
-  let matchScore = 0;
-  for (const court of courts) {
-    matchScore += computeMatchPenalty(court.pairA, court.pairB, stats);
-    matchScore +=
-      sumOpponentFrequency(court.pairA, court.pairB, opponentFrequency) *
-      OPPONENT_FREQUENCY_WEIGHT;
-  }
-
-  return (
-    restScore * REST_SCORE_WEIGHT +
-    pairScore * PAIR_SCORE_WEIGHT +
-    matchScore * MATCH_SCORE_WEIGHT
-  );
-}
-
+/**
+ * Pairkuji の履歴形式から、途中参加時の補正を含むプレイヤー統計を計算する。
+ *
+ * 組み合わせ生成は doubles-scheduler に委譲しているが、この関数は
+ * 既存の途中参加処理と画面側の互換性を保つために公開を継続する。
+ */
 export function calculatePlayerStats(
   playerIds: number[],
   rounds: Round[],
   playedOffsets?: Map<number, number>
 ): Map<number, PlayerStats> {
   const stats = new Map<number, PlayerStats>();
+  const currentRestStreak = new Map<number, number>();
 
   playerIds.forEach((id) => {
-    const offset = playedOffsets?.get(id) ?? 0;
     stats.set(id, {
       playerId: id,
-      playedCount: offset,
+      playedCount: playedOffsets?.get(id) ?? 0,
       restCount: 0,
       consecRest: 0,
       recentPartners: [],
       recentOpponents: [],
     });
+    currentRestStreak.set(id, 0);
   });
 
-  const currentRestStreak = new Map<number, number>();
-  playerIds.forEach((id) => currentRestStreak.set(id, 0));
-
-  // ラウンドを時系列で辿り統計情報を更新
   rounds.forEach((round) => {
     const playing = new Set<number>();
 
     round.courts.forEach((court) => {
-      const [a1, a2] = court.pairA;
-      const [b1, b2] = court.pairB;
-      const participants = [a1, a2, b1, b2].filter(
-        (id) => id !== undefined
-      ) as number[];
+      const participants = [...court.pairA, ...court.pairB];
 
       participants.forEach((playerId) => {
         const stat = stats.get(playerId);
@@ -756,35 +128,30 @@ export function calculatePlayerStats(
         playing.add(playerId);
       });
 
-      if (a1 !== undefined && a2 !== undefined) {
-        const stat1 = stats.get(a1);
-        const stat2 = stats.get(a2);
-        if (stat1) pushRecent(stat1.recentPartners, a2);
-        if (stat2) pushRecent(stat2.recentPartners, a1);
-      }
+      const [a1, a2] = court.pairA;
+      const [b1, b2] = court.pairB;
+      const statA1 = stats.get(a1);
+      const statA2 = stats.get(a2);
+      const statB1 = stats.get(b1);
+      const statB2 = stats.get(b2);
 
-      if (b1 !== undefined && b2 !== undefined) {
-        const stat1 = stats.get(b1);
-        const stat2 = stats.get(b2);
-        if (stat1) pushRecent(stat1.recentPartners, b2);
-        if (stat2) pushRecent(stat2.recentPartners, b1);
-      }
+      if (statA1) pushRecent(statA1.recentPartners, a2);
+      if (statA2) pushRecent(statA2.recentPartners, a1);
+      if (statB1) pushRecent(statB1.recentPartners, b2);
+      if (statB2) pushRecent(statB2.recentPartners, b1);
 
-      const teamA = [a1, a2].filter((id) => id !== undefined) as number[];
-      const teamB = [b1, b2].filter((id) => id !== undefined) as number[];
-
-      teamA.forEach((playerId) => {
+      court.pairA.forEach((playerId) => {
         const stat = stats.get(playerId);
         if (!stat) return;
-        teamB.forEach((opponentId) => {
+        court.pairB.forEach((opponentId) => {
           pushRecent(stat.recentOpponents, opponentId);
         });
       });
 
-      teamB.forEach((playerId) => {
+      court.pairB.forEach((playerId) => {
         const stat = stats.get(playerId);
         if (!stat) return;
-        teamA.forEach((opponentId) => {
+        court.pairA.forEach((opponentId) => {
           pushRecent(stat.recentOpponents, opponentId);
         });
       });
@@ -794,163 +161,78 @@ export function calculatePlayerStats(
       if (playing.has(id)) return;
       const stat = stats.get(id);
       if (!stat) return;
+
       stat.restCount += 1;
-      const nextRest = (currentRestStreak.get(id) ?? 0) + 1;
-      currentRestStreak.set(id, nextRest);
-      stat.consecRest = Math.max(stat.consecRest, nextRest);
+      const restStreak = (currentRestStreak.get(id) ?? 0) + 1;
+      currentRestStreak.set(id, restStreak);
+      stat.consecRest = Math.max(stat.consecRest, restStreak);
     });
   });
 
   return stats;
 }
 
+/**
+ * doubles-scheduler で次ラウンドを生成し、Pairkuji の永続化形式へ変換する。
+ */
 export function generateFairRound(
   activePlayers: PracticePlayer[],
   maxCourts: number,
   rounds: Round[]
 ): { courts: CourtMatch[]; rests: number[] } {
-  const playerNumberByMemberId = new Map<number, number>(
-    activePlayers.map((p) => [p.memberId, p.playerNumber])
-  );
+  assertUniquePlayerIds(activePlayers);
 
-  if (activePlayers.length < 4) {
+  const courtCount = Math.min(
+    normalizeCourtCount(maxCourts),
+    Math.floor(activePlayers.length / 4)
+  );
+  if (activePlayers.length < 4 || courtCount === 0) {
     return {
       courts: [],
-      rests: activePlayers.map((player) => player.memberId),
+      rests: activePlayers
+        .map((player) => player.memberId)
+        .sort((a, b) => a - b),
     };
   }
 
-  // 特例: 4人1コートは3パターンを固定順序で繰り返す
-  // パターン: [1-2|3-4] → [1-3|2-4] → [1-4|2-3]
-  if (activePlayers.length === 4 && maxCourts >= 1) {
-    const ids = activePlayers.map((p) => p.memberId).sort((a, b) => a - b);
-    const [p1, p2, p3, p4] = ids as [number, number, number, number];
-    const patternIndex = rounds.length % 3;
-    const rawA: Pair =
-      patternIndex === 0
-        ? [p1, p2]
-        : patternIndex === 1
-          ? [p1, p3]
-          : [p1, p4];
-    const rawB: Pair =
-      patternIndex === 0
-        ? [p3, p4]
-        : patternIndex === 1
-          ? [p2, p4]
-          : [p2, p3];
-    const courts: CourtMatch[] = [
-      {
-        courtNo: 1,
-        pairA: orderPairByPlayerNumber(
-          rawA[0],
-          rawA[1],
-          playerNumberByMemberId
-        ),
-        pairB: orderPairByPlayerNumber(
-          rawB[0],
-          rawB[1],
-          playerNumberByMemberId
-        ),
-      },
-    ];
-    return { courts, rests: [] };
-  }
-
-  const playerIds = activePlayers.map((player) => player.memberId);
-  const offsets = new Map<number, number>();
-  activePlayers.forEach((player) => {
-    const offset = player.playedOffset ?? 0;
-    offsets.set(player.memberId, offset > 0 ? offset - 1 : 0);
+  const schedulerState = createSchedulerState<number>({
+    players: activePlayers.map((player) => ({
+      id: player.memberId,
+      stats:
+        player.playedOffset === undefined
+          ? undefined
+          : { games: normalizePlayedOffset(player.playedOffset) },
+      metadata: { playerNumber: player.playerNumber },
+    })),
+    courtCount,
+    rounds: rounds.map(toSchedulerRound),
   });
 
-  // 既存ラウンドと途中参加補正から現在の統計値を再計算
-  const playerStats = calculatePlayerStats(playerIds, rounds, offsets);
-  const courtsToUse = Math.min(maxCourts, Math.floor(activePlayers.length / 4));
+  const proposal = generateNextRound(schedulerState);
+  const validation = validateRound(schedulerState, proposal.round);
 
-  if (courtsToUse === 0) {
-    return { courts: [], rests: playerIds.sort((a, b) => a - b) };
-  }
-
-  const totalPlayersNeeded = courtsToUse * 4;
-  const opponentFrequency = buildOpponentFrequencyMap(rounds);
-
-  // 複数の休憩候補を生成し、各候補でペア構築・コート配置まで実行して総合評価
-  const { candidates } = selectRestCandidates(
-    activePlayers,
-    playerStats,
-    totalPlayersNeeded,
-    rounds
-  );
-
-  const restContext = buildRestSelectionContext(
-    activePlayers,
-    playerStats,
-    rounds,
-    totalPlayersNeeded
-  );
-
-  let bestScore = Number.POSITIVE_INFINITY;
-  let bestResult: { courts: CourtMatch[]; rests: number[] } | null = null;
-
-  for (const candidate of candidates) {
-    const playingIds = candidate.playing.map((player) => player.memberId);
-    const pairs = buildPairs(playingIds, playerStats, playerNumberByMemberId);
-    const courts = buildCourtsFromPairs(pairs, playerStats, opponentFrequency);
-
-    const score = evaluateCandidate(
-      candidate.restIds,
-      courts,
-      playerStats,
-      restContext,
-      opponentFrequency
+  if (!validation.valid) {
+    throw new Error(
+      `組み合わせ生成結果が不正です: ${validation.errors
+        .map((error) => error.type)
+        .join(', ')}`
     );
-
-    if (score < bestScore) {
-      bestScore = score;
-      bestResult = { courts, rests: candidate.restIds };
-    }
   }
 
-  return bestResult ?? { courts: [], rests: playerIds.sort((a, b) => a - b) };
-}
+  const playerNumberByMemberId = new Map(
+    activePlayers.map((player) => [player.memberId, player.playerNumber])
+  );
 
-// 対戦履歴（個人間の対戦回数）マップを構築
-function buildOpponentFrequencyMap(rounds: Round[]): Map<string, number> {
-  const map = new Map<string, number>();
+  const courts: CourtMatch[] = proposal.round.matches.map((match) => ({
+    courtNo: match.court,
+    pairA: orderPairByPlayerNumber([...match.teamA], playerNumberByMemberId),
+    pairB: orderPairByPlayerNumber([...match.teamB], playerNumberByMemberId),
+  }));
 
-  const key = (x: number, y: number) => {
-    const a = Math.min(x, y);
-    const b = Math.max(x, y);
-    return `${a}-${b}`;
-  };
+  const rests = [
+    ...proposal.round.restingPlayers,
+    ...proposal.round.sittingOutPlayers,
+  ].sort((a, b) => a - b);
 
-  rounds.forEach((round) => {
-    round.courts.forEach((court) => {
-      const teamA = court.pairA.filter((id) => id !== undefined) as number[];
-      const teamB = court.pairB.filter((id) => id !== undefined) as number[];
-      for (const a of teamA) {
-        for (const b of teamB) {
-          const k = key(a, b);
-          map.set(k, (map.get(k) ?? 0) + 1);
-        }
-      }
-    });
-  });
-
-  return map;
-}
-
-// 2ペア間の過去対戦回数合計を算出
-function sumOpponentFrequency(
-  pairA: Pair,
-  pairB: Pair,
-  freq: Map<string, number>
-): number {
-  const key = (x: number, y: number) => (x < y ? `${x}-${y}` : `${y}-${x}`);
-  let total = 0;
-  total += freq.get(key(pairA[0]!, pairB[0]!)) ?? 0;
-  total += freq.get(key(pairA[0]!, pairB[1]!)) ?? 0;
-  total += freq.get(key(pairA[1]!, pairB[0]!)) ?? 0;
-  total += freq.get(key(pairA[1]!, pairB[1]!)) ?? 0;
-  return total;
+  return { courts, rests };
 }

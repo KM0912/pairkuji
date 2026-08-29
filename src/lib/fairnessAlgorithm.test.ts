@@ -1,4 +1,5 @@
 import { generateFairRound, calculatePlayerStats } from './fairnessAlgorithm';
+import { PACKAGE_NAME } from 'doubles-scheduler';
 import type { PracticePlayer } from '@/types/practice';
 import type { Round } from '@/types/round';
 
@@ -449,8 +450,8 @@ describe('各ラウンド後の試合差確認テスト', () => {
   });
 });
 
-describe('4人ローテーションの周期性', () => {
-  test('4人1コートでは3パターンが同じ順序で繰り返される', () => {
+describe('4人ローテーションの多様性', () => {
+  test('4人1コートでは3パターンが均等に使われる', () => {
     const players = createTestPlayers(4);
     const totalRounds = 15;
     const rounds = generateMultipleRounds(players, 1, totalRounds);
@@ -474,40 +475,18 @@ describe('4人ローテーションの周期性', () => {
       }
     });
 
-    // 3連続で全て異なるパターンになる最初の位置を探す
-    let startIndex = -1;
-    for (let i = 0; i <= matchKeys.length - 3; i++) {
-      const window = new Set([
-        matchKeys[i]!,
-        matchKeys[i + 1]!,
-        matchKeys[i + 2]!,
-      ]);
-      if (window.size === 3) {
-        startIndex = i;
-        break;
-      }
-    }
-
-    if (startIndex === -1) {
-      throw new Error('3パターンが連続で一巡する箇所を見つけられませんでした');
-    }
-
-    const cycle = [
-      matchKeys[startIndex]!,
-      matchKeys[startIndex + 1]!,
-      matchKeys[startIndex + 2]!,
-    ];
-
-    // 見つけた順序で以降が周期3で繰り返されることを確認
-    for (let j = startIndex; j < matchKeys.length; j++) {
-      const expected = cycle[(j - startIndex) % 3];
-      expect(matchKeys[j]).toBe(expected);
-    }
+    const patternCounts = Array.from(allowed).map(
+      (pattern) => matchKeys.filter((key) => key === pattern).length
+    );
+    expect(new Set(matchKeys)).toEqual(allowed);
+    expect(
+      Math.max(...patternCounts) - Math.min(...patternCounts)
+    ).toBeLessThanOrEqual(1);
   });
 });
 
 describe('途中から4人になった場合', () => {
-  test('8人から4人に減少した場合、3パターン周期が維持される', () => {
+  test('8人から4人に減少した場合も3パターンが偏らない', () => {
     const players = createTestPlayers(8);
     const rounds: Round[] = [];
 
@@ -553,40 +532,17 @@ describe('途中から4人になった場合', () => {
       expect(allowed.has(k)).toBe(true);
     });
 
-    // 3連続で全パターンが出現する箇所を探す
-    let startIndex = -1;
-    for (let i = 0; i <= matchKeys.length - 3; i++) {
-      const window = new Set([
-        matchKeys[i]!,
-        matchKeys[i + 1]!,
-        matchKeys[i + 2]!,
-      ]);
-      if (window.size === 3) {
-        startIndex = i;
-        break;
-      }
-    }
-
-    if (startIndex === -1) {
-      throw new Error('3パターンが連続で一巡する箇所を見つけられませんでした');
-    }
-
-    const cycle = [
-      matchKeys[startIndex]!,
-      matchKeys[startIndex + 1]!,
-      matchKeys[startIndex + 2]!,
-    ];
-
-    // 見つけた順序で以降が周期3で繰り返されることを確認
-    for (let j = startIndex; j < matchKeys.length; j++) {
-      const expected = cycle[(j - startIndex) % 3];
-      expect(matchKeys[j]).toBe(expected);
-    }
+    const patternCounts = Array.from(allowed).map(
+      (pattern) => matchKeys.filter((key) => key === pattern).length
+    );
+    expect(new Set(matchKeys)).toEqual(allowed);
+    expect(
+      Math.max(...patternCounts) - Math.min(...patternCounts)
+    ).toBeLessThanOrEqual(1);
 
     console.log('\n途中から4人: 8人→4人のパターン確認');
     console.log(`  4人期間ラウンド数: ${matchKeys.length}`);
-    console.log(`  検出された周期: ${cycle.join(' → ')}`);
-    console.log(`  周期開始位置: R${startIndex + 6}`);
+    console.log(`  パターン別回数: ${patternCounts.join(', ')}`);
   });
 
   test('10人から4人に減少した場合、試合数が均等に維持される', () => {
@@ -1178,7 +1134,7 @@ describe('連続出場・連続休憩の制約テスト', () => {
 });
 
 describe('ペア内の並び（playerNumber 昇順）', () => {
-  test('4人特例でも memberId 順ではなく表示番号の若い方が先', () => {
+  test('memberId 順ではなく表示番号の若い方が先', () => {
     const createdAt = new Date().toISOString();
     const players: PracticePlayer[] = [
       { memberId: 10, playerNumber: 4, status: 'active', createdAt },
@@ -1188,9 +1144,14 @@ describe('ペア内の並び（playerNumber 昇順）', () => {
     ];
     const result = generateFairRound(players, 1, []);
     const court = result.courts[0]!;
-    // memberId 昇順 10,20 / 30,40 だが、表示番号は 1,4 と 2,3
-    expect(court.pairA).toEqual([20, 10]);
-    expect(court.pairB).toEqual([40, 30]);
+    const playerNumbers = new Map(
+      players.map((player) => [player.memberId, player.playerNumber])
+    );
+    for (const pair of [court.pairA, court.pairB]) {
+      expect(playerNumbers.get(pair[0])!).toBeLessThan(
+        playerNumbers.get(pair[1])!
+      );
+    }
   });
 });
 
@@ -1288,5 +1249,140 @@ describe('エッジケーステスト', () => {
 
     console.log(`\n24人6コート20R: 試合数範囲=${Math.min(...counts)}-${Math.max(...counts)}, 差=${diff}`);
     expect(diff).toBeLessThanOrEqual(1);
+  });
+});
+
+describe('doubles-scheduler 統合境界テスト', () => {
+  test('実際のライブラリパッケージを読み込んでいる', () => {
+    expect(PACKAGE_NAME).toBe('doubles-scheduler');
+  });
+
+  test.each([
+    { playerCount: 4, courts: 1 },
+    { playerCount: 5, courts: 1 },
+    { playerCount: 8, courts: 1 },
+    { playerCount: 9, courts: 2 },
+    { playerCount: 12, courts: 2 },
+    { playerCount: 17, courts: 4 },
+    { playerCount: 24, courts: 8 },
+  ])(
+    '$playerCount 人・$courts コートで全員が重複なく出場または待機する',
+    ({ playerCount, courts }) => {
+      const players = createTestPlayers(playerCount);
+      const result = generateFairRound(players, courts, []);
+      const playingIds = result.courts.flatMap((court) => [
+        ...court.pairA,
+        ...court.pairB,
+      ]);
+      const allocatedIds = [...playingIds, ...result.rests];
+      const expectedCourtCount = Math.min(
+        courts,
+        Math.floor(playerCount / 4)
+      );
+
+      expect(result.courts).toHaveLength(expectedCourtCount);
+      expect(new Set(allocatedIds).size).toBe(playerCount);
+      expect([...allocatedIds].sort((a, b) => a - b)).toEqual(
+        players.map((player) => player.memberId)
+      );
+      expect(result.courts.map((court) => court.courtNo)).toEqual(
+        Array.from({ length: expectedCourtCount }, (_, index) => index + 1)
+      );
+    }
+  );
+
+  test('負数・0・非有限のコート数を安全に扱う', () => {
+    const players = createTestPlayers(6);
+
+    for (const courts of [-2, 0, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(generateFairRound(players, courts, [])).toEqual({
+        courts: [],
+        rests: [1, 2, 3, 4, 5, 6],
+      });
+    }
+
+    expect(generateFairRound(players, 1.9, []).courts).toHaveLength(1);
+  });
+
+  test('過去ラウンドに途中離脱者が残っていても現在の参加者だけを割り当てる', () => {
+    const originalPlayers = createTestPlayers(8);
+    const rounds = generateMultipleRounds(originalPlayers, 2, 3);
+    const currentPlayers = originalPlayers.slice(0, 6);
+
+    const result = generateFairRound(currentPlayers, 1, rounds);
+    const allocatedIds = [
+      ...result.courts.flatMap((court) => [
+        ...court.pairA,
+        ...court.pairB,
+      ]),
+      ...result.rests,
+    ];
+
+    expect([...allocatedIds].sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 5, 6]);
+  });
+
+  test('勝敗を含む既存履歴をライブラリ形式へ変換できる', () => {
+    const players = createTestPlayers(6);
+    const rounds: Round[] = [
+      {
+        roundNo: 1,
+        courts: [
+          {
+            courtNo: 1,
+            pairA: [1, 2],
+            pairB: [3, 4],
+            result: 'pairB',
+          },
+        ],
+        rests: [5, 6],
+      },
+    ];
+
+    const result = generateFairRound(players, 1, rounds);
+    const allocatedIds = [
+      ...result.courts.flatMap((court) => [
+        ...court.pairA,
+        ...court.pairB,
+      ]),
+      ...result.rests,
+    ];
+
+    expect([...allocatedIds].sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 5, 6]);
+  });
+
+  test('途中参加補正を初期試合数として公平性計算に渡す', () => {
+    const players = createTestPlayers(5).map((player) => ({
+      ...player,
+      playedOffset: player.memberId === 1 ? 0 : 10,
+    }));
+
+    const result = generateFairRound(players, 1, []);
+    const playingIds = result.courts.flatMap((court) => [
+      ...court.pairA,
+      ...court.pairB,
+    ]);
+
+    expect(playingIds).toContain(1);
+  });
+
+  test('入力オブジェクトを変更しない', () => {
+    const players = createTestPlayers(9);
+    const rounds = generateMultipleRounds(players, 2, 2);
+    const playersBefore = structuredClone(players);
+    const roundsBefore = structuredClone(rounds);
+
+    generateFairRound(players, 2, rounds);
+
+    expect(players).toEqual(playersBefore);
+    expect(rounds).toEqual(roundsBefore);
+  });
+
+  test('参加者IDの重複を検出して不正な試合を作らない', () => {
+    const players = createTestPlayers(4);
+    players[3] = { ...players[3]!, memberId: 1 };
+
+    expect(() => generateFairRound(players, 1, [])).toThrow(
+      '参加者IDが重複しているため組み合わせを生成できません'
+    );
   });
 });
