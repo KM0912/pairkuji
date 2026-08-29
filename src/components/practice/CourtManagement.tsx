@@ -5,14 +5,36 @@ import { type Round, type MatchResult } from '@/types/round';
 import { PiCourtBasketball } from 'react-icons/pi';
 import { IconBadge } from '../ui/IconBadge';
 import { PlayerNumber } from '../ui/PlayerNumber';
-import { Trophy } from 'lucide-react';
+import { Swords, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+function MatchCountIndicator({
+  count,
+  className,
+}: {
+  count: number;
+  className?: string;
+}) {
+  return (
+    <span
+      className={cn(
+        'inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-small font-semibold leading-none tabular-nums text-muted-foreground',
+        className
+      )}
+      aria-hidden="true"
+    >
+      <Swords className="size-3" />
+      <span>{count}</span>
+    </span>
+  );
+}
 
 interface CourtManagementProps {
   players: PracticePlayer[];
   latestRound: Round | undefined;
   memberMap: Map<number, Member>;
   playerMap: Map<number, PracticePlayer>;
+  matchCounts: Map<number, number>;
   substituting: number | null;
   onPlayerClick: (memberId: number) => Promise<void>;
   onRecordResult?: (
@@ -29,6 +51,7 @@ export function CourtManagement({
   latestRound,
   memberMap,
   playerMap,
+  matchCounts,
   substituting,
   onPlayerClick,
   onRecordResult,
@@ -93,22 +116,23 @@ export function CourtManagement({
                         const player = playerMap.get(id);
                         const name = member?.name ?? '???';
                         const number = player?.playerNumber ?? '?';
+                        const matchCount = matchCounts.get(id) ?? 0;
                         return (
                           <button
                             key={id}
                             type="button"
                             className={cn(
-                              'rounded-lg transition-all duration-fast w-full min-w-0 active:scale-[0.97] border-2',
+                              'relative rounded-lg transition-all duration-fast w-full min-w-0 active:scale-[0.97] border-2',
                               numberEmphasis
                                 ? 'flex items-center justify-center px-2 py-2 min-h-[56px]'
-                                : 'flex items-center gap-2.5 px-3 py-2.5 min-h-[48px]',
+                                : 'flex items-center gap-1.5 px-2 py-1.5 min-h-[48px] sm:gap-2.5 sm:px-3 sm:py-2.5',
                               substituting === id
                                 ? 'bg-warning/10 border-warning ring-2 ring-warning/30 shadow-level-2'
                                 : 'bg-white/80 border-primary/40 hover:bg-primary/15 hover:border-primary/50 hover:shadow-level-1'
                             )}
                             onClick={() => onPlayerClick(id)}
                             title={numberEmphasis ? name : undefined}
-                            aria-label={`番号${number}、${name}を選択して入れ替え`}
+                            aria-label={`番号${number}、${name}、${matchCount}試合。選択して入れ替え`}
                           >
                             <PlayerNumber
                               number={number}
@@ -116,14 +140,21 @@ export function CourtManagement({
                               size={numberEmphasis ? 'lg' : 'xs'}
                             />
                             {!numberEmphasis && (
-                              <div className="flex-1 min-w-0">
+                              <div className="flex flex-1 min-w-0 flex-col items-start gap-0.5 sm:flex-row sm:items-center sm:gap-1.5">
                                 <div
-                                  className="text-caption font-semibold text-left truncate text-foreground"
+                                  className="w-full min-w-0 flex-1 truncate text-left text-caption font-semibold text-foreground"
                                   title={name}
                                 >
                                   {name}
                                 </div>
+                                <MatchCountIndicator count={matchCount} />
                               </div>
+                            )}
+                            {numberEmphasis && (
+                              <MatchCountIndicator
+                                count={matchCount}
+                                className="absolute bottom-1.5 right-1.5 shrink-0 whitespace-nowrap rounded bg-muted/90 px-1 py-0.5 text-small font-semibold leading-none tabular-nums text-muted-foreground shadow-level-1"
+                              />
                             )}
                           </button>
                         );
@@ -168,22 +199,23 @@ export function CourtManagement({
                         const player = playerMap.get(id);
                         const name = member?.name ?? '???';
                         const number = player?.playerNumber ?? '?';
+                        const matchCount = matchCounts.get(id) ?? 0;
                         return (
                           <button
                             key={id}
                             type="button"
                             className={cn(
-                              'rounded-lg transition-all duration-fast w-full min-w-0 active:scale-[0.97] border-2',
+                              'relative rounded-lg transition-all duration-fast w-full min-w-0 active:scale-[0.97] border-2',
                               numberEmphasis
                                 ? 'flex items-center justify-center px-2 py-2 min-h-[56px]'
-                                : 'flex items-center gap-2.5 px-3 py-2.5 min-h-[48px]',
+                                : 'flex items-center gap-1.5 px-2 py-1.5 min-h-[48px] sm:gap-2.5 sm:px-3 sm:py-2.5',
                               substituting === id
                                 ? 'bg-warning/10 border-warning ring-2 ring-warning/30 shadow-level-2'
                                 : 'bg-white/80 border-primary/40 hover:bg-primary/15 hover:border-primary/50 hover:shadow-level-1'
                             )}
                             onClick={() => onPlayerClick(id)}
                             title={numberEmphasis ? name : undefined}
-                            aria-label={`番号${number}、${name}を選択して入れ替え`}
+                            aria-label={`番号${number}、${name}、${matchCount}試合。選択して入れ替え`}
                           >
                             <PlayerNumber
                               number={number}
@@ -191,14 +223,21 @@ export function CourtManagement({
                               size={numberEmphasis ? 'lg' : 'xs'}
                             />
                             {!numberEmphasis && (
-                              <div className="flex-1 min-w-0">
+                              <div className="flex flex-1 min-w-0 flex-col items-start gap-0.5 sm:flex-row sm:items-center sm:gap-1.5">
                                 <div
-                                  className="text-caption font-semibold text-left truncate text-foreground"
+                                  className="w-full min-w-0 flex-1 truncate text-left text-caption font-semibold text-foreground"
                                   title={name}
                                 >
                                   {name}
                                 </div>
+                                <MatchCountIndicator count={matchCount} />
                               </div>
+                            )}
+                            {numberEmphasis && (
+                              <MatchCountIndicator
+                                count={matchCount}
+                                className="absolute bottom-1.5 right-1.5 shrink-0 whitespace-nowrap rounded bg-muted/90 px-1 py-0.5 text-small font-semibold leading-none tabular-nums text-muted-foreground shadow-level-1"
+                              />
                             )}
                           </button>
                         );
@@ -258,12 +297,13 @@ export function CourtManagement({
                       const player = playerMap.get(id);
                       const name = member?.name ?? '???';
                       const number = player?.playerNumber ?? '?';
+                      const matchCount = matchCounts.get(id) ?? 0;
                       return (
                         <button
                           key={id}
                           type="button"
                           className={cn(
-                            'inline-flex items-center border-2 text-caption font-medium transition-all duration-fast active:scale-[0.97] shadow-level-1',
+                            'relative inline-flex items-center border-2 text-caption font-medium transition-all duration-fast active:scale-[0.97] shadow-level-1',
                             numberEmphasis
                               ? 'justify-center rounded-full px-2 py-2 min-h-[48px] min-w-[48px]'
                               : 'gap-2 rounded-full px-3.5 py-2 min-h-[44px]',
@@ -273,7 +313,7 @@ export function CourtManagement({
                           )}
                           onClick={() => onPlayerClick(id)}
                           title={numberEmphasis ? name : undefined}
-                          aria-label={`番号${number}、${name}を選択して入れ替え`}
+                          aria-label={`番号${number}、${name}、${matchCount}試合。選択して入れ替え`}
                         >
                           <PlayerNumber
                             number={number}
@@ -281,12 +321,21 @@ export function CourtManagement({
                             size={numberEmphasis ? 'lg' : 'xs'}
                           />
                           {!numberEmphasis && (
-                            <span
-                              className="truncate max-w-[100px] text-left"
-                              title={name}
-                            >
-                              {name}
-                            </span>
+                            <>
+                              <span
+                                className="truncate max-w-[100px] text-left"
+                                title={name}
+                              >
+                                {name}
+                              </span>
+                              <MatchCountIndicator count={matchCount} />
+                            </>
+                          )}
+                          {numberEmphasis && (
+                            <MatchCountIndicator
+                              count={matchCount}
+                              className="absolute -bottom-1 -right-1 shrink-0 whitespace-nowrap rounded-full border border-border bg-background px-1 py-0.5 text-[10px] font-semibold leading-none tabular-nums text-muted-foreground shadow-level-1"
+                            />
                           )}
                         </button>
                       );
