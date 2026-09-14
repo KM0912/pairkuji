@@ -5,7 +5,7 @@ import { type Round, type MatchResult } from '@/types/round';
 import { PiCourtBasketball } from 'react-icons/pi';
 import { IconBadge } from '../ui/IconBadge';
 import { PlayerNumber } from '../ui/PlayerNumber';
-import { Swords, Trophy } from 'lucide-react';
+import { Swords, Trophy, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 function MatchCountIndicator({
@@ -29,12 +29,34 @@ function MatchCountIndicator({
   );
 }
 
+function PairCountIndicator({
+  pair,
+  pairCounts,
+}: {
+  pair: [number, number];
+  pairCounts: Map<string, number>;
+}) {
+  const key = `${Math.min(...pair)}-${Math.max(...pair)}`;
+  const count = pairCounts.get(key) ?? 0;
+
+  return (
+    <div
+      className="mb-2 flex items-center justify-center gap-1 whitespace-nowrap text-small font-semibold tabular-nums text-muted-foreground"
+      title="今回の練習で、現在のラウンドを含めてこのペアを組んだ回数"
+    >
+      <Users className="size-3.5 shrink-0" aria-hidden="true" />
+      <span>ペア {count}回目</span>
+    </div>
+  );
+}
+
 interface CourtManagementProps {
   players: PracticePlayer[];
   latestRound: Round | undefined;
   memberMap: Map<number, Member>;
   playerMap: Map<number, PracticePlayer>;
   matchCounts: Map<number, number>;
+  pairCounts: Map<string, number>;
   substituting: number | null;
   onPlayerClick: (memberId: number) => Promise<void>;
   onRecordResult?: (
@@ -52,6 +74,7 @@ export function CourtManagement({
   memberMap,
   playerMap,
   matchCounts,
+  pairCounts,
   substituting,
   onPlayerClick,
   onRecordResult,
@@ -110,6 +133,7 @@ export function CourtManagement({
                         : 'border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5'
                     )}
                   >
+                    <PairCountIndicator pair={cm.pairA} pairCounts={pairCounts} />
                     <div className="space-y-1">
                       {cm.pairA.map((id) => {
                         const member = memberMap.get(id);
@@ -193,6 +217,7 @@ export function CourtManagement({
                         : 'border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5'
                     )}
                   >
+                    <PairCountIndicator pair={cm.pairB} pairCounts={pairCounts} />
                     <div className="space-y-1">
                       {cm.pairB.map((id) => {
                         const member = memberMap.get(id);

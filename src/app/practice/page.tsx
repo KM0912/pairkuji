@@ -335,6 +335,7 @@ export default function PracticePage() {
                 memberMap={memberMap}
                 playerMap={playerMap}
                 matchCounts={matchCounts}
+                pairCounts={pairCounts}
                 substituting={substituting}
                 onPlayerClick={onPlayerClick}
                 onRecordResult={recordResult}
