@@ -23,13 +23,29 @@ import {
 import { Users, AlertTriangle, Shuffle, MoreVertical, Monitor } from 'lucide-react';
 import { PiCourtBasketball } from 'react-icons/pi';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { shouldBlockPracticeScreen } from '@/lib/practiceScreen';
+import {
+  GENERATING_LABEL,
+  substitutionToast,
+} from '@/lib/practiceLabels';
+
+type PracticeToast = {
+  message: string;
+  undo?:
+    | { kind: 'round' }
+    | {
+        kind: 'substitution';
+        fromId: number;
+        toId: number;
+        roundNo: number;
+      };
+};
 
 const HIDE_RESULT_REMINDER_KEY = 'pairkuji-hide-result-reminder';
 
 export default function PracticePage() {
   const {
     members,
-    isLoading: membersLoading,
     isInitialLoad: membersInitialLoad,
     error: memberError,
     load: loadMembers,
@@ -40,8 +56,8 @@ export default function PracticePage() {
     settings,
     players,
     rounds,
-    isLoading: practiceLoading,
     isInitialLoad: practiceInitialLoad,
+    isGenerating,
     error,
     load,
     startPractice,
@@ -63,6 +79,7 @@ export default function PracticePage() {
       : null;
 
   const [courts, setCourts] = useState(2);
+  const [isStarting, setIsStarting] = useState(false);
   const [clubTags, setClubTags] = useState<string[]>([]);
   const [selected, setSelected] = useState<number[]>([]);
   const [showAddParticipant, setShowAddParticipant] = useState(false);
@@ -78,9 +95,7 @@ export default function PracticePage() {
   const [hideResultReminder, setHideResultReminder] = useState(false);
   const [showUndoConfirm, setShowUndoConfirm] = useState(false);
   const [dismissResultReminder, setDismissResultReminder] = useState(false);
-  const [toast, setToast] = useState<{ message: string; canUndo: boolean } | null>(
-    null
-  );
+  const [toast, setToast] = useState<PracticeToast | null>(null);
   const [courtNotice, setCourtNotice] = useState<string | null>(null);
   const roundCountAtCourtChange = useRef<number | null>(null);
   const { mode: courtDisplayMode, setMode: setCourtDisplayMode } =
@@ -162,8 +177,13 @@ export default function PracticePage() {
   const onStart = async (e: React.FormEvent) => {
     e.preventDefault();
     clearMemberError();
-    if (selected.length < 4) return;
-    await startPractice(courts, selected, clubTags.length > 0 ? clubTags : undefined);
+    if (isStarting || selected.length < 4) return;
+    setIsStarting(true);
+    try {
+      await startPractice(courts, selected, clubTags.length > 0 ? clubTags : undefined);
+    } finally {
+      setIsStarting(false);
+    }
   };
 
   const latestRound = rounds[rounds.length - 1];
@@ -229,16 +249,25 @@ export default function PracticePage() {
 
   const onPlayerClick = async (memberId: number) => {
     if (!substituting) {
-      // First click - select player for substitution
       setSubstituting(memberId);
-    } else if (substituting === memberId) {
-      // Click same player - deselect
-      setSubstituting(null);
-    } else {
-      // Click different player - perform substitution
-      await substitutePlayer(substituting, memberId);
-      setSubstituting(null);
+      return;
     }
+    if (substituting === memberId) {
+      setSubstituting(null);
+      return;
+    }
+    const fromId = substituting;
+    const toId = memberId;
+    const roundNo = latestRound?.roundNo;
+    const fromName = memberMap.get(fromId)?.name ?? '選手';
+    const toName = memberMap.get(toId)?.name ?? '選手';
+    const swapped = await substitutePlayer(fromId, toId);
+    setSubstituting(null);
+    if (!swapped || roundNo == null) return;
+    setToast({
+      message: substitutionToast(fromName, toName),
+      undo: { kind: 'substitution', fromId, toId, roundNo },
+    });
   };
 
   const handleReset = () => {
@@ -263,7 +292,7 @@ export default function PracticePage() {
       const created = usePracticeStore.getState().rounds[after - 1];
       setToast({
         message: `第${created?.roundNo ?? after}ラウンドを生成しました`,
-        canUndo: true,
+        undo: { kind: 'round' },
       });
     }
     requestAnimationFrame(() => {
@@ -276,7 +305,7 @@ export default function PracticePage() {
     setToast(null);
     const undone = await undoLastRound();
     if (undone) {
-      setToast({ message: '直前のラウンドを元に戻しました', canUndo: false });
+      setToast({ message: '直前のラウンドを元に戻しました' });
     }
   };
 
@@ -288,6 +317,26 @@ export default function PracticePage() {
       return;
     }
     await performUndoRound();
+  };
+
+  const handleToastUndo = async () => {
+    const current = toast;
+    if (!current?.undo) return;
+    if (current.undo.kind === 'round') {
+      await handleUndoRound();
+      return;
+    }
+    const { fromId, toId, roundNo } = current.undo;
+    const currentRounds = usePracticeStore.getState().rounds;
+    const latest = currentRounds[currentRounds.length - 1];
+    if (!latest || latest.roundNo !== roundNo) {
+      setToast({ message: '次のラウンドのあとなので、入れ替えは戻せません' });
+      return;
+    }
+    const restored = await substitutePlayer(fromId, toId);
+    setToast({
+      message: restored ? '入れ替えを元に戻しました' : '入れ替えを戻せませんでした',
+    });
   };
 
   useEffect(() => {
@@ -313,10 +362,12 @@ export default function PracticePage() {
     setShowCourtModal(false);
   };
 
-  const isLoading = membersLoading || practiceLoading;
-  const isInitialLoading = !membersInitialLoad || !practiceInitialLoad;
+  const showBootSpinner = shouldBlockPracticeScreen(
+    membersInitialLoad,
+    practiceInitialLoad
+  );
 
-  if (isLoading || isInitialLoading) {
+  if (showBootSpinner) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="flex flex-col items-center gap-4">
@@ -356,6 +407,7 @@ export default function PracticePage() {
           onToggleSelect={onToggleSelect}
           onReorderSelected={onReorderSelected}
           onStart={onStart}
+          starting={isStarting}
           clubTags={clubTags}
           onClubTagsChange={setClubTags}
           onCreateMember={onCreateMember}
@@ -463,8 +515,9 @@ export default function PracticePage() {
               <button
                 type="button"
                 onClick={() => setCourtDisplayMode('normal')}
+                aria-pressed={courtDisplayMode === 'normal'}
                 className={cn(
-                  'flex-1 rounded-md py-1.5 text-xs font-semibold transition-all',
+                  'min-h-11 flex-1 rounded-md py-2 text-xs font-semibold transition-all',
                   courtDisplayMode === 'normal'
                     ? 'bg-background text-foreground shadow-sm'
                     : 'text-muted-foreground'
@@ -475,8 +528,9 @@ export default function PracticePage() {
               <button
                 type="button"
                 onClick={() => setCourtDisplayMode('numberEmphasis')}
+                aria-pressed={courtDisplayMode === 'numberEmphasis'}
                 className={cn(
-                  'flex-1 rounded-md py-1.5 text-xs font-semibold transition-all',
+                  'min-h-11 flex-1 rounded-md py-2 text-xs font-semibold transition-all',
                   courtDisplayMode === 'numberEmphasis'
                     ? 'bg-background text-foreground shadow-sm'
                     : 'text-muted-foreground'
@@ -488,7 +542,8 @@ export default function PracticePage() {
                 type="button"
                 onClick={() => latestRound && setShowBoard(true)}
                 disabled={!latestRound}
-                className="flex items-center justify-center gap-1 rounded-md px-3 py-1.5 text-xs font-semibold text-muted-foreground disabled:opacity-40"
+                aria-pressed={showBoard}
+                className="inline-flex min-h-11 items-center justify-center gap-1 rounded-md px-3 py-2 text-xs font-semibold text-muted-foreground disabled:opacity-40"
                 title={
                   latestRound
                     ? '番号と名前を大きく表示します'
@@ -515,6 +570,7 @@ export default function PracticePage() {
                 onPlayerClick={onPlayerClick}
                 onRecordResult={recordResult}
                 onToggleStatus={(memberId) => setPlayerAvailability(memberId, 'active')}
+                onSetAvailability={setPlayerAvailability}
                 courtDisplayMode={courtDisplayMode}
               />
             </div>
@@ -583,11 +639,12 @@ export default function PracticePage() {
               <Button
                 onClick={() => void executeGenerateNextRound()}
                 className="flex-1 shadow-level-3"
-                disabled={practiceLoading || generateBlockedReason != null}
+                disabled={isGenerating || generateBlockedReason != null}
+                aria-busy={isGenerating}
               >
                 <span className="inline-flex items-center gap-2 font-bold">
                   <Shuffle className="w-5 h-5" />
-                  次の組み合わせを生成
+                  {isGenerating ? GENERATING_LABEL : '次の組み合わせを生成'}
                 </span>
               </Button>
             </div>
@@ -628,7 +685,7 @@ export default function PracticePage() {
       {/* Participant management modal */}
       <Dialog open={showParticipantModal && !!settings} onOpenChange={(open) => !open && setShowParticipantModal(false)}>
         <DialogContent className="max-w-3xl rounded-2xl border-2 border-border/50 p-0">
-          <div className="border-b px-5 py-4">
+          <div className="border-b py-4 pl-5 pr-16">
             <DialogTitle className="text-base font-semibold text-foreground">
               参加者の管理
             </DialogTitle>
@@ -768,7 +825,7 @@ export default function PracticePage() {
               }}
             >
               <Monitor className="w-4 h-4" />
-              掲示モード
+              掲示
             </Button>
             <Button
               type="button"
@@ -794,24 +851,31 @@ export default function PracticePage() {
           onClose={() => setShowBoard(false)}
           onGenerateNextRound={executeGenerateNextRound}
           generateBlockedReason={generateBlockedReason}
-          toast={toast}
-          onUndo={() => void handleUndoRound()}
+          isGenerating={isGenerating}
+          toast={
+            toast
+              ? { message: toast.message, canUndo: toast.undo != null }
+              : null
+          }
+          onUndo={() => void handleToastUndo()}
         />
       )}
 
       {toast && !showBoard && (
         <div
+          role="status"
+          aria-live="polite"
           className={`fixed left-4 right-4 z-toast ${
             error || memberError ? 'top-36' : 'top-16'
           }`}
         >
           <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 rounded-xl bg-foreground px-4 py-3 text-sm text-background shadow-level-3">
             <span>{toast.message}</span>
-            {toast.canUndo && (
+            {toast.undo && (
               <button
                 type="button"
-                className="shrink-0 font-semibold underline"
-                onClick={() => void handleUndoRound()}
+                className="inline-flex min-h-11 shrink-0 items-center px-2 font-semibold underline"
+                onClick={() => void handleToastUndo()}
               >
                 元に戻す
               </button>

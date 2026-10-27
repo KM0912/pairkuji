@@ -23,6 +23,7 @@ import { Trophy } from 'lucide-react';
 import { PiCourtBasketball } from 'react-icons/pi';
 import { IconBadge } from '@/components/ui/IconBadge';
 import { cn, getDisplayName } from '@/lib/utils';
+import { WAITING_THIS_ROUND, courtLabel } from '@/lib/practiceLabels';
 
 interface SessionStatsModalProps {
   open: boolean;
@@ -92,7 +93,7 @@ export function SessionStatsModal({
         </DialogDescription>
 
         <Tabs defaultValue="history" className="w-full">
-          <div className="border-b px-4 pt-4 pb-0">
+          <div className="border-b pb-0 pl-4 pr-16 pt-4">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="history" className="text-xs">
                 履歴
@@ -138,7 +139,7 @@ export function SessionStatsModal({
                                   className="text-primary"
                                 />
                                 <span className="text-xs font-semibold text-foreground">
-                                  COURT {court.courtNo}
+                                  {courtLabel(court.courtNo)}
                                 </span>
                                 {court.result != null && (
                                   <span className="text-xs text-accent ml-auto">
@@ -254,7 +255,7 @@ export function SessionStatsModal({
                           ))}
                           {round.rests.length > 0 && (
                             <div className="flex flex-wrap items-center gap-x-1 gap-y-1 text-xs text-muted-foreground px-1">
-                              <span className="shrink-0">休憩:</span>
+                              <span className="shrink-0">{WAITING_THIS_ROUND}:</span>
                               {round.rests.map((id, index) => (
                                 <Fragment key={id}>
                                   {index > 0 && <span>、</span>}

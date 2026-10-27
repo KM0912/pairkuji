@@ -38,6 +38,7 @@ interface ParticipantSelectionProps {
   onToggleSelect: (id: number) => void;
   onReorderSelected: (orderedIds: number[]) => void;
   onStart: (e: React.FormEvent) => void;
+  starting?: boolean;
   clubTags?: string[];
   onClubTagsChange?: (tags: string[]) => void;
   onCreateMember: (name: string) => Promise<void>;
@@ -51,6 +52,7 @@ export function ParticipantSelection({
   onToggleSelect,
   onReorderSelected,
   onStart,
+  starting = false,
   clubTags,
   onClubTagsChange,
   onCreateMember,
@@ -125,7 +127,7 @@ export function ParticipantSelection({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-24">
       <form onSubmit={onStart} className="">
         <div className="grid grid-cols-1 gap-4">
           {/* コート設定カード */}
@@ -143,7 +145,7 @@ export function ParticipantSelection({
               <div className="bg-muted rounded-lg p-2">
                 <CourtSelector courts={courts} setCourts={setCourts} />
                 {runnableCourts < courts && selected.length >= 4 && (
-                  <div className="mt-2 text-xs text-amber-600 bg-amber-50 px-2 py-1.5 rounded border border-amber-200">
+                  <div className="mt-2 text-xs text-amber-800 bg-amber-50 px-2 py-1.5 rounded border border-amber-200">
                     参加者数により実際は{runnableCourts}コートで開始されます
                   </div>
                 )}
@@ -197,7 +199,7 @@ export function ParticipantSelection({
               {/* 検索 */}
               <InputGroup>
                 <InputGroupInput
-                  aria-label="メンバー検索"
+                  aria-label="選手検索"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="名前で検索"
@@ -224,7 +226,7 @@ export function ParticipantSelection({
                 }}
               >
                 <Plus className="w-4 h-4" />
-                名前を追加
+                選手を追加
               </Button>
 
               {/* メンバーリスト */}
@@ -246,7 +248,7 @@ export function ParticipantSelection({
                     />
                   ) : viewFilter === 'selected' && searchTerm.trim() ? (
                     <>
-                      <p className="text-xs text-amber-600 bg-amber-50 px-2 py-1.5 rounded border border-amber-200">
+                      <p className="text-xs text-amber-800 bg-amber-50 px-2 py-1.5 rounded border border-amber-200">
                         並べ替えは検索をクリアしてください
                       </p>
                       {visibleMembers.length > 0 ? (
@@ -315,8 +317,8 @@ export function ParticipantSelection({
                   ) : (
                     <div className="col-span-full text-center py-8 text-muted-foreground text-caption">
                       {searchTerm
-                        ? '検索条件に一致するメンバーがいません'
-                        : 'まだ選手がいません。「名前を追加」から登録できます'}
+                        ? '検索条件に一致する選手がいません'
+                        : 'まだ選手がいません。「選手を追加」から登録できます'}
                     </div>
                   )}
                 </CardContent>
@@ -329,33 +331,35 @@ export function ParticipantSelection({
             <TagSelector value={clubTags ?? []} onChange={onClubTagsChange} />
           )}
 
-          <div className="sticky bottom-2">
-            <Button
-              type="submit"
-              variant="default"
-              size="lg"
-              className="w-full font-bold shadow-2xl"
-              disabled={selected.length < minToStart}
-            >
-              {selected.length < minToStart ? (
-                <span className="inline-flex items-center gap-3">
-                  <AlertTriangle className="w-6 h-6" />
-                  あと {needMore} 名選択してください
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-3">
-                  <Play className="w-6 h-6" />
-                  ダブルス練習開始 ({selected.length}名)
-                </span>
-              )}
-            </Button>
+          <div className="fixed bottom-24 left-4 right-4 z-overlay">
+            <div className="mx-auto max-w-2xl">
+              <Button
+                type="submit"
+                variant="default"
+                size="lg"
+                className="w-full font-bold shadow-2xl"
+                disabled={starting || selected.length < minToStart}
+              >
+                {selected.length < minToStart ? (
+                  <span className="inline-flex items-center gap-3">
+                    <AlertTriangle className="w-6 h-6" />
+                    あと {needMore} 名選択してください
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-3">
+                    <Play className="w-6 h-6" />
+                    ダブルス練習開始 ({selected.length}名)
+                  </span>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </form>
 
       <Dialog open={showAdd} onOpenChange={(open) => !open && setShowAdd(false)}>
         <DialogContent className="max-w-sm rounded-2xl border-2 border-border/50 p-6">
-          <DialogTitle className="text-lg font-semibold">名前を追加</DialogTitle>
+          <DialogTitle className="text-lg font-semibold">選手を追加</DialogTitle>
           <DialogDescription className="sr-only">
             その場で新しい選手を名簿に登録します
           </DialogDescription>

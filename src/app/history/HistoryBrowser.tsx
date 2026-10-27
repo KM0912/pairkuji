@@ -135,7 +135,7 @@ export default function HistoryBrowser() {
                 </div>
               )}
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <span>{session.courts}面</span>
+                <span>{session.courts}コート</span>
                 <span>{session.playerIds.length}人</span>
                 <span>{roundCount}ラウンド</span>
                 {recordedCount > 0 && (

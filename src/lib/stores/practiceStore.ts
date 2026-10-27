@@ -18,6 +18,8 @@ type State = {
   sessions: PracticeSession[];
   isLoading: boolean;
   isInitialLoad: boolean;
+  /** 組み合わせ生成中。画面全体の読み込みとは分ける。 */
+  isGenerating: boolean;
   error: string | null;
 };
 
@@ -34,7 +36,7 @@ type Actions = {
   undoLastRound: () => Promise<boolean>;
   resetPractice: () => Promise<void>;
   addParticipant: (memberId: number) => Promise<void>;
-  substitutePlayer: (fromMemberId: number, toMemberId: number) => Promise<void>;
+  substitutePlayer: (fromMemberId: number, toMemberId: number) => Promise<boolean>;
   updateCourts: (courts: number) => Promise<void>;
   recordResult: (roundNo: number, courtNo: number, result: MatchResult) => Promise<void>;
   updateSessionResult: (sessionId: number, roundNo: number, courtNo: number, result: MatchResult) => Promise<void>;
@@ -51,6 +53,7 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
   sessions: [],
   isLoading: false,
   isInitialLoad: false,
+  isGenerating: false,
   error: null,
 
   load: async () => {
@@ -166,18 +169,18 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
   generateNextRound: async () => {
     const state = get();
     const s = state.settings;
-    if (!s || state.isLoading) return;
-    set({ isLoading: true, error: null });
-    try {
-      const activePlayers = state.players.filter((p) => p.status === 'active');
+    if (!s || state.isGenerating) return;
+    const activePlayers = state.players.filter((p) => p.status === 'active');
 
-      if (activePlayers.length < 4) {
-        set({
-          error: `出場できる人が${activePlayers.length}人です（4人必要）。休憩・早退の人を戻すか、参加者を追加してください`,
-          isLoading: false,
-        });
-        return;
-      }
+    if (activePlayers.length < 4) {
+      set({
+        error: `出場できる人が${activePlayers.length}人です（4人必要）。休憩・早退の人を戻すか、参加者を追加してください`,
+      });
+      return;
+    }
+
+    set({ isGenerating: true, error: null });
+    try {
 
       // 新しい公平性アルゴリズムを使用（各プレイヤーの playedOffset を内部で加味）
       const { courts, rests } = generateFairRound(
@@ -227,10 +230,10 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
           currentRound: nextNo,
           updatedAt: new Date().toISOString(),
         },
-        isLoading: false,
+        isGenerating: false,
       });
     } catch (e: unknown) {
-      set({ error: e instanceof Error ? e.message : '組み合わせを生成できませんでした', isLoading: false });
+      set({ error: e instanceof Error ? e.message : '組み合わせを生成できませんでした', isGenerating: false });
     }
   },
 
@@ -374,12 +377,12 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
 
   substitutePlayer: async (fromMemberId, toMemberId) => {
     const state = get();
-    if (!state.settings) return;
+    if (!state.settings) return false;
 
     try {
       // Update the latest round with substitution
       const latestRound = state.rounds[state.rounds.length - 1];
-      if (!latestRound) return;
+      if (!latestRound) return false;
 
       const updatedRound = { ...latestRound };
 
@@ -438,8 +441,10 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
       const updatedRounds = [...state.rounds];
       updatedRounds[updatedRounds.length - 1] = updatedRound;
       set({ rounds: updatedRounds });
+      return true;
     } catch (e: unknown) {
       set({ error: e instanceof Error ? e.message : '選手を入れ替えられませんでした' });
+      return false;
     }
   },
 

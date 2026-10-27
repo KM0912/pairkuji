@@ -11,7 +11,7 @@ export const BottomNavigation: React.FC = () => {
   const tabs = [
     {
       id: 'members',
-      label: 'メンバー',
+      label: '選手',
       icon: <Users className="w-6 h-6" />,
       paths: ['/members'],
       href: '/members' as const,
@@ -58,7 +58,10 @@ export const BottomNavigation: React.FC = () => {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t border-border/50 shadow-level-2 safe-area-pb w-full z-sticky">
+    <nav
+      aria-label="メインメニュー"
+      className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t border-border/50 shadow-level-2 safe-area-pb w-full z-sticky"
+    >
       <div className="flex px-2 max-w-2xl mx-auto">
         {tabs.map((tab) => {
           const isActive = activeTab?.id === tab.id;
@@ -66,6 +69,7 @@ export const BottomNavigation: React.FC = () => {
             <button
               key={tab.id}
               onClick={() => handleTabClick(tab)}
+              aria-current={isActive ? 'page' : undefined}
               className={`flex-1 flex flex-col items-center justify-center py-3 px-3 min-h-[72px] transition-all duration-fast relative active:scale-[0.97] ${
                 isActive
                   ? 'text-primary'

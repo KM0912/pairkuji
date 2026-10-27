@@ -20,7 +20,7 @@ export function RoundHistory({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-4xl max-h-[85vh] rounded-2xl border-2 border-border/50 p-0 overflow-hidden">
-        <div className="flex items-center gap-2 border-b px-5 py-4">
+        <div className="flex items-center gap-2 border-b py-4 pl-5 pr-16">
           <History className="w-5 h-5 text-foreground" />
           <DialogTitle className="text-lg font-semibold text-foreground">
             ラウンド履歴

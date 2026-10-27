@@ -10,17 +10,10 @@ import {
 import { DialogTrigger } from '@radix-ui/react-dialog';
 import { Button } from '../../ui/button';
 
-export function HelpModal() {
+export function HelpBody() {
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="ghost">
-          <HelpCircle className="w-4 h-4" />
-          <span className="text-sm hidden sm:inline">ヘルプ</span>
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-2xl p-0 bg-card rounded-2xl">
-        <div className="border-b px-5 py-4">
+    <>
+        <div className="border-b py-4 pl-5 pr-16">
           <DialogHeader className="items-start text-left">
             <DialogTitle className="text-lg">🏸 ペアくじの使い方</DialogTitle>
             <DialogDescription>
@@ -35,8 +28,8 @@ export function HelpModal() {
               このアプリでできること
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              バドミントンダブルス練習で、参加者の試合回数や休憩回数のバランスを取りながら、
-              公平な組み合わせを自動生成します。連続休憩や同じペアの重複を避けて、
+              バドミントンダブルス練習で、参加者の試合回数や待機のバランスを取りながら、
+              公平な組み合わせを自動生成します。連続した待機や同じペアの重複を避けて、
               みんなが楽しめる練習環境を作ります。
             </p>
           </div>
@@ -53,11 +46,11 @@ export function HelpModal() {
                   <div className="flex items-center gap-2 mb-1">
                     <Users className="w-4 h-4 text-primary" />
                     <span className="font-medium text-foreground">
-                      メンバー登録
+                      選手登録
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    「メンバー」タブから練習に参加する可能性のある全員を登録します。
+                    「選手」タブから練習に参加する可能性のある全員を登録します。
                     後からいつでも追加・編集できます。
                   </p>
                 </div>
@@ -94,7 +87,7 @@ export function HelpModal() {
                   </div>
                   <p className="text-sm text-muted-foreground">
                     「次の組み合わせを生成」ボタンで、公平性を考慮した組み合わせが自動作成されます。
-                    選手をタップして入れ替えも可能です。
+                    選手を1回タップしてから、入れ替える相手をタップします。同じ選手をもう一度タップすると解除します。入れ替えたあとは「元に戻す」が出ます。
                   </p>
                 </div>
               </div>
@@ -107,12 +100,12 @@ export function HelpModal() {
                   <div className="flex items-center gap-2 mb-1">
                     <BarChart3 className="w-4 h-4 text-primary" />
                     <span className="font-medium text-foreground">
-                      統計確認
+                      ラウンドの確認
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    「統計」ボタンでペアの組み合わせ回数を確認できます。
-                    未対戦ペアを優先して組み合わせが作られます。
+                    「ラウンド」ボタンで、この練習の履歴とペアの回数を確認できます。
+                    各コートの「勝ち」をタップすると勝敗を記録できます。同じ側をもう一度タップすると記録を消せます。
                   </p>
                 </div>
               </div>
@@ -123,15 +116,36 @@ export function HelpModal() {
             <h3 className="text-sm font-semibold text-amber-800 mb-2">
               💡 ポイント
             </h3>
-            <ul className="text-sm text-amber-700 space-y-1">
-              <li>• 連続休憩を避けて全員が平等に試合できます</li>
+            <ul className="text-sm text-amber-800 space-y-1">
+              <li>• 連続して待機が続かないようにし、全員が平等に試合できます</li>
               <li>• 同じペアの重複を最小限に抑えます</li>
               <li>• 途中で参加者を追加・変更することも可能です</li>
-              <li>• 「掲示」で番号と名前を大きく表示できます。休憩中の人も出ます</li>
+              <li>
+                • 待機（このラウンドに出ていない人）の選手から、次の1ラウンドだけ休憩するか、早退するかを選べます。参加者の管理からも同じ操作ができます
+              </li>
+              <li>
+                • 組み合わせを生成した直後は「元に戻す」が出ます。メニューの「直前のラウンドを元に戻す」でも取り消せます。勝敗が付いているときは確認してから取り消します
+              </li>
+              <li>• 「掲示」で番号と名前を大きく表示できます。待機の人も出ます</li>
               <li>• ヘッダーの「データ」から名簿と履歴を書き出せます</li>
             </ul>
           </div>
         </div>
+    </>
+  );
+}
+
+export function HelpModal() {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="ghost" aria-label="ヘルプ">
+          <HelpCircle className="w-4 h-4" />
+          <span className="text-sm hidden sm:inline">ヘルプ</span>
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl p-0 bg-card rounded-2xl">
+        <HelpBody />
       </DialogContent>
     </Dialog>
   );

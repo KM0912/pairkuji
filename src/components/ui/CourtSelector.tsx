@@ -22,7 +22,7 @@ export function CourtSelector({
         variant="outline"
         onClick={() => setCourts(Math.max(1, courts - 1))}
         className={
-          'rounded-full bg-card hover:bg-muted shadow-level-1 border-border flex items-center justify-center'
+          'min-h-11 min-w-11 rounded-full bg-card hover:bg-muted shadow-level-1 border-border flex items-center justify-center'
         }
         aria-label="コート数を減らす"
       >
@@ -42,7 +42,7 @@ export function CourtSelector({
         }}
         disabled={courts >= maxCourts}
         className={
-          'rounded-full bg-card hover:bg-muted shadow-level-1 border-border flex items-center justify-center'
+          'min-h-11 min-w-11 rounded-full bg-card hover:bg-muted shadow-level-1 border-border flex items-center justify-center'
         }
         aria-label="コート数を増やす"
       >

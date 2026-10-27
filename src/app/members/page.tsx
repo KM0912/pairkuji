@@ -336,13 +336,13 @@ export default function MembersPage() {
             </div>
             <h3 className="text-lg font-medium text-muted-foreground mb-2">
               {searchTerm
-                ? '該当するメンバーがいません'
-                : 'メンバーを追加しましょう'}
+                ? '該当する選手がいません'
+                : '選手を追加しましょう'}
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
               {searchTerm
                 ? '検索条件を変更して再度お試しください'
-                : '下のボタンから最初のメンバーを追加してください'}
+                : '下のボタンから最初の選手を追加してください'}
             </p>
             {searchTerm && (
               <button
@@ -362,10 +362,11 @@ export default function MembersPage() {
             <DialogDescription className="sr-only">新しい選手を追加します</DialogDescription>
             <form onSubmit={handleAdd} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">
+                <label htmlFor="new-player-name" className="block text-sm font-medium text-foreground mb-1">
                   名前
                 </label>
                 <input
+                  id="new-player-name"
                   type="text"
                   className="w-full border rounded-lg px-3 py-2 bg-card border-border focus:outline-none focus:ring-2 focus:ring-primary"
                   value={name}
@@ -419,10 +420,11 @@ export default function MembersPage() {
             {editingMember && (
               <form onSubmit={handleEditSave} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">
+                  <label htmlFor="edit-player-name" className="block text-sm font-medium text-foreground mb-1">
                     名前
                   </label>
                   <input
+                    id="edit-player-name"
                     type="text"
                     className="w-full border rounded-lg px-3 py-2 bg-card border-border focus:outline-none focus:ring-2 focus:ring-primary"
                     value={editingMember.name}
@@ -514,7 +516,7 @@ export default function MembersPage() {
         </Dialog>
 
         {toast && (
-          <div className="fixed bottom-40 left-1/2 z-toast max-w-[calc(100%-2rem)] -translate-x-1/2 rounded-xl bg-foreground px-5 py-3 text-caption font-medium text-background shadow-level-3 animate-in fade-in-0 slide-in-from-bottom-4 duration-slow">
+          <div role="status" aria-live="polite" className="fixed bottom-40 left-1/2 z-toast max-w-[calc(100%-2rem)] -translate-x-1/2 rounded-xl bg-foreground px-5 py-3 text-caption font-medium text-background shadow-level-3 animate-in fade-in-0 slide-in-from-bottom-4 duration-slow">
             {toast}
           </div>
         )}

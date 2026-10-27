@@ -250,7 +250,7 @@ export function SessionDetailView({ sessionId }: { sessionId: number }) {
               hour: '2-digit',
               minute: '2-digit',
             })}
-            ・{session.courts}面・{session.playerIds.length}人
+            ・{session.courts}コート・{session.playerIds.length}人
           </p>
         </div>
       </div>
@@ -365,7 +365,7 @@ export function SessionDetailView({ sessionId }: { sessionId: number }) {
                         className="text-primary"
                       />
                       <span className="text-xs font-semibold text-foreground">
-                        COURT {court.courtNo}
+                        コート{court.courtNo}
                       </span>
                       <button
                         className={cn(

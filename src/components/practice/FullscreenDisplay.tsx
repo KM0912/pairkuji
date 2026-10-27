@@ -5,6 +5,13 @@ import { type Round } from '@/types/round';
 import { X, Shuffle } from 'lucide-react';
 import { PlayerNumber } from '../ui/PlayerNumber';
 import { Button } from '../ui/button';
+import {
+  GENERATING_LABEL,
+  NEXT_BREAK_ONCE,
+  NEXT_EARLY,
+  WAITING_THIS_ROUND,
+  courtLabel,
+} from '@/lib/practiceLabels';
 
 interface FullscreenDisplayProps {
   round: Round;
@@ -15,6 +22,7 @@ interface FullscreenDisplayProps {
   onClose: () => void;
   onGenerateNextRound: () => Promise<void>;
   generateBlockedReason?: string | null;
+  isGenerating?: boolean;
   toast?: { message: string; canUndo: boolean } | null;
   onUndo?: () => void;
 }
@@ -28,6 +36,7 @@ export function FullscreenDisplay({
   onClose,
   onGenerateNextRound,
   generateBlockedReason,
+  isGenerating = false,
   toast,
   onUndo,
 }: FullscreenDisplayProps) {
@@ -112,8 +121,8 @@ export function FullscreenDisplay({
     const nextOut =
       player?.status === 'rest'
         ? player.restKind === 'break'
-          ? '次は休憩'
-          : '次は早退'
+          ? NEXT_BREAK_ONCE
+          : NEXT_EARLY
         : null;
     return (
       <div
@@ -146,10 +155,10 @@ export function FullscreenDisplay({
           </h1>
           <button
             onClick={onClose}
-            className="flex items-center gap-1.5 rounded-lg bg-secondary px-3 py-1.5 transition-colors hover:bg-muted"
-            aria-label="フルスクリーンを閉じる"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-lg bg-secondary px-3 transition-colors hover:bg-muted"
+            aria-label="掲示を閉じる"
           >
-            <X className="h-3 w-3" />
+            <X className="h-4 w-4" />
             <span className="text-xs">閉じる</span>
           </button>
         </div>
@@ -164,7 +173,7 @@ export function FullscreenDisplay({
             >
               <div className="mb-3 text-center">
                 <h2 className="font-heading text-title font-bold text-foreground">
-                  COURT {court.courtNo}
+                  {courtLabel(court.courtNo)}
                 </h2>
               </div>
               <div className="flex items-stretch gap-2">
@@ -181,7 +190,7 @@ export function FullscreenDisplay({
 
         {restingPlayers.length > 0 && (
           <div className="mt-3 rounded-lg border border-border bg-muted p-3">
-            <h3 className="mb-2 text-lg font-bold text-foreground">休憩中</h3>
+            <h3 className="mb-2 text-lg font-bold text-foreground">{WAITING_THIS_ROUND}</h3>
             <div className="flex flex-wrap gap-1.5">
               {restingPlayers.map((id) => {
                 const member = memberMap.get(id);
@@ -210,7 +219,7 @@ export function FullscreenDisplay({
 
         {breakPlayers.length > 0 && (
           <div className="mt-3 rounded-lg border border-border bg-muted p-3">
-            <h3 className="mb-2 text-lg font-bold text-foreground">休憩</h3>
+            <h3 className="mb-2 text-lg font-bold text-foreground">{NEXT_BREAK_ONCE}</h3>
             <div className="flex flex-wrap gap-2">
               {breakPlayers.map((player) => {
                 const member = memberMap.get(player.memberId);
@@ -261,7 +270,11 @@ export function FullscreenDisplay({
 
       <div className="fixed bottom-0 left-0 right-0 z-sticky space-y-2 border-t border-border bg-background/95 p-2">
         {toast && (
-          <div className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-foreground px-3 py-2 text-xs text-background shadow-level-3">
+          <div
+            role="status"
+            aria-live="polite"
+            className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-foreground px-3 py-2 text-xs text-background shadow-level-3"
+          >
             <span>{toast.message}</span>
             {toast.canUndo && onUndo && (
               <button
@@ -283,11 +296,12 @@ export function FullscreenDisplay({
           variant="default"
           onClick={onGenerateNextRound}
           className="w-full"
-          disabled={generateBlockedReason != null}
+          disabled={isGenerating || generateBlockedReason != null}
+          aria-busy={isGenerating}
         >
           <span className="inline-flex items-center gap-2">
             <Shuffle className="h-4 w-4" />
-            次の組み合わせを生成
+            {isGenerating ? GENERATING_LABEL : '次の組み合わせを生成'}
           </span>
         </Button>
       </div>

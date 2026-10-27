@@ -70,8 +70,8 @@ export function AddParticipantModal({
             <Input
               value={newName}
               onChange={(event) => setNewName(event.target.value)}
-              placeholder="名前を追加"
-              aria-label="名前を追加"
+              placeholder="選手名を入力"
+              aria-label="選手名"
             />
             <Button type="submit" variant="outline" disabled={adding || !newName.trim()}>
               追加
@@ -84,7 +84,7 @@ export function AddParticipantModal({
           )}
           {availableMembers.length === 0 ? (
             <div className="text-center text-muted-foreground py-4">
-              追加できる選手がいません。上の欄から名前を追加できます。
+              追加できる選手がいません。上の欄から選手を追加できます。
             </div>
           ) : (
             <div className="space-y-2 max-h-64 overflow-auto">
@@ -116,7 +116,8 @@ export function AddParticipantModal({
             <div>選択中: {selectedIds.length} 名</div>
             {availableMembers.length > 0 && (
               <button
-                className="underline hover:text-foreground"
+                type="button"
+                className="inline-flex min-h-11 items-center underline hover:text-foreground"
                 onClick={() =>
                   setSelectedIds(
                     selectedIds.length === availableMembers.length

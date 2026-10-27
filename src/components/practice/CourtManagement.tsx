@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { type CourtDisplayMode } from '@/hooks/useCourtDisplayMode';
 import { type Member } from '@/types/member';
 import { type PracticePlayer } from '@/types/practice';
@@ -5,8 +6,14 @@ import { type Round, type MatchResult } from '@/types/round';
 import { PiCourtBasketball } from 'react-icons/pi';
 import { IconBadge } from '../ui/IconBadge';
 import { PlayerNumber } from '../ui/PlayerNumber';
-import { Swords, Trophy, Users } from 'lucide-react';
+import { MoreVertical, Swords, Trophy, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  NEXT_BREAK_ONCE,
+  NEXT_EARLY,
+  WAITING_THIS_ROUND,
+  courtLabel,
+} from '@/lib/practiceLabels';
 
 function MatchCountIndicator({
   count,
@@ -31,7 +38,7 @@ function MatchCountIndicator({
 
 function nextOutLabel(player: PracticePlayer | undefined): string | null {
   if (!player || player.status !== 'rest') return null;
-  return player.restKind === 'break' ? '次は休憩' : '次は早退';
+  return player.restKind === 'break' ? NEXT_BREAK_ONCE : NEXT_EARLY;
 }
 
 function pairNumbers(
@@ -79,6 +86,11 @@ interface CourtManagementProps {
     result: MatchResult
   ) => Promise<void>;
   onToggleStatus?: (memberId: number) => Promise<void>;
+  /** 待機の選手を、入れ替えとは別に休憩・早退へ移す */
+  onSetAvailability?: (
+    memberId: number,
+    mode: 'break' | 'early'
+  ) => Promise<void>;
   /** 番号を大きく表示し名前を隠す（投影・遠視用） */
   courtDisplayMode?: CourtDisplayMode;
 }
@@ -94,9 +106,13 @@ export function CourtManagement({
   onPlayerClick,
   onRecordResult,
   onToggleStatus,
+  onSetAvailability,
   courtDisplayMode = 'normal',
 }: CourtManagementProps) {
   const numberEmphasis = courtDisplayMode === 'numberEmphasis';
+  const [availabilityMemberId, setAvailabilityMemberId] = useState<number | null>(
+    null
+  );
   const handleResultClick = (
     roundNo: number,
     courtNo: number,
@@ -128,8 +144,8 @@ export function CourtManagement({
                         className="text-primary"
                       />
                     </div>
-                    <span className="font-heading text-caption tracking-wider uppercase">
-                      COURT {cm.courtNo}
+                    <span className="font-heading text-caption font-bold">
+                      {courtLabel(cm.courtNo)}
                     </span>
                   </div>
                   {cm.result != null && (
@@ -177,7 +193,7 @@ export function CourtManagement({
                             )}
                             onClick={() => onPlayerClick(id)}
                             title={numberEmphasis ? name : undefined}
-                            aria-label={`番号${number}、${name}、${matchCount}試合${nextOut ? `、${nextOut}` : ''}。選択して入れ替え`}
+                            aria-label={`番号${number}、${name}、${matchCount}試合${nextOut ? `、${nextOut}` : ''}。タップで入れ替え。もう一度タップで解除`}
                           >
                             <PlayerNumber
                               number={number}
@@ -281,7 +297,7 @@ export function CourtManagement({
                             )}
                             onClick={() => onPlayerClick(id)}
                             title={numberEmphasis ? name : undefined}
-                            aria-label={`番号${number}、${name}、${matchCount}試合${nextOut ? `、${nextOut}` : ''}。選択して入れ替え`}
+                            aria-label={`番号${number}、${name}、${matchCount}試合${nextOut ? `、${nextOut}` : ''}。タップで入れ替え。もう一度タップで解除`}
                           >
                             <PlayerNumber
                               number={number}
@@ -372,9 +388,9 @@ export function CourtManagement({
             return (
               restingPlayers.length > 0 && (
                 <div className="rounded-xl border-2 border-border/50 bg-gradient-to-br from-muted/80 to-muted/50 p-3 shadow-level-1">
-                  <div className="mb-2 font-heading font-semibold text-foreground text-caption flex items-center gap-2">
+                    <div className="mb-2 font-heading font-semibold text-foreground text-caption flex items-center gap-2">
                     <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full"></div>
-                    休憩中
+                    {WAITING_THIS_ROUND}
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {restingPlayers.map((id) => {
@@ -383,46 +399,103 @@ export function CourtManagement({
                       const name = member?.name ?? '???';
                       const number = player?.playerNumber ?? '?';
                       const matchCount = matchCounts.get(id) ?? 0;
+                      const menuOpen = availabilityMemberId === id;
                       return (
-                        <button
-                          key={id}
-                          type="button"
-                          className={cn(
-                            'relative inline-flex items-center border-2 text-caption font-medium transition-all duration-fast active:scale-[0.97] shadow-level-1',
-                            numberEmphasis
-                              ? 'justify-center rounded-full px-2 py-2 min-h-[48px] min-w-[48px]'
-                              : 'gap-2 rounded-full px-3.5 py-2 min-h-[44px]',
-                            substituting === id
-                              ? 'bg-warning/10 border-warning text-warning-foreground ring-2 ring-warning/30 shadow-level-2'
-                              : 'bg-white/90 border-border/60 text-foreground hover:bg-muted hover:border-border hover:shadow-level-2'
-                          )}
-                          onClick={() => onPlayerClick(id)}
-                          title={numberEmphasis ? name : undefined}
-                          aria-label={`番号${number}、${name}、${matchCount}試合。選択して入れ替え`}
-                        >
-                          <PlayerNumber
-                            number={number}
-                            variant="neutral"
-                            size={numberEmphasis ? 'lg' : 'xs'}
-                          />
-                          {!numberEmphasis && (
-                            <>
-                              <span
-                                className="truncate max-w-[100px] text-left"
-                                title={name}
-                              >
-                                {name}
-                              </span>
-                              <MatchCountIndicator count={matchCount} />
-                            </>
-                          )}
-                          {numberEmphasis && (
-                            <MatchCountIndicator
-                              count={matchCount}
-                              className="absolute -bottom-1 -right-1 shrink-0 whitespace-nowrap rounded-full border border-border bg-background px-1 py-0.5 text-[10px] font-semibold leading-none tabular-nums text-muted-foreground shadow-level-1"
+                        <div key={id} className="relative inline-flex items-stretch">
+                          <button
+                            type="button"
+                            className={cn(
+                              'relative inline-flex items-center border-2 text-caption font-medium transition-all duration-fast active:scale-[0.97] shadow-level-1',
+                              numberEmphasis
+                                ? 'justify-center rounded-full px-2 py-2 min-h-[48px] min-w-[48px]'
+                                : 'gap-2 rounded-full px-3.5 py-2 min-h-[44px]',
+                              onSetAvailability && !numberEmphasis && 'rounded-r-none',
+                              substituting === id
+                                ? 'bg-warning/10 border-warning text-warning-foreground ring-2 ring-warning/30 shadow-level-2'
+                                : 'bg-white/90 border-border/60 text-foreground hover:bg-muted hover:border-border hover:shadow-level-2'
+                            )}
+                            onClick={() => {
+                              setAvailabilityMemberId(null);
+                              void onPlayerClick(id);
+                            }}
+                            title={numberEmphasis ? name : undefined}
+                            aria-label={`番号${number}、${name}、${matchCount}試合。タップで入れ替え。もう一度タップで解除`}
+                          >
+                            <PlayerNumber
+                              number={number}
+                              variant="neutral"
+                              size={numberEmphasis ? 'lg' : 'xs'}
                             />
+                            {!numberEmphasis && (
+                              <>
+                                <span
+                                  className="truncate max-w-[100px] text-left"
+                                  title={name}
+                                >
+                                  {name}
+                                </span>
+                                <MatchCountIndicator count={matchCount} />
+                              </>
+                            )}
+                            {numberEmphasis && (
+                              <MatchCountIndicator
+                                count={matchCount}
+                                className="absolute -bottom-1 -right-1 shrink-0 whitespace-nowrap rounded-full border border-border bg-background px-1 py-0.5 text-[10px] font-semibold leading-none tabular-nums text-muted-foreground shadow-level-1"
+                              />
+                            )}
+                          </button>
+                          {onSetAvailability && (
+                            <button
+                              type="button"
+                              className={cn(
+                                'inline-flex min-h-11 min-w-11 items-center justify-center border-2 border-l-0 bg-white/90 text-foreground shadow-level-1',
+                                numberEmphasis
+                                  ? 'ml-1 rounded-full border-l-2'
+                                  : 'rounded-r-full'
+                              )}
+                              aria-haspopup="menu"
+                              aria-expanded={menuOpen}
+                              aria-label={`${name}の休憩か早退を選ぶ`}
+                              onClick={() =>
+                                setAvailabilityMemberId((current) =>
+                                  current === id ? null : id
+                                )
+                              }
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </button>
                           )}
-                        </button>
+                          {onSetAvailability && menuOpen && (
+                            <div
+                              role="menu"
+                              aria-label={`${name}の出場`}
+                              className="absolute left-0 bottom-full z-toast mb-1 min-w-[14rem] rounded-lg border border-border bg-popover p-1 shadow-level-2"
+                            >
+                              <button
+                                type="button"
+                                role="menuitem"
+                                className="flex min-h-11 w-full items-center rounded-md px-3 text-left text-sm"
+                                onClick={() => {
+                                  setAvailabilityMemberId(null);
+                                  void onSetAvailability(id, 'break');
+                                }}
+                              >
+                                次の1ラウンドだけ休憩
+                              </button>
+                              <button
+                                type="button"
+                                role="menuitem"
+                                className="flex min-h-11 w-full items-center rounded-md px-3 text-left text-sm"
+                                onClick={() => {
+                                  setAvailabilityMemberId(null);
+                                  void onSetAvailability(id, 'early');
+                                }}
+                              >
+                                早退
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       );
                     })}
                   </div>
@@ -434,7 +507,7 @@ export function CourtManagement({
             [
               {
                 kind: 'break' as const,
-                title: '休憩',
+                title: NEXT_BREAK_ONCE,
                 note: '次の1ラウンドだけ組み合わせから外れ、その次は戻ります。タップすると今すぐ戻せます。',
               },
               {

@@ -19,6 +19,7 @@ import {
   type ImportMode,
   type PairkujiBackup,
 } from '@/lib/backup';
+import { MERGE_SUMMARY, OVERWRITE_SUMMARY } from '@/lib/practiceLabels';
 import { db } from '@/lib/db';
 import { downloadJson, formatBackupStamp } from '@/lib/downloadJson';
 import { loadSafetySnapshot } from '@/lib/safetyBackup';
@@ -158,7 +159,7 @@ export function DataBackupDialog() {
           : '進行中の練習はありません。';
       const replaceNote =
         step.mode === 'replace'
-          ? '置き換える前のデータをファイルに書き出し、この端末にも退避しました。'
+          ? '上書きする前のデータをファイルに書き出し、この端末にも退避しました。'
           : '';
       setStep({
         kind: 'done',
@@ -238,30 +239,36 @@ export function DataBackupDialog() {
                 {step.data.practiceSessions.length}件
                 {step.data.practiceSettings ? '、進行中の練習あり' : ''}
               </p>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="destructiveOutline"
-                  className="flex-1"
-                  onClick={() =>
-                    setStep({
-                      kind: 'confirm',
-                      data: step.data,
-                      mode: 'replace',
-                      fileName: step.fileName,
-                      intent: 'import',
-                    })
-                  }
-                >
-                  上書き
-                </Button>
-                <Button
-                  type="button"
-                  className="flex-1"
-                  onClick={() => void beginMerge(step.data, step.fileName)}
-                >
-                  統合
-                </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Button
+                    type="button"
+                    variant="destructiveOutline"
+                    className="w-full"
+                    onClick={() =>
+                      setStep({
+                        kind: 'confirm',
+                        data: step.data,
+                        mode: 'replace',
+                        fileName: step.fileName,
+                        intent: 'import',
+                      })
+                    }
+                  >
+                    上書き
+                  </Button>
+                  <p className="text-xs text-muted-foreground">{OVERWRITE_SUMMARY}</p>
+                </div>
+                <div className="space-y-1">
+                  <Button
+                    type="button"
+                    className="w-full"
+                    onClick={() => void beginMerge(step.data, step.fileName)}
+                  >
+                    統合
+                  </Button>
+                  <p className="text-xs text-muted-foreground">{MERGE_SUMMARY}</p>
+                </div>
               </div>
             </div>
           )}
@@ -309,8 +316,8 @@ export function DataBackupDialog() {
                 {step.intent === 'restore'
                   ? '上書きする直前に退避した内容へ戻します。今の名簿・履歴・練習は、戻す前にファイルへ書き出します。'
                   : step.mode === 'replace'
-                    ? 'この端末の名簿・履歴・進行中の練習を、ファイルの内容に置き換えます。実行前に、今のデータを自動で書き出します。'
-                    : '同じ名前の選手は今の名簿を使い、新しい選手と履歴を足します。進行中の練習がすでにある場合は、ファイル側の練習では置き換えません。'}
+                    ? `${OVERWRITE_SUMMARY}実行前に、今のデータを自動で書き出します。`
+                    : `${MERGE_SUMMARY}進行中の練習がすでにある場合は、ファイル側の練習では上書きしません。`}
               </p>
               <div className="flex gap-2">
                 <Button
