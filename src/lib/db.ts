@@ -5,6 +5,8 @@ import type { Round } from '@/types/round';
 import type { PairStats } from '@/types/pairs';
 import type { PracticeSession } from '@/types/practiceSession';
 
+const SAMPLE_MEMBER_NAMES = ['Aくん', 'Bさん', 'Cくん', 'Dさん'];
+
 export class PairkujiDB extends Dexie {
   members!: Table<Member, number>;
   practiceSettings!: Table<PracticeSettings, number>;
@@ -88,6 +90,46 @@ export class PairkujiDB extends Dexie {
           });
       });
 
+    // Version 6: 初期サンプル選手に印を付ける（スキーマは変更しない）
+    this.version(6)
+      .stores({
+        members: '++id, name, isActive, isDeleted, createdAt, updatedAt',
+        practiceSettings: 'id, updatedAt',
+        practicePlayers: 'memberId, playerNumber, status, createdAt',
+        rounds: 'roundNo',
+        pairStats: '++id, sessionId, lastUpdated',
+        practiceSessions: '++id, startedAt, endedAt, *clubTags',
+      })
+      .upgrade(async (tx) => {
+        const members: Array<{
+          id: number;
+          name: string;
+          isDeleted?: boolean;
+          createdAt?: string;
+        }> = await tx.table('members').toArray();
+        const seeds = members.filter(
+          (member) =>
+            SAMPLE_MEMBER_NAMES.includes(member.name) && member.isDeleted !== true
+        );
+        const byCreatedAt = new Map<string, typeof seeds>();
+        for (const member of seeds) {
+          const key = String(member.createdAt ?? '');
+          const group = byCreatedAt.get(key) ?? [];
+          group.push(member);
+          byCreatedAt.set(key, group);
+        }
+        for (const group of Array.from(byCreatedAt.values())) {
+          const names = new Set(group.map((member) => member.name));
+          const isInitialSample =
+            SAMPLE_MEMBER_NAMES.every((name) => names.has(name)) &&
+            group.length === SAMPLE_MEMBER_NAMES.length;
+          if (!isInitialSample) continue;
+          for (const member of group) {
+            await tx.table('members').update(member.id, { isSample: true });
+          }
+        }
+      });
+
     this.on('populate', async () => {
       const now = new Date().toISOString();
       const seedMembers: Omit<Member, 'id'>[] = [
@@ -95,6 +137,7 @@ export class PairkujiDB extends Dexie {
           name: 'Aくん',
           isActive: true,
           isDeleted: false,
+          isSample: true,
           createdAt: now,
           updatedAt: now,
         },
@@ -102,6 +145,7 @@ export class PairkujiDB extends Dexie {
           name: 'Bさん',
           isActive: true,
           isDeleted: false,
+          isSample: true,
           createdAt: now,
           updatedAt: now,
         },
@@ -109,6 +153,7 @@ export class PairkujiDB extends Dexie {
           name: 'Cくん',
           isActive: true,
           isDeleted: false,
+          isSample: true,
           createdAt: now,
           updatedAt: now,
         },
@@ -116,6 +161,7 @@ export class PairkujiDB extends Dexie {
           name: 'Dさん',
           isActive: true,
           isDeleted: false,
+          isSample: true,
           createdAt: now,
           updatedAt: now,
         },

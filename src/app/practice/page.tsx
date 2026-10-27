@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { CourtSelector } from '@/components/ui/CourtSelector';
 import { Spinner } from '@/components/ui/spinner';
 import { SessionStatsModal } from '@/components/practice/SessionStatsModal';
+import { FullscreenDisplay } from '@/components/practice/FullscreenDisplay';
 import { useCourtDisplayMode } from '@/hooks/useCourtDisplayMode';
 import { calculateWinRates } from '@/lib/winRateCalculator';
 import { cn } from '@/lib/utils';
@@ -19,7 +20,7 @@ import {
   countOpponentOccurrencesInRounds,
   countPairOccurrencesInRounds,
 } from '@/lib/statsCalculator';
-import { Users, AlertTriangle, CircleStop, Shuffle } from 'lucide-react';
+import { Users, AlertTriangle, Shuffle, MoreVertical, Monitor } from 'lucide-react';
 import { PiCourtBasketball } from 'react-icons/pi';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
@@ -28,7 +29,10 @@ export default function PracticePage() {
     members,
     isLoading: membersLoading,
     isInitialLoad: membersInitialLoad,
+    error: memberError,
     load: loadMembers,
+    add: addMember,
+    clearError: clearMemberError,
   } = useMemberStore();
   const {
     settings,
@@ -36,11 +40,14 @@ export default function PracticePage() {
     rounds,
     isLoading: practiceLoading,
     isInitialLoad: practiceInitialLoad,
+    error,
     load,
     startPractice,
     toggleStatus,
     generateNextRound,
+    undoLastRound,
     resetPractice,
+    clearError,
     addParticipant,
     substitutePlayer,
     updateCourts,
@@ -58,7 +65,13 @@ export default function PracticePage() {
   const [pendingCourts, setPendingCourts] = useState<number>(courts);
   const [showParticipantModal, setShowParticipantModal] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
-  const [showGenerateConfirm, setShowGenerateConfirm] = useState(false);
+  const [showPracticeMenu, setShowPracticeMenu] = useState(false);
+  const [showBoard, setShowBoard] = useState(false);
+  const [toast, setToast] = useState<{ message: string; canUndo: boolean } | null>(
+    null
+  );
+  const [courtNotice, setCourtNotice] = useState<string | null>(null);
+  const roundCountAtCourtChange = useRef<number | null>(null);
   const { mode: courtDisplayMode, setMode: setCourtDisplayMode } =
     useCourtDisplayMode();
 
@@ -73,8 +86,25 @@ export default function PracticePage() {
       setShowRoundSummary(false);
       setShowCourtModal(false);
       setShowParticipantModal(false);
+      setShowBoard(false);
     }
   }, [settings]);
+
+  useEffect(() => {
+    if (!toast) return;
+    const id = setTimeout(() => setToast(null), 8000);
+    return () => clearTimeout(id);
+  }, [toast]);
+
+  useEffect(() => {
+    if (
+      courtNotice &&
+      roundCountAtCourtChange.current !== null &&
+      rounds.length !== roundCountAtCourtChange.current
+    ) {
+      setCourtNotice(null);
+    }
+  }, [courtNotice, rounds.length]);
 
   useEffect(() => {
     if (!settings) {
@@ -105,6 +135,13 @@ export default function PracticePage() {
     setSelected(orderedIds);
   };
 
+  const onCreateMember = async (name: string) => {
+    const id = await addMember(name);
+    if (id != null) {
+      setSelected((prev) => (prev.includes(id) ? prev : [...prev, id]));
+    }
+  };
+
   const onStart = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selected.length < 4) return;
@@ -112,6 +149,16 @@ export default function PracticePage() {
   };
 
   const latestRound = rounds[rounds.length - 1];
+
+  const missedResultCount = useMemo(() => {
+    return rounds
+      .slice(0, -1)
+      .reduce(
+        (count, round) =>
+          count + round.courts.filter((court) => court.result == null).length,
+        0
+      );
+  }, [rounds]);
 
   // Calculate match counts for each player (include playedOffset, with -1 bias for joiners)
   const matchCounts = useMemo(() => {
@@ -191,21 +238,28 @@ export default function PracticePage() {
     setShowResetConfirm(false);
   };
 
-  const handleGenerateNextRound = async () => {
-    // 既存のラウンドがある場合は確認ダイアログを表示
-    if (rounds.length > 0) {
-      setShowGenerateConfirm(true);
-    } else {
-      // 初回の場合は直接生成
-      await executeGenerateNextRound();
-    }
-  };
-
   const executeGenerateNextRound = async () => {
+    const before = rounds.length;
     await generateNextRound();
+    const after = usePracticeStore.getState().rounds.length;
+    if (after > before) {
+      const created = usePracticeStore.getState().rounds[after - 1];
+      setToast({
+        message: `第${created?.roundNo ?? after}ラウンドを生成しました`,
+        canUndo: true,
+      });
+    }
     requestAnimationFrame(() => {
       combosRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
+  };
+
+  const handleUndoRound = async () => {
+    setToast(null);
+    const undone = await undoLastRound();
+    if (undone) {
+      setToast({ message: '直前のラウンドを取り消しました', canUndo: false });
+    }
   };
 
   useEffect(() => {
@@ -219,7 +273,15 @@ export default function PracticePage() {
   };
 
   const handleConfirmCourts = () => {
+    if (!settings || pendingCourts === settings.courts) {
+      setShowCourtModal(false);
+      return;
+    }
     updateCourts(pendingCourts);
+    setCourtNotice(
+      `コート数を${pendingCourts}にしました。次のラウンドから反映されます。`
+    );
+    roundCountAtCourtChange.current = rounds.length;
     setShowCourtModal(false);
   };
 
@@ -239,6 +301,24 @@ export default function PracticePage() {
 
   return (
     <div>
+      {(error || memberError) && (
+        <div
+          role="alert"
+          className="mb-4 flex items-center justify-between gap-3 rounded-lg bg-destructive/10 p-3 text-sm text-destructive"
+        >
+          <span>{error || memberError}</span>
+          <button
+            type="button"
+            className="shrink-0 underline"
+            onClick={() => {
+              clearError();
+              clearMemberError();
+            }}
+          >
+            閉じる
+          </button>
+        </div>
+      )}
       {!settings ? (
         <ParticipantSelection
           members={members}
@@ -250,6 +330,7 @@ export default function PracticePage() {
           onStart={onStart}
           clubTags={clubTags}
           onClubTagsChange={setClubTags}
+          onCreateMember={onCreateMember}
         />
       ) : (
         <>
@@ -288,7 +369,33 @@ export default function PracticePage() {
               <span className="sm:text-inherit text-small font-semibold">参加者</span>
               <span className="sm:text-inherit text-small font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded">{players.length}</span>
             </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowPracticeMenu(true)}
+              className="shrink-0 px-2 shadow-level-1"
+              aria-label="練習メニュー"
+            >
+              <MoreVertical className="w-4 h-4" />
+            </Button>
           </div>
+
+          {courtNotice && (
+            <p className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+              {courtNotice}
+            </p>
+          )}
+
+          {missedResultCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowRoundSummary(true)}
+              className="mb-3 w-full rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-left text-xs text-amber-800"
+            >
+              前のラウンドに勝敗未記録の試合が{missedResultCount}件あります。ここから付けられます。
+            </button>
+          )}
 
           <div
             className="flex items-center gap-2 mb-4 -mt-1"
@@ -323,11 +430,25 @@ export default function PracticePage() {
               >
                 番号強調
               </button>
+              <button
+                type="button"
+                onClick={() => latestRound && setShowBoard(true)}
+                disabled={!latestRound}
+                className="flex items-center justify-center gap-1 rounded-md px-3 py-1.5 text-xs font-semibold text-muted-foreground disabled:opacity-40"
+                title={
+                  latestRound
+                    ? '番号と名前を大きく表示します'
+                    : '組み合わせを生成すると使えます'
+                }
+              >
+                <Monitor className="h-3.5 w-3.5" />
+                掲示
+              </button>
             </div>
           </div>
 
           {/* コート管理 */}
-          <div ref={combosRef} className="space-y-6 pb-16">
+          <div ref={combosRef} className="space-y-6 pb-32">
             <div>
               <CourtManagement
                 players={players}
@@ -357,6 +478,9 @@ export default function PracticePage() {
             <label className="block text-sm font-medium text-foreground mb-3">
               コート数
             </label>
+            <p className="mb-3 text-xs text-muted-foreground">
+              変更したコート数は、次に生成するラウンドから使われます。今表示中のラウンドはそのままです。
+            </p>
             <div className="bg-muted rounded-lg p-3 border border-border">
               <CourtSelector
                 courts={pendingCourts}
@@ -394,20 +518,10 @@ export default function PracticePage() {
           <div className="max-w-2xl mx-auto">
             <div className="flex gap-3">
               <Button
-                type="button"
-                onClick={handleResetClick}
-                variant="destructiveOutline"
-                className="shrink-0 whitespace-nowrap px-4"
-                title="練習を終了し、セッションデータをリセットします"
-                aria-label="練習を終了し、データをリセット"
-              >
-                <CircleStop className="w-4 h-4" aria-hidden />
-                練習終了
-              </Button>
-              <Button
-                onClick={handleGenerateNextRound}
+                onClick={() => void executeGenerateNextRound()}
                 className="flex-1 shadow-level-3"
                 disabled={
+                  practiceLoading ||
                   players.filter((p) => p.status === 'active').length < 4
                 }
               >
@@ -444,6 +558,7 @@ export default function PracticePage() {
         pairCounts={pairCounts}
         opponentCounts={opponentCounts}
         winRates={winRates}
+        onRecordResult={recordResult}
       />
 
       {/* Participant management modal */}
@@ -488,7 +603,9 @@ export default function PracticePage() {
               練習を終了しますか？
             </h3>
             <p className="text-sm text-muted-foreground">
-              すべてのラウンドデータが削除され、元に戻すことはできません。
+              {rounds.length > 0
+                ? 'ここまでのラウンドは履歴に保存されます。進行中の画面は練習前に戻ります。'
+                : 'まだラウンドがないため、履歴には残りません。練習の設定だけ終了します。'}
             </p>
           </div>
 
@@ -511,43 +628,73 @@ export default function PracticePage() {
         </DialogContent>
       </Dialog>
 
-      {/* Generate round confirmation modal */}
-      <Dialog open={showGenerateConfirm} onOpenChange={(open) => !open && setShowGenerateConfirm(false)}>
+      <Dialog
+        open={showPracticeMenu}
+        onOpenChange={(open) => !open && setShowPracticeMenu(false)}
+      >
         <DialogContent className="max-w-sm rounded-2xl border-2 border-border/50 p-6">
-          <DialogTitle className="sr-only">ラウンド生成の確認</DialogTitle>
-          <DialogDescription className="sr-only">新しいラウンドを生成する確認ダイアログ</DialogDescription>
-          <div className="text-center mb-6">
-            <div className="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
-              <Shuffle className="w-8 h-8 text-primary" />
-            </div>
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              ラウンド {rounds.length + 1} を生成しますか？
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              新しい組み合わせが作成されます。
-            </p>
-          </div>
-
-          <div className="flex gap-3">
+          <DialogTitle className="text-base font-semibold">メニュー</DialogTitle>
+          <DialogDescription className="sr-only">
+            掲示と練習終了
+          </DialogDescription>
+          <div className="mt-4 flex flex-col gap-2">
             <Button
-              onClick={() => setShowGenerateConfirm(false)}
-              variant="secondary"
-              className="flex-1"
+              type="button"
+              variant="outline"
+              disabled={!latestRound}
+              onClick={() => {
+                setShowPracticeMenu(false);
+                setShowBoard(true);
+              }}
             >
-              キャンセル
+              <Monitor className="w-4 h-4" />
+              掲示モード
             </Button>
             <Button
-              onClick={async () => {
-                setShowGenerateConfirm(false);
-                await executeGenerateNextRound();
+              type="button"
+              variant="destructiveOutline"
+              onClick={() => {
+                setShowPracticeMenu(false);
+                handleResetClick();
               }}
-              className="flex-1"
             >
-              生成する
+              練習終了
             </Button>
           </div>
         </DialogContent>
       </Dialog>
+
+      {showBoard && latestRound && (
+        <FullscreenDisplay
+          round={latestRound}
+          players={players}
+          memberMap={memberMap}
+          playerMap={playerMap}
+          roundNumber={latestRound.roundNo}
+          substituting={substituting}
+          onClose={() => setShowBoard(false)}
+          onPlayerClick={onPlayerClick}
+          onGenerateNextRound={executeGenerateNextRound}
+          courtDisplayMode={courtDisplayMode}
+        />
+      )}
+
+      {toast && (
+        <div className="fixed bottom-56 left-4 right-4 z-toast">
+          <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 rounded-xl bg-foreground px-4 py-3 text-sm text-background shadow-level-3">
+            <span>{toast.message}</span>
+            {toast.canUndo && (
+              <button
+                type="button"
+                className="shrink-0 font-semibold underline"
+                onClick={() => void handleUndoRound()}
+              >
+                元に戻す
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
     </div>
   );

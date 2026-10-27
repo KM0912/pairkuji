@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 
 interface FullscreenDisplayProps {
   round: Round;
+  players: PracticePlayer[];
   memberMap: Map<number, Member>;
   playerMap: Map<number, PracticePlayer>;
   roundNumber: number;
@@ -22,6 +23,7 @@ interface FullscreenDisplayProps {
 
 export function FullscreenDisplay({
   round,
+  players,
   memberMap,
   playerMap,
   roundNumber,
@@ -32,6 +34,36 @@ export function FullscreenDisplay({
   courtDisplayMode = 'normal',
 }: FullscreenDisplayProps) {
   const numberEmphasis = courtDisplayMode === 'numberEmphasis';
+  useEffect(() => {
+    let lock: WakeLockSentinel | null = null;
+    let cancelled = false;
+
+    const requestLock = async () => {
+      if (!('wakeLock' in navigator)) return;
+      try {
+        const next = await navigator.wakeLock.request('screen');
+        if (cancelled) {
+          await next.release();
+          return;
+        }
+        lock = next;
+      } catch {
+        // 画面のスリープ防止が使えない環境では掲示だけ続ける
+      }
+    };
+
+    void requestLock();
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void requestLock();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      cancelled = true;
+      document.removeEventListener('visibilitychange', onVisible);
+      void lock?.release();
+    };
+  }, []);
+
   // Escape key to close
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -52,6 +84,13 @@ export function FullscreenDisplay({
   };
 
   const restingPlayers = getRestingPlayers();
+  const shownIds = new Set<number>([
+    ...round.courts.flatMap((court) => [...court.pairA, ...court.pairB]),
+    ...restingPlayers,
+  ]);
+  const manualRestPlayers = players.filter(
+    (player) => player.status === 'rest' && !shownIds.has(player.memberId)
+  );
 
   return (
     <div className="fixed inset-0 z-modal bg-background overflow-auto">
@@ -105,9 +144,7 @@ export function FullscreenDisplay({
                             type="button"
                             className={cn(
                               'bg-card border rounded-md w-full min-w-0 transition-all duration-fast active:scale-[0.97]',
-                              numberEmphasis
-                                ? 'flex items-center justify-center p-2 min-h-[52px]'
-                                : 'flex items-center gap-1.5 p-2 min-h-[36px]',
+                              'flex items-center gap-2 p-2 min-h-[64px]',
                               substituting === id
                                 ? 'border-warning bg-warning/10 ring-2 ring-warning/30'
                                 : 'border-primary/30 hover:bg-primary/10 hover:border-primary/40'
@@ -119,16 +156,14 @@ export function FullscreenDisplay({
                             <PlayerNumber
                               number={number}
                               variant="primary"
-                              size={numberEmphasis ? 'xl' : 'xs'}
+                              size="xl"
                             />
-                            {!numberEmphasis && (
-                              <div
-                                className="font-semibold text-foreground truncate text-sm"
-                                title={name}
-                              >
-                                {name}
-                              </div>
-                            )}
+                            <div
+                              className="min-w-0 flex-1 truncate text-left text-lg font-bold text-foreground"
+                              title={name}
+                            >
+                              {name}
+                            </div>
                           </button>
                         );
                       })}
@@ -149,9 +184,7 @@ export function FullscreenDisplay({
                             type="button"
                             className={cn(
                               'bg-card border rounded-md w-full min-w-0 transition-all duration-fast active:scale-[0.97]',
-                              numberEmphasis
-                                ? 'flex items-center justify-center p-2 min-h-[52px]'
-                                : 'flex items-center gap-1.5 p-2 min-h-[36px]',
+                              'flex items-center gap-2 p-2 min-h-[64px]',
                               substituting === id
                                 ? 'border-warning bg-warning/10 ring-2 ring-warning/30'
                                 : 'border-primary/30 hover:bg-primary/10 hover:border-primary/40'
@@ -163,16 +196,14 @@ export function FullscreenDisplay({
                             <PlayerNumber
                               number={number}
                               variant="primary"
-                              size={numberEmphasis ? 'xl' : 'xs'}
+                              size="xl"
                             />
-                            {!numberEmphasis && (
-                              <div
-                                className="font-semibold text-foreground truncate text-sm"
-                                title={name}
-                              >
-                                {name}
-                              </div>
-                            )}
+                            <div
+                              className="min-w-0 flex-1 truncate text-left text-lg font-bold text-foreground"
+                              title={name}
+                            >
+                              {name}
+                            </div>
                           </button>
                         );
                       })}
@@ -186,7 +217,7 @@ export function FullscreenDisplay({
           {/* Resting players */}
           {restingPlayers.length > 0 && (
             <div className="border border-border rounded-lg p-3 bg-muted">
-              <h3 className="font-bold text-foreground mb-2 text-base">休憩</h3>
+              <h3 className="font-bold text-foreground mb-2 text-lg">休憩</h3>
               <div className="flex flex-wrap gap-1.5">
                 {restingPlayers.map((id) => {
                   const member = memberMap.get(id);
@@ -199,9 +230,7 @@ export function FullscreenDisplay({
                       type="button"
                       className={cn(
                         'bg-card border border-border rounded-full transition-all duration-fast active:scale-[0.97]',
-                        numberEmphasis
-                          ? 'flex items-center justify-center px-2 py-2 min-h-[44px] min-w-[44px]'
-                          : 'flex items-center gap-1.5 px-2.5 py-1.5 min-h-[32px]',
+                        'flex items-center gap-2 px-3 py-2 min-h-[52px]',
                         substituting === id
                           ? 'border-warning bg-warning/10 ring-2 ring-warning/30'
                           : 'hover:bg-muted'
@@ -213,17 +242,42 @@ export function FullscreenDisplay({
                       <PlayerNumber
                         number={number}
                         variant="neutral"
-                        size={numberEmphasis ? 'lg' : 'xs'}
+                            size="lg"
                       />
-                      {!numberEmphasis && (
-                        <div
-                          className="font-semibold text-foreground truncate text-sm max-w-[100px]"
-                          title={name}
-                        >
-                          {name}
-                        </div>
-                      )}
+                      <div
+                        className="max-w-[140px] truncate text-base font-bold text-foreground"
+                        title={name}
+                      >
+                        {name}
+                      </div>
                     </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {manualRestPlayers.length > 0 && (
+            <div className="rounded-lg border border-dashed border-border bg-muted/40 p-3 opacity-70">
+              <h3 className="mb-2 text-lg font-bold text-foreground">お休み中</h3>
+              <div className="flex flex-wrap gap-2">
+                {manualRestPlayers.map((player) => {
+                  const member = memberMap.get(player.memberId);
+                  const name = member?.name ?? '???';
+                  return (
+                    <span
+                      key={player.memberId}
+                      className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-2"
+                    >
+                      <PlayerNumber
+                        number={player.playerNumber}
+                        variant="neutral"
+                        size="lg"
+                      />
+                      <span className="max-w-[140px] truncate text-base font-bold text-muted-foreground">
+                        {name}
+                      </span>
+                    </span>
                   );
                 })}
               </div>

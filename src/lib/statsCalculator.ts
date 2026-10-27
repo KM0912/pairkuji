@@ -402,6 +402,106 @@ export function calculateHeadToHead(
   });
 }
 
+/** 出場回数と休憩回数。偏り確認用。 */
+export interface ParticipationRecord {
+  playerId: number;
+  played: number;
+  rested: number;
+}
+
+export interface ParticipationBalance {
+  records: ParticipationRecord[];
+  playedMax: number;
+  playedMin: number;
+  playedSpread: number;
+  restMax: number;
+  restMin: number;
+  restSpread: number;
+}
+
+function emptyParticipation(): ParticipationBalance {
+  return {
+    records: [],
+    playedMax: 0,
+    playedMin: 0,
+    playedSpread: 0,
+    restMax: 0,
+    restMin: 0,
+    restSpread: 0,
+  };
+}
+
+/**
+ * セッションと進行中ラウンドから、出場・休憩回数と最大差を集計する。
+ * 休憩は各ラウンドの rests を数える。
+ */
+export function calculateParticipationBalance(
+  sessions: PracticeSession[],
+  currentRounds: Round[]
+): ParticipationBalance {
+  const played = new Map<number, number>();
+  const rested = new Map<number, number>();
+
+  const touch = (id: number) => {
+    if (!played.has(id)) played.set(id, 0);
+    if (!rested.has(id)) rested.set(id, 0);
+  };
+
+  const consume = (rounds: Round[], participantIds: number[] = []) => {
+    for (const id of participantIds) touch(id);
+    for (const round of rounds) {
+      for (const court of round.courts) {
+        for (const id of [...court.pairA, ...court.pairB]) {
+          touch(id);
+          played.set(id, (played.get(id) ?? 0) + 1);
+        }
+      }
+      for (const id of round.rests) {
+        touch(id);
+        rested.set(id, (rested.get(id) ?? 0) + 1);
+      }
+    }
+  };
+
+  for (const session of sessions) {
+    const ids =
+      session.participants && session.participants.length > 0
+        ? session.participants.map((participant) => participant.memberId)
+        : session.playerIds;
+    consume(session.rounds, ids);
+  }
+  consume(currentRounds);
+
+  const records: ParticipationRecord[] = Array.from(played.keys()).map(
+    (playerId) => ({
+      playerId,
+      played: played.get(playerId) ?? 0,
+      rested: rested.get(playerId) ?? 0,
+    })
+  );
+
+  if (records.length === 0) return emptyParticipation();
+
+  records.sort((a, b) => a.played - b.played || b.rested - a.rested);
+
+  const playedCounts = records.map((record) => record.played);
+  const restCounts = records.map((record) => record.rested);
+  const playedMax = Math.max(...playedCounts);
+  const playedMin = Math.min(...playedCounts);
+  const restMax = Math.max(...restCounts);
+  const restMin = Math.min(...restCounts);
+
+  return {
+    records,
+    playedMax,
+    playedMin,
+    playedSpread: playedMax - playedMin,
+    restMax,
+    restMin,
+    restSpread: restMax - restMin,
+  };
+}
+
 /**
  * ラウンド集合から、同一コートでチームメイトになった回数（メンバーID昇順の "a-b" キー）
  */

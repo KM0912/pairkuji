@@ -7,6 +7,7 @@ import {
   generateFairRound,
   calculatePlayerStats,
 } from '@/lib/fairnessAlgorithm';
+import { MAX_COURTS } from '@/lib/constants';
 
 const SETTINGS_ID = 1;
 
@@ -26,6 +27,7 @@ type Actions = {
   startPractice: (courts: number, memberIds: number[], clubTags?: string[]) => Promise<void>;
   toggleStatus: (memberId: number) => Promise<void>;
   generateNextRound: () => Promise<void>;
+  undoLastRound: () => Promise<boolean>;
   resetPractice: () => Promise<void>;
   addParticipant: (memberId: number) => Promise<void>;
   substitutePlayer: (fromMemberId: number, toMemberId: number) => Promise<void>;
@@ -50,13 +52,18 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
   load: async () => {
     set({ isLoading: true, error: null });
     try {
-      const [settings, players, rounds] = await Promise.all([
+      const [storedSettings, players, rounds] = await Promise.all([
         db.practiceSettings.get(SETTINGS_ID),
         db.practicePlayers.toArray(),
         db.rounds.orderBy('roundNo').toArray(),
       ]);
+      let settings = storedSettings ?? null;
+      if (settings && settings.courts > MAX_COURTS) {
+        settings = { ...settings, courts: MAX_COURTS };
+        await db.practiceSettings.put(settings);
+      }
       set({
-        settings: settings ?? null,
+        settings,
         players,
         rounds,
         isLoading: false,
@@ -64,7 +71,7 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
       });
     } catch (e: unknown) {
       set({
-        error: e instanceof Error ? e.message : 'Failed to load practice',
+        error: e instanceof Error ? e.message : '練習データを読み込めませんでした',
         isLoading: false,
         isInitialLoad: true,
       });
@@ -77,13 +84,17 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
       set({ sessions });
     } catch (e: unknown) {
       set({
-        error: e instanceof Error ? e.message : 'Failed to load sessions',
+        error: e instanceof Error ? e.message : '履歴を読み込めませんでした',
       });
     }
   },
 
   startPractice: async (courts, memberIds, clubTags?) => {
     const now = new Date().toISOString();
+    const normalizedCourts = Math.min(
+      MAX_COURTS,
+      Math.max(1, Math.floor(courts))
+    );
     try {
       await db.transaction(
         'rw',
@@ -96,7 +107,7 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
           await db.rounds.clear();
           const settings: PracticeSettings = {
             id: SETTINGS_ID,
-            courts,
+            courts: normalizedCourts,
             currentRound: 0,
             startedAt: now,
             updatedAt: now,
@@ -115,7 +126,7 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
 
       await get().load();
     } catch (e: unknown) {
-      set({ error: e instanceof Error ? e.message : 'Failed to start practice' });
+      set({ error: e instanceof Error ? e.message : '練習を開始できませんでした' });
     }
   },
 
@@ -134,7 +145,7 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
         ),
       });
     } catch (e: unknown) {
-      set({ error: e instanceof Error ? e.message : 'Failed to toggle status' });
+      set({ error: e instanceof Error ? e.message : '出場状態を変更できませんでした' });
     }
   },
 
@@ -154,7 +165,7 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
       // 新しい公平性アルゴリズムを使用（各プレイヤーの playedOffset を内部で加味）
       const { courts, rests } = generateFairRound(
         activePlayers,
-        s.courts,
+        Math.min(MAX_COURTS, s.courts),
         state.rounds
       );
 
@@ -180,7 +191,40 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
         isLoading: false,
       });
     } catch (e: unknown) {
-      set({ error: e instanceof Error ? e.message : 'Failed to generate round', isLoading: false });
+      set({ error: e instanceof Error ? e.message : '組み合わせを生成できませんでした', isLoading: false });
+    }
+  },
+
+  undoLastRound: async () => {
+    const state = get();
+    const settings = state.settings;
+    const last = state.rounds[state.rounds.length - 1];
+    if (!settings || !last) return false;
+
+    const remaining = state.rounds.slice(0, -1);
+    const previous = remaining[remaining.length - 1];
+    const currentRound = previous ? previous.roundNo : 0;
+    const updatedAt = new Date().toISOString();
+
+    try {
+      await db.transaction('rw', db.rounds, db.practiceSettings, async () => {
+        await db.rounds.delete(last.roundNo);
+        await db.practiceSettings.put({
+          ...settings,
+          currentRound,
+          updatedAt,
+        });
+      });
+      set({
+        rounds: remaining,
+        settings: { ...settings, currentRound, updatedAt },
+      });
+      return true;
+    } catch (e: unknown) {
+      set({
+        error: e instanceof Error ? e.message : '直前のラウンドを取り消せませんでした',
+      });
+      return false;
     }
   },
 
@@ -201,6 +245,10 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
               endedAt: new Date().toISOString(),
               courts: state.settings.courts,
               playerIds: state.players.map((p) => p.memberId),
+              participants: state.players.map((p) => ({
+                memberId: p.memberId,
+                playerNumber: p.playerNumber,
+              })),
               rounds: state.rounds,
               clubTags: state.settings.clubTags,
             };
@@ -214,7 +262,7 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
       );
       set({ settings: null, players: [], rounds: [] });
     } catch (e: unknown) {
-      set({ error: e instanceof Error ? e.message : 'Failed to reset practice' });
+      set({ error: e instanceof Error ? e.message : '練習を終了できませんでした' });
     }
   },
 
@@ -256,7 +304,7 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
       await db.practicePlayers.put(newPlayer);
       set({ players: [...state.players, newPlayer] });
     } catch (e: unknown) {
-      set({ error: e instanceof Error ? e.message : 'Failed to add participant' });
+      set({ error: e instanceof Error ? e.message : '参加者を追加できませんでした' });
     }
   },
 
@@ -327,25 +375,29 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
       updatedRounds[updatedRounds.length - 1] = updatedRound;
       set({ rounds: updatedRounds });
     } catch (e: unknown) {
-      set({ error: e instanceof Error ? e.message : 'Failed to substitute player' });
+      set({ error: e instanceof Error ? e.message : '選手を入れ替えられませんでした' });
     }
   },
 
   updateCourts: async (courts) => {
     const state = get();
     if (!state.settings) return;
+    const normalizedCourts = Math.min(
+      MAX_COURTS,
+      Math.max(1, Math.floor(courts))
+    );
 
     try {
       const updatedSettings = {
         ...state.settings,
-        courts,
+        courts: normalizedCourts,
         updatedAt: new Date().toISOString(),
       };
 
       await db.practiceSettings.put(updatedSettings);
       set({ settings: updatedSettings });
     } catch (e: unknown) {
-      set({ error: e instanceof Error ? e.message : 'Failed to update courts' });
+      set({ error: e instanceof Error ? e.message : 'コート数を変更できませんでした' });
     }
   },
 
@@ -367,7 +419,7 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
       updatedRounds[roundIndex] = updatedRound;
       set({ rounds: updatedRounds });
     } catch (e: unknown) {
-      set({ error: e instanceof Error ? e.message : 'Failed to record result' });
+      set({ error: e instanceof Error ? e.message : '勝敗を記録できませんでした' });
     }
   },
 
@@ -393,7 +445,7 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
         ),
       });
     } catch (e: unknown) {
-      set({ error: e instanceof Error ? e.message : 'Failed to update session result' });
+      set({ error: e instanceof Error ? e.message : '勝敗を更新できませんでした' });
     }
   },
 
@@ -406,7 +458,7 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
         ),
       });
     } catch (e: unknown) {
-      set({ error: e instanceof Error ? e.message : 'Failed to update session tags' });
+      set({ error: e instanceof Error ? e.message : 'タグを更新できませんでした' });
     }
   },
 
@@ -432,7 +484,7 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
         ),
       });
     } catch (e: unknown) {
-      set({ error: e instanceof Error ? e.message : 'Failed to delete court' });
+      set({ error: e instanceof Error ? e.message : '試合を削除できませんでした' });
     }
   },
 
@@ -443,7 +495,7 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
         sessions: get().sessions.filter((s) => s.id !== sessionId),
       });
     } catch (e: unknown) {
-      set({ error: e instanceof Error ? e.message : 'Failed to delete session' });
+      set({ error: e instanceof Error ? e.message : '履歴を削除できませんでした' });
     }
   },
 

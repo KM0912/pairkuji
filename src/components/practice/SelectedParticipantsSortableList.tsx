@@ -22,6 +22,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, X } from 'lucide-react';
 import { PlayerNumber } from '../ui/PlayerNumber';
 import { cn } from '@/lib/utils';
+import { SampleBadge } from '@/components/members/SampleBadge';
 
 interface SelectedParticipantsSortableListProps {
   members: Member[];
@@ -73,8 +74,9 @@ function SortableParticipantRow({
         <GripVertical className="h-5 w-5" aria-hidden />
       </button>
       <PlayerNumber number={order} variant="neutral" size="sm" />
-      <span className="min-w-0 flex-1 truncate font-medium text-sm">
-        {member.name}
+      <span className="flex min-w-0 flex-1 items-center gap-1 font-medium text-sm">
+        <span className="truncate">{member.name}</span>
+        {member.isSample && <SampleBadge />}
       </span>
       <button
         type="button"

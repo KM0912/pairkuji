@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { HelpModal } from '../modals/help/HelpModal';
 import { FeedbackForm } from '../modals/feedback/FeedbackForm';
+import { DataBackupDialog } from '@/components/backup/DataBackupDialog';
 
 interface HeaderProps {}
 
@@ -40,6 +41,7 @@ export function Header({}: HeaderProps) {
             </div>
           </div>
           <div className="flex items-center gap-1.5">
+            <DataBackupDialog />
             <FeedbackForm />
             <HelpModal />
           </div>

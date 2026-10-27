@@ -18,6 +18,10 @@ import { ArrowLeft, Trophy, Tag, X, Plus, Trash2 } from 'lucide-react';
 import { PiCourtBasketball } from 'react-icons/pi';
 import { IconBadge } from '@/components/ui/IconBadge';
 import { cn, getDisplayName } from '@/lib/utils';
+import {
+  playersForSession,
+  sessionHasSavedNumbers,
+} from '@/lib/sessionPlayers';
 import { getUniqueTags } from '@/lib/statsCalculator';
 import type { PracticePlayer } from '@/types/practice';
 import type { PracticeSession } from '@/types/practiceSession';
@@ -97,22 +101,15 @@ export default function SessionDetailPage() {
     return countOpponentOccurrencesInRounds(session.rounds);
   }, [session]);
 
-  /** 履歴には出場番号が無いため、表示名順で並べた仮の PracticePlayer を使う */
   const sessionPlayersForStats = useMemo((): PracticePlayer[] => {
     if (!session) return [];
-    const sortedIds = [...session.playerIds].sort((a, b) =>
-      getDisplayName(memberMap, a).localeCompare(
-        getDisplayName(memberMap, b),
-        'ja'
-      )
-    );
-    return sortedIds.map((memberId, index) => ({
-      memberId,
-      playerNumber: index + 1,
-      status: 'active',
-      createdAt: session.startedAt,
-    }));
+    return playersForSession(session, memberMap);
   }, [session, memberMap]);
+
+  const sessionPlayerMap = useMemo(
+    () => new Map(sessionPlayersForStats.map((player) => [player.memberId, player])),
+    [sessionPlayersForStats]
+  );
 
   const pastTags = useMemo(() => getUniqueTags(sessions), [sessions]);
 
@@ -369,6 +366,11 @@ export default function SessionDetailPage() {
         <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
           ラウンド詳細
         </h2>
+        {!sessionHasSavedNumbers(session) && (
+          <p className="mb-3 text-xs text-muted-foreground">
+            この記録は出場番号を保存していないため、名前順の番号で表示しています。
+          </p>
+        )}
         <div className="space-y-4">
           {session.rounds.map((round) => (
             <div key={round.roundNo}>
@@ -408,9 +410,9 @@ export default function SessionDetailPage() {
                       >
                         <Trophy className="w-3 h-3 inline-block mr-0.5" />
                         {court.result === 'pairA'
-                          ? '左'
+                          ? '左ペアの勝ち'
                           : court.result === 'pairB'
-                            ? '右'
+                            ? '右ペアの勝ち'
                             : '未記録'}
                       </button>
                       <button
@@ -437,7 +439,11 @@ export default function SessionDetailPage() {
                         )}
                       >
                         {court.pairA
-                          .map((id) => getDisplayName(memberMap, id))
+                          .map((id) => {
+                            const number = sessionPlayerMap.get(id)?.playerNumber;
+                            const label = getDisplayName(memberMap, id);
+                            return number != null ? `${number} ${label}` : label;
+                          })
                           .join(' / ')}
                       </div>
                       <span className="text-xs text-muted-foreground font-bold">
@@ -452,7 +458,11 @@ export default function SessionDetailPage() {
                         )}
                       >
                         {court.pairB
-                          .map((id) => getDisplayName(memberMap, id))
+                          .map((id) => {
+                            const number = sessionPlayerMap.get(id)?.playerNumber;
+                            const label = getDisplayName(memberMap, id);
+                            return number != null ? `${number} ${label}` : label;
+                          })
                           .join(' / ')}
                       </div>
                     </div>

@@ -119,7 +119,7 @@ export function CourtManagement({
                   {cm.result != null && (
                     <span className="text-xs font-medium text-accent">
                       <Trophy className="w-3.5 h-3.5 inline-block mr-0.5" />
-                      {cm.result === 'pairA' ? '左' : '右'}
+                      {cm.result === 'pairA' ? '左ペアの勝ち' : '右ペアの勝ち'}
                     </span>
                   )}
                 </div>
@@ -201,9 +201,14 @@ export function CourtManagement({
                             'pairA'
                           )
                         }
+                        aria-label={
+                          cm.result === 'pairA'
+                            ? '左ペアの勝ちを取り消す'
+                            : '左ペアを勝ちにする'
+                        }
                       >
                         <Trophy className="w-3.5 h-3.5 inline-block mr-1" />
-                        {cm.result === 'pairA' ? 'WIN' : '勝ち'}
+                        {cm.result === 'pairA' ? '取消' : '勝ち'}
                       </button>
                     )}
                   </div>
@@ -285,9 +290,14 @@ export function CourtManagement({
                             'pairB'
                           )
                         }
+                        aria-label={
+                          cm.result === 'pairB'
+                            ? '右ペアの勝ちを取り消す'
+                            : '右ペアを勝ちにする'
+                        }
                       >
                         <Trophy className="w-3.5 h-3.5 inline-block mr-1" />
-                        {cm.result === 'pairB' ? 'WIN' : '勝ち'}
+                        {cm.result === 'pairB' ? '取消' : '勝ち'}
                       </button>
                     )}
                   </div>
@@ -370,6 +380,49 @@ export function CourtManagement({
               )
             );
           })()}
+          {players.some(
+            (player) =>
+              player.status === 'rest' &&
+              !latestRound.courts.some((court) =>
+                [...court.pairA, ...court.pairB].includes(player.memberId)
+              )
+          ) && (
+            <div className="rounded-xl border border-dashed border-border bg-muted/30 p-3 opacity-70">
+              <div className="mb-1 font-heading font-semibold text-foreground text-caption">
+                お休み中
+              </div>
+              <p className="mb-2 text-xs text-muted-foreground">
+                次の組み合わせには入りません。戻すときは参加者メニューで「出場可」にしてください。
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {players
+                  .filter(
+                    (player) =>
+                      player.status === 'rest' &&
+                      !latestRound.courts.some((court) =>
+                        [...court.pairA, ...court.pairB].includes(player.memberId)
+                      )
+                  )
+                  .map((player) => {
+                    const member = memberMap.get(player.memberId);
+                    const name = member?.name ?? '???';
+                    return (
+                      <span
+                        key={player.memberId}
+                        className="inline-flex items-center gap-2 rounded-full border border-border bg-background/80 px-3 py-1.5 text-caption text-muted-foreground"
+                      >
+                        <PlayerNumber
+                          number={player.playerNumber}
+                          variant="neutral"
+                          size="xs"
+                        />
+                        <span className="max-w-[120px] truncate">{name}</span>
+                      </span>
+                    );
+                  })}
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <div className="text-muted-foreground text-caption">

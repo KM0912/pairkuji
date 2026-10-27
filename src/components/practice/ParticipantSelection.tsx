@@ -1,6 +1,6 @@
 import { type Member } from '@/types/member';
 import { useState, useMemo } from 'react';
-import { Search, X, Users, AlertTriangle, Play } from 'lucide-react';
+import { Search, X, Users, AlertTriangle, Play, Plus } from 'lucide-react';
 import {
   InputGroup,
   InputGroupAddon,
@@ -22,6 +22,13 @@ import { CourtSelector } from '../ui/CourtSelector';
 import { TagSelector } from './TagSelector';
 import { SelectedParticipantsSortableList } from './SelectedParticipantsSortableList';
 import { cn } from '@/lib/utils';
+import { SampleBadge } from '@/components/members/SampleBadge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface ParticipantSelectionProps {
   members: Member[];
@@ -33,6 +40,7 @@ interface ParticipantSelectionProps {
   onStart: (e: React.FormEvent) => void;
   clubTags?: string[];
   onClubTagsChange?: (tags: string[]) => void;
+  onCreateMember: (name: string) => Promise<void>;
 }
 
 export function ParticipantSelection({
@@ -45,8 +53,12 @@ export function ParticipantSelection({
   onStart,
   clubTags,
   onClubTagsChange,
+  onCreateMember,
 }: ParticipantSelectionProps) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [showAdd, setShowAdd] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [adding, setAdding] = useState(false);
   const [viewFilter, setViewFilter] = useState<
     'all' | 'selected' | 'unselected'
   >('all');
@@ -98,6 +110,19 @@ export function ParticipantSelection({
     searchTerm,
     selectedMembersInOrder,
   ]);
+
+  const submitNewMember = async () => {
+    const name = newName.trim();
+    if (!name || adding) return;
+    setAdding(true);
+    try {
+      await onCreateMember(name);
+      setNewName('');
+      setShowAdd(false);
+    } finally {
+      setAdding(false);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -189,6 +214,19 @@ export function ParticipantSelection({
                 </InputGroupAddon>
               </InputGroup>
 
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  setNewName('');
+                  setShowAdd(true);
+                }}
+              >
+                <Plus className="w-4 h-4" />
+                名前を追加
+              </Button>
+
               {/* メンバーリスト */}
               <Card>
                 <CardContent
@@ -231,7 +269,8 @@ export function ParticipantSelection({
                                 />
                               }
                             >
-                              {member.name}
+                              <span className="truncate">{member.name}</span>
+                              {member.isSample && <SampleBadge />}
                             </SelectTile>
                           );
                         })
@@ -266,7 +305,10 @@ export function ParticipantSelection({
                             ) : undefined
                           }
                         >
-                          {member.name}
+                          <span className="flex min-w-0 items-center gap-1">
+                            <span className="truncate">{member.name}</span>
+                            {member.isSample && <SampleBadge />}
+                          </span>
                         </SelectTile>
                       );
                     })
@@ -274,7 +316,7 @@ export function ParticipantSelection({
                     <div className="col-span-full text-center py-8 text-muted-foreground text-caption">
                       {searchTerm
                         ? '検索条件に一致するメンバーがいません'
-                        : '表示できるメンバーがいません'}
+                        : 'まだ選手がいません。「名前を追加」から登録できます'}
                     </div>
                   )}
                 </CardContent>
@@ -310,6 +352,55 @@ export function ParticipantSelection({
           </div>
         </div>
       </form>
+
+      <Dialog open={showAdd} onOpenChange={(open) => !open && setShowAdd(false)}>
+        <DialogContent className="max-w-sm rounded-2xl border-2 border-border/50 p-6">
+          <DialogTitle className="text-lg font-semibold">名前を追加</DialogTitle>
+          <DialogDescription className="sr-only">
+            その場で新しい選手を名簿に登録します
+          </DialogDescription>
+          <div className="space-y-4">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-foreground" htmlFor="new-member-name">
+                名前
+              </label>
+              <input
+                id="new-member-name"
+                type="text"
+                className="w-full rounded-lg border border-border bg-card px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                value={newName}
+                onChange={(event) => setNewName(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault();
+                    void submitNewMember();
+                  }
+                }}
+                placeholder="選手名を入力"
+                autoFocus
+              />
+            </div>
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="secondary"
+                className="flex-1"
+                onClick={() => setShowAdd(false)}
+              >
+                キャンセル
+              </Button>
+              <Button
+                type="button"
+                className="flex-1"
+                disabled={!newName.trim() || adding}
+                onClick={() => void submitNewMember()}
+              >
+                追加して選択
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

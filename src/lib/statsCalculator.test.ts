@@ -6,6 +6,7 @@ import {
   calculateSessionWinRates,
   calculatePairWinRates,
   calculateHeadToHead,
+  calculateParticipationBalance,
   filterSessions,
   filterSessionsByTag,
   getUniqueTags,
@@ -412,5 +413,45 @@ describe('getUniqueTags', () => {
 
   test('空配列に対しても正常動作', () => {
     expect(getUniqueTags([])).toEqual([]);
+  });
+});
+
+describe('calculateParticipationBalance', () => {
+  test('出場と休憩の最大差を出す', () => {
+    const rounds: Round[] = [
+      {
+        roundNo: 1,
+        courts: [
+          { courtNo: 1, pairA: [1, 2], pairB: [3, 4], result: null },
+        ],
+        rests: [5],
+      },
+      {
+        roundNo: 2,
+        courts: [
+          { courtNo: 1, pairA: [1, 5], pairB: [2, 3], result: null },
+        ],
+        rests: [4],
+      },
+    ];
+    const balance = calculateParticipationBalance(
+      [makeSession(rounds, [1, 2, 3, 4, 5])],
+      []
+    );
+
+    const played = Object.fromEntries(
+      balance.records.map((record) => [record.playerId, record.played])
+    );
+    expect(played[1]).toBe(2);
+    expect(played[4]).toBe(1);
+    expect(balance.playedSpread).toBe(1);
+    expect(balance.restSpread).toBe(1);
+    expect(balance.records.find((record) => record.playerId === 5)?.rested).toBe(1);
+  });
+
+  test('データが無いときは差0', () => {
+    const balance = calculateParticipationBalance([], []);
+    expect(balance.records).toEqual([]);
+    expect(balance.playedSpread).toBe(0);
   });
 });

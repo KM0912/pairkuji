@@ -1,5 +1,5 @@
 import { Fragment, useMemo } from 'react';
-import type { Round } from '@/types/round';
+import type { MatchResult, Round } from '@/types/round';
 import type { PracticePlayer } from '@/types/practice';
 import type { Member } from '@/types/member';
 import type { WinRateRecord } from '@/lib/winRateCalculator';
@@ -33,6 +33,11 @@ interface SessionStatsModalProps {
   pairCounts: Map<string, number>;
   opponentCounts: Map<string, number>;
   winRates: Map<number, WinRateRecord>;
+  onRecordResult?: (
+    roundNo: number,
+    courtNo: number,
+    result: MatchResult
+  ) => Promise<void>;
 }
 
 function HistoryPlayerLabel({
@@ -62,6 +67,7 @@ export function SessionStatsModal({
   pairCounts,
   opponentCounts,
   winRates,
+  onRecordResult,
 }: SessionStatsModalProps) {
   const playerMap = useMemo(
     () => new Map(players.map((p) => [p.memberId, p])),
@@ -128,7 +134,9 @@ export function SessionStatsModal({
                                 {court.result != null && (
                                   <span className="text-xs text-accent ml-auto">
                                     <Trophy className="w-3 h-3 inline-block mr-0.5" />
-                                    {court.result === 'pairA' ? '左' : '右'}
+                                    {court.result === 'pairA'
+                                      ? '左ペアの勝ち'
+                                      : '右ペアの勝ち'}
                                   </span>
                                 )}
                               </div>
@@ -187,6 +195,50 @@ export function SessionStatsModal({
                                   </div>
                                 </div>
                               </div>
+                              {onRecordResult && (
+                                <div className="mt-2 grid grid-cols-2 gap-2">
+                                  <button
+                                    type="button"
+                                    className={cn(
+                                      'min-h-[44px] rounded-md px-2 text-xs font-semibold',
+                                      court.result === 'pairA'
+                                        ? 'bg-accent text-accent-foreground'
+                                        : 'bg-muted text-muted-foreground'
+                                    )}
+                                    onClick={() =>
+                                      void onRecordResult(
+                                        round.roundNo,
+                                        court.courtNo,
+                                        court.result === 'pairA' ? null : 'pairA'
+                                      )
+                                    }
+                                  >
+                                    {court.result === 'pairA'
+                                      ? '左ペアの勝ち'
+                                      : '左を勝ちに'}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className={cn(
+                                      'min-h-[44px] rounded-md px-2 text-xs font-semibold',
+                                      court.result === 'pairB'
+                                        ? 'bg-accent text-accent-foreground'
+                                        : 'bg-muted text-muted-foreground'
+                                    )}
+                                    onClick={() =>
+                                      void onRecordResult(
+                                        round.roundNo,
+                                        court.courtNo,
+                                        court.result === 'pairB' ? null : 'pairB'
+                                      )
+                                    }
+                                  >
+                                    {court.result === 'pairB'
+                                      ? '右ペアの勝ち'
+                                      : '右を勝ちに'}
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           ))}
                           {round.rests.length > 0 && (
