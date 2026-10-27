@@ -13,6 +13,7 @@ export function getDisplayName(
   const member = memberMap.get(id);
   if (!member) return '???';
   if (!member.isDeleted) return member.name;
-  if (member.name.startsWith('削除済みの選手')) return member.name;
-  return `(削除)${member.name} #${id}`;
+  const stripped = member.name.replace(/\s*#\d+$/, '').trim();
+  if (stripped.startsWith('削除済みの選手')) return `削除済みの選手 ID ${id}`;
+  return `(削除)${stripped} ID ${id}`;
 }

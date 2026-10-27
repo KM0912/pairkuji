@@ -161,6 +161,7 @@ export function CourtManagement({
                         const name = member?.name ?? '???';
                         const number = player?.playerNumber ?? '?';
                         const matchCount = matchCounts.get(id) ?? 0;
+                        const nextOut = nextOutLabel(player);
                         return (
                           <button
                             key={id}
@@ -168,7 +169,7 @@ export function CourtManagement({
                             className={cn(
                               'relative rounded-lg transition-all duration-fast w-full min-w-0 active:scale-[0.97] border-2',
                               numberEmphasis
-                                ? 'flex items-center justify-center px-2 py-2 min-h-[56px]'
+                                ? 'flex items-center justify-center px-2 pb-2 pt-5 min-h-[64px]'
                                 : 'flex items-center gap-1.5 px-2 py-1.5 min-h-[48px] sm:gap-2.5 sm:px-3 sm:py-2.5',
                               substituting === id
                                 ? 'bg-warning/10 border-warning ring-2 ring-warning/30 shadow-level-2'
@@ -176,16 +177,23 @@ export function CourtManagement({
                             )}
                             onClick={() => onPlayerClick(id)}
                             title={numberEmphasis ? name : undefined}
-                            aria-label={`番号${number}、${name}、${matchCount}試合${nextOutLabel(player) ? `、${nextOutLabel(player)}` : ''}。選択して入れ替え`}
+                            aria-label={`番号${number}、${name}、${matchCount}試合${nextOut ? `、${nextOut}` : ''}。選択して入れ替え`}
                           >
                             <PlayerNumber
                               number={number}
                               variant="primary"
                               size={numberEmphasis ? 'lg' : 'xs'}
                             />
-                            {nextOutLabel(player) && (
-                              <span className="shrink-0 rounded bg-amber-100 px-1 py-0.5 text-[10px] font-semibold leading-none text-amber-900">
-                                {nextOutLabel(player)}
+                            {nextOut && (
+                              <span
+                                className={cn(
+                                  'rounded bg-amber-100 px-1 py-0.5 text-[10px] font-semibold leading-none text-amber-900',
+                                  numberEmphasis
+                                    ? 'absolute top-0.5 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap'
+                                    : 'shrink-0'
+                                )}
+                              >
+                                {nextOut}
                               </span>
                             )}
                             {!numberEmphasis && (
@@ -257,6 +265,7 @@ export function CourtManagement({
                         const name = member?.name ?? '???';
                         const number = player?.playerNumber ?? '?';
                         const matchCount = matchCounts.get(id) ?? 0;
+                        const nextOut = nextOutLabel(player);
                         return (
                           <button
                             key={id}
@@ -264,7 +273,7 @@ export function CourtManagement({
                             className={cn(
                               'relative rounded-lg transition-all duration-fast w-full min-w-0 active:scale-[0.97] border-2',
                               numberEmphasis
-                                ? 'flex items-center justify-center px-2 py-2 min-h-[56px]'
+                                ? 'flex items-center justify-center px-2 pb-2 pt-5 min-h-[64px]'
                                 : 'flex items-center gap-1.5 px-2 py-1.5 min-h-[48px] sm:gap-2.5 sm:px-3 sm:py-2.5',
                               substituting === id
                                 ? 'bg-warning/10 border-warning ring-2 ring-warning/30 shadow-level-2'
@@ -272,16 +281,23 @@ export function CourtManagement({
                             )}
                             onClick={() => onPlayerClick(id)}
                             title={numberEmphasis ? name : undefined}
-                            aria-label={`番号${number}、${name}、${matchCount}試合${nextOutLabel(player) ? `、${nextOutLabel(player)}` : ''}。選択して入れ替え`}
+                            aria-label={`番号${number}、${name}、${matchCount}試合${nextOut ? `、${nextOut}` : ''}。選択して入れ替え`}
                           >
                             <PlayerNumber
                               number={number}
                               variant="primary"
                               size={numberEmphasis ? 'lg' : 'xs'}
                             />
-                            {nextOutLabel(player) && (
-                              <span className="shrink-0 rounded bg-amber-100 px-1 py-0.5 text-[10px] font-semibold leading-none text-amber-900">
-                                {nextOutLabel(player)}
+                            {nextOut && (
+                              <span
+                                className={cn(
+                                  'rounded bg-amber-100 px-1 py-0.5 text-[10px] font-semibold leading-none text-amber-900',
+                                  numberEmphasis
+                                    ? 'absolute top-0.5 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap'
+                                    : 'shrink-0'
+                                )}
+                              >
+                                {nextOut}
                               </span>
                             )}
                             {!numberEmphasis && (

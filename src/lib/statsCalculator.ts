@@ -427,6 +427,8 @@ export interface ParticipationBalance {
    * 各人が5ラウンド未満の練習や、途中参加・早退の人は警告に入れない。合計はしない。
    */
   warningExcessPoints: number;
+  /** 5ラウンド以上の練習があり、最後までいた人を比べられたとき true */
+  participationJudged: boolean;
 }
 
 function emptyParticipation(): ParticipationBalance {
@@ -437,6 +439,7 @@ function emptyParticipation(): ParticipationBalance {
     rateSpreadPoints: 0,
     theoreticalSpreadPoints: 0,
     warningExcessPoints: 0,
+    participationJudged: false,
   };
 }
 
@@ -519,13 +522,23 @@ function appearanceRows(rounds: Round[]): Map<number, { played: number; rested: 
  * その練習で最初から最後までいた人だけの差。
  * ラウンドが少ないとき、途中参加、早退は警告にしない。
  */
-function participationWarningExcess(rounds: Round[]): number {
-  if (rounds.length < MIN_ROUNDS_FOR_WARNING) return 0;
+function fullAttendanceIds(rounds: Round[]): number[] {
   const rows = appearanceRows(rounds);
-  const fullIds = Array.from(rows.entries())
+  return Array.from(rows.entries())
     .filter(([, row]) => row.played + row.rested === rounds.length)
     .map(([id]) => id);
-  if (fullIds.length < 2) return 0;
+}
+
+function canJudgeParticipation(rounds: Round[]): boolean {
+  return (
+    rounds.length >= MIN_ROUNDS_FOR_WARNING && fullAttendanceIds(rounds).length >= 2
+  );
+}
+
+function participationWarningExcess(rounds: Round[]): number {
+  if (!canJudgeParticipation(rounds)) return 0;
+  const rows = appearanceRows(rounds);
+  const fullIds = fullAttendanceIds(rounds);
   const observed = fullIds.map((id) => {
     const row = rows.get(id);
     const total = (row?.played ?? 0) + (row?.rested ?? 0);
@@ -577,7 +590,9 @@ export function calculateParticipationBalance(
   const warningChunks = sessions.map((session) => session.rounds);
   if (currentRounds.length > 0) warningChunks.push(currentRounds);
   let warningExcessPoints = 0;
+  let participationJudged = false;
   for (const chunk of warningChunks) {
+    if (canJudgeParticipation(chunk)) participationJudged = true;
     warningExcessPoints = Math.max(warningExcessPoints, participationWarningExcess(chunk));
   }
 
@@ -618,6 +633,7 @@ export function calculateParticipationBalance(
     rateSpreadPoints: Math.round((rateMax - rateMin) * 100),
     theoreticalSpreadPoints: theoreticalSpreadPoints(allRounds),
     warningExcessPoints,
+    participationJudged,
   };
 }
 

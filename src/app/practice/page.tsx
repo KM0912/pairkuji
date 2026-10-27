@@ -59,7 +59,7 @@ export default function PracticePage() {
   const activeCount = players.filter((player) => player.status === 'active').length;
   const generateBlockedReason =
     activeCount < 4
-      ? `出場できる人が${activeCount}人です（4人必要）。休憩の人を戻すか、コートを減らしてください`
+      ? `出場できる人が${activeCount}人です（4人必要）。休憩・早退の人を戻すか、参加者を追加してください`
       : null;
 
   const [courts, setCourts] = useState(2);

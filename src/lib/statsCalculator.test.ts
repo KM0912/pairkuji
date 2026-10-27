@@ -513,6 +513,7 @@ describe('calculateParticipationBalance', () => {
     expect(balance.theoreticalSpreadPoints).toBe(25);
     expect(balance.rateSpreadPoints - balance.theoreticalSpreadPoints).toBeLessThan(5);
     expect(balance.warningExcessPoints).toBe(0);
+    expect(balance.participationJudged).toBe(false);
   });
 
   test('ラウンドが少ない練習や途中参加・早退では警告しない', () => {
@@ -524,6 +525,7 @@ describe('calculateParticipationBalance', () => {
     const short = calculateParticipationBalance([makeSession(shortRounds, [1, 2, 3, 4, 5])], []);
     expect(short.rateSpreadPoints).toBeGreaterThan(5);
     expect(short.warningExcessPoints).toBe(0);
+    expect(short.participationJudged).toBe(false);
 
     const fullRounds: Round[] = Array.from({ length: 6 }, (_, index) => ({
       roundNo: index + 1,
@@ -581,6 +583,7 @@ describe('calculateParticipationBalance', () => {
       []
     );
     expect(skewed.warningExcessPoints).toBeGreaterThanOrEqual(5);
+    expect(skewed.participationJudged).toBe(true);
   });
 
   test('全期間の警告は練習ごとの差を合計しない', () => {
@@ -596,5 +599,6 @@ describe('calculateParticipationBalance', () => {
       []
     );
     expect(balance.warningExcessPoints).toBe(0);
+    expect(balance.participationJudged).toBe(false);
   });
 });

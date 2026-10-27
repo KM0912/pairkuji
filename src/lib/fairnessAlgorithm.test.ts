@@ -486,11 +486,17 @@ describe('4人ローテーションの多様性', () => {
   });
 });
 
-function patternSpreadAfterDropToFour(seed: string): number {
+function patternSpreadAfterDropToFour(scenario: number): number {
   const players = createTestPlayers(8);
   const rounds: Round[] = [];
+  // 本番はラウンドごとに乱数を引き直す。シナリオ内で同じシードを使い回さない。
   for (let i = 0; i < 5; i++) {
-    const result = generateFairRound(players, 2, rounds, seed);
+    const result = generateFairRound(
+      players,
+      2,
+      rounds,
+      `pairkuji-8to4-${scenario}-early-${i}`
+    );
     rounds.push({
       roundNo: i + 1,
       courts: result.courts,
@@ -499,7 +505,12 @@ function patternSpreadAfterDropToFour(seed: string): number {
   }
   const reducedPlayers = players.slice(0, 4);
   for (let i = 0; i < 12; i++) {
-    const result = generateFairRound(reducedPlayers, 1, rounds, seed);
+    const result = generateFairRound(
+      reducedPlayers,
+      1,
+      rounds,
+      `pairkuji-8to4-${scenario}-late-${i}`
+    );
     rounds.push({
       roundNo: 6 + i,
       courts: result.courts,
@@ -528,20 +539,21 @@ describe('途中から4人になった場合', () => {
     let withinTwo = 0;
     const buckets = new Map<number, number>();
     for (let index = 0; index < seedCount; index += 1) {
-      const spread = patternSpreadAfterDropToFour(`pairkuji-8to4-${index}`);
+      const spread = patternSpreadAfterDropToFour(index);
       buckets.set(spread, (buckets.get(spread) ?? 0) + 1);
       if (spread <= 1) balanced += 1;
       if (spread <= 2) withinTwo += 1;
     }
-    // 固定100シードでの実測は、差1以内が約半数、差2以内が大半。
-    // これより崩れたら検知する。1シードだけでは偏りが隠れる。
-    if (balanced / seedCount < 0.4 || withinTwo / seedCount < 0.85) {
+    // 本番はラウンドごとに Math.random。レビュー計測の300回は差1以内約76%、差2以内100%。
+    // この100シナリオはラウンドごとに別シードで、差0が74・差2が26（差1以内74%、差2以内100%）。
+    // 組み合わせアルゴリズム自体は変えない。
+    if (balanced / seedCount < 0.74 || withinTwo / seedCount < 1) {
       throw new Error(
         `balanced=${balanced} withinTwo=${withinTwo} buckets=${Array.from(buckets.entries()).join(',')}`
       );
     }
-    expect(balanced / seedCount).toBeGreaterThanOrEqual(0.4);
-    expect(withinTwo / seedCount).toBeGreaterThanOrEqual(0.85);
+    expect(balanced / seedCount).toBeGreaterThanOrEqual(0.74);
+    expect(withinTwo).toBe(seedCount);
   });
 
   test('10人から4人に減少した場合、試合数が均等に維持される', () => {

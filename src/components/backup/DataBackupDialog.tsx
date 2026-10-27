@@ -32,7 +32,8 @@ type Step =
       kind: 'name-conflict';
       data: PairkujiBackup;
       fileName: string;
-      names: string[];
+      local: string[];
+      file: string[];
     }
   | {
       kind: 'confirm';
@@ -109,9 +110,15 @@ export function DataBackupDialog() {
 
   const beginMerge = async (data: PairkujiBackup, fileName: string) => {
     const existing = await db.members.toArray();
-    const names = nameMergeConflicts(existing, data.members);
-    if (names.length > 0) {
-      setStep({ kind: 'name-conflict', data, fileName, names });
+    const conflicts = nameMergeConflicts(existing, data.members);
+    if (conflicts.local.length > 0 || conflicts.file.length > 0) {
+      setStep({
+        kind: 'name-conflict',
+        data,
+        fileName,
+        local: conflicts.local,
+        file: conflicts.file,
+      });
       return;
     }
     setStep({
@@ -142,8 +149,7 @@ export function DataBackupDialog() {
         loadPractice(),
         loadSessions(),
       ]);
-      const keepsCurrentPractice =
-        step.mode === 'merge' || step.mode === 'merge-id';
+      const keepsCurrentPractice = step.mode === 'merge';
       const practiceNote = summary.practiceImported
         ? '進行中の練習も読み込みました。'
         : keepsCurrentPractice
@@ -264,10 +270,19 @@ export function DataBackupDialog() {
               role="alert"
               className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950 space-y-3"
             >
-              <p>
-                同じ名前の選手が複数います（{step.names.join('、')}
-                ）。名前での統合は行いません。片方を改名してから、もう一度統合してください。
-              </p>
+              {step.local.length > 0 && (
+                <p>
+                  この端末に同じ名前が2人以上います（{step.local.join('、')}
+                  ）。この端末の名簿で、片方の名前を変えてから統合してください。
+                </p>
+              )}
+              {step.file.length > 0 && (
+                <p>
+                  読み込むファイル（書き出した端末）に同じ名前が2人います（
+                  {step.file.join('、')}
+                  ）。この端末で改名しても直りません。書き出した端末で片方の名前を変えて、ファイルを作り直してください。
+                </p>
+              )}
               <div className="flex gap-2">
                 <Button
                   type="button"
@@ -294,9 +309,7 @@ export function DataBackupDialog() {
                   ? '上書きする直前に退避した内容へ戻します。今の名簿・履歴・練習は、戻す前にファイルへ書き出します。'
                   : step.mode === 'replace'
                     ? 'この端末の名簿・履歴・進行中の練習を、ファイルの内容に置き換えます。実行前に、今のデータを自動で書き出します。'
-                    : step.mode === 'merge-id'
-                      ? '同じIDの選手は今の名簿を使い、新しいIDの選手と履歴を足します。別の端末で同じIDが別人のとき、履歴が別人に付きます。進行中の練習がすでにある場合は、ファイル側の練習では置き換えません。'
-                      : '同じ名前の選手は今の名簿を使い、新しい選手と履歴を足します。進行中の練習がすでにある場合は、ファイル側の練習では置き換えません。'}
+                    : '同じ名前の選手は今の名簿を使い、新しい選手と履歴を足します。進行中の練習がすでにある場合は、ファイル側の練習では置き換えません。'}
               </p>
               <div className="flex gap-2">
                 <Button

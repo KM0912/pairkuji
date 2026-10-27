@@ -147,32 +147,28 @@ describe('applyBackup', () => {
         }),
         'merge'
       )
-    ).rejects.toThrow(/同じ名前が複数あるため/);
+    ).rejects.toThrow(/この端末に同じ名前が2人以上います/);
     expect(await db.practiceSessions.count()).toBe(1);
     expect((await db.practiceSessions.toArray())[0]?.playerIds).toEqual([5]);
   });
 
-  test('同じ名前が複数あるときはIDでも統合せず改名を案内する', async () => {
-    await db.members.bulkPut([member(1, '山田'), member(5, '山田')]);
-    const session = {
-      startedAt: '2026-02-01T00:00:00.000Z',
-      endedAt: '2026-02-01T01:00:00.000Z',
-      courts: 1,
-      playerIds: [5],
-      rounds: [],
-    };
-    await db.practiceSessions.add(session);
+  test('ファイル側の同名は、この端末で改名しても直らないと案内する', async () => {
+    await db.members.add({
+      name: '佐藤',
+      isActive: true,
+      isDeleted: false,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    } as Member);
     await expect(
       applyBackup(
         backup({
-          members: [member(1, 'Aくん'), member(5, '山田')],
-          practiceSessions: [session],
+          members: [member(1, '山田'), member(2, '山田')],
         }),
-        'merge-id'
+        'merge'
       )
-    ).rejects.toThrow(/片方を改名してから統合してください/);
-    expect(await db.practiceSessions.count()).toBe(1);
-    expect((await db.practiceSessions.toArray())[0]?.playerIds).toEqual([5]);
+    ).rejects.toThrow(/読み込むファイル（書き出した端末）に同じ名前が2人います/);
+    expect(await db.practiceSessions.count()).toBe(0);
   });
 
   test('削除済みの選手の履歴は同じIDの別人に付かない', async () => {
@@ -237,8 +233,8 @@ describe('applyBackup', () => {
         },
       ],
     });
-    const first = await applyBackup(file, 'merge-id');
-    const second = await applyBackup(file, 'merge-id');
+    const first = await applyBackup(file, 'merge');
+    const second = await applyBackup(file, 'merge');
     expect(first.addedMembers).toBe(1);
     expect(first.addedSessions).toBe(1);
     expect(second.addedMembers).toBe(0);
@@ -295,6 +291,22 @@ describe('undoLastRound', () => {
     expect(restored?.status).toBe('rest');
     expect(restored?.restKind).toBe('break');
     expect((await db.practicePlayers.get(5))?.restKind).toBe('break');
+  });
+
+  test('生成後に早退へ変えた人は、元に戻しても早退のまま', async () => {
+    await usePracticeStore.getState().startPractice(1, [1, 2, 3, 4, 5]);
+    await usePracticeStore.getState().setPlayerAvailability(5, 'break');
+    await usePracticeStore.getState().generateNextRound();
+    await usePracticeStore.getState().setPlayerAvailability(5, 'early');
+
+    const undone = await usePracticeStore.getState().undoLastRound();
+    expect(undone).toBe(true);
+    const kept = usePracticeStore.getState().players.find(
+      (player) => player.memberId === 5
+    );
+    expect(kept?.status).toBe('rest');
+    expect(kept?.restKind).toBe('early');
+    expect((await db.practicePlayers.get(5))?.restKind).toBe('early');
   });
 });
 

@@ -439,7 +439,7 @@ export default function MembersPage() {
                 {confirmDeletedName === editingMember.name.trim() && (
                   <p role="alert" className="text-sm text-amber-900">
                     削除済みの「{confirmDeletedName}」と同じ名前です。履歴では「(削除)
-                    {confirmDeletedName} #番号」と区別して表示します。この名前で保存しますか？
+                    {confirmDeletedName} ID …」と、この端末の選手IDを付けて区別します。この名前で保存しますか？
                   </p>
                 )}
                 <div className="flex gap-3 pt-4">

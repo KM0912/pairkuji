@@ -8,7 +8,7 @@ import {
   buildMemberIdMap,
   nameMergeConflicts,
   planMemberMerge,
-  planMemberMergeById,
+  remapRound,
   remapSession,
   sessionIdentity,
   validateBackup,
@@ -61,6 +61,55 @@ describe('validateBackup', () => {
     if (result.ok) {
       expect(result.data.members[0]?.name).toBe('山田');
     }
+  });
+
+  test('ラウンドの休憩指定を読み込み後も残す', () => {
+    const result = validateBackup(
+      validBackup({
+        members: [
+          member(1, '山田'),
+          member(2, '佐藤'),
+          member(3, '鈴木'),
+          member(4, '高橋'),
+        ],
+        rounds: [
+          {
+            roundNo: 2,
+            courts: [
+              { courtNo: 1, pairA: [1, 2], pairB: [3, 4], result: null },
+            ],
+            rests: [],
+            breakMemberIds: [1],
+          },
+        ],
+      })
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.rounds[0]?.breakMemberIds).toEqual([1]);
+    }
+  });
+
+  test('統合時は休憩指定の選手IDをこの端末のIDに付け替える', () => {
+    const idMap = new Map<number, number>([
+      [1, 11],
+      [2, 12],
+      [3, 13],
+      [4, 14],
+    ]);
+    const remapped = remapRound(
+      {
+        roundNo: 1,
+        courts: [
+          { courtNo: 1, pairA: [1, 2], pairB: [3, 4], result: null },
+        ],
+        rests: [],
+        breakMemberIds: [1],
+      },
+      idMap
+    );
+    expect(remapped.breakMemberIds).toEqual([11]);
+    expect(remapped.courts[0]?.pairA).toEqual([11, 12]);
   });
 
   test('別アプリや壊れた選手は拒否する', () => {
@@ -221,31 +270,22 @@ describe('planMemberMerge', () => {
     expect(sameDeleted.creates).toEqual([]);
   });
 
-  test('同じ名前が複数あるときは名前での統合を止める材料にする', () => {
+  test('同じ名前が複数あるときは端末側とファイル側を分ける', () => {
     expect(
       nameMergeConflicts(
         [member(1, '山田'), member(5, '山田')],
-        [member(1, 'Aくん'), member(5, '山田')]
+        [member(1, 'Aくん'), member(5, '佐藤')]
       )
-    ).toEqual(['山田']);
+    ).toEqual({ local: ['山田'], file: [] });
+    expect(
+      nameMergeConflicts(
+        [member(1, '佐藤')],
+        [member(1, '山田'), member(2, '山田')]
+      )
+    ).toEqual({ local: [], file: ['山田'] });
     expect(
       nameMergeConflicts([member(1, '山田')], [member(2, '佐藤')])
-    ).toEqual([]);
-  });
-});
-
-describe('planMemberMergeById', () => {
-  test('同じ名前と同じ削除状態の人を使い、IDが同じだけの別人には付けない', () => {
-    const plan = planMemberMergeById(
-      [member(1, '山田'), member(8, '佐藤'), member(10, '中村')],
-      [member(3, '山田'), member(4, '佐藤'), member(10, '伊藤', true), member(9, '小林')]
-    );
-    expect(plan.matches).toEqual([
-      { incomingId: 3, existingId: 1 },
-      { incomingId: 4, existingId: 8 },
-    ]);
-    expect(plan.creates.map((item) => item.id)).toEqual([10, 9]);
-    expect(plan.aliases).toEqual([]);
+    ).toEqual({ local: [], file: [] });
   });
 });
 

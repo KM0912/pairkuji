@@ -28,7 +28,7 @@ export type BackupValidation =
   | { ok: true; data: PairkujiBackup }
   | { ok: false; errors: string[] };
 
-export type ImportMode = 'replace' | 'merge' | 'merge-id';
+export type ImportMode = 'replace' | 'merge';
 
 export const DELETED_MEMBER_NAME = '削除済みの選手';
 
@@ -144,7 +144,20 @@ function parseRound(value: unknown, label: string, errors: string[]): Round | nu
     if (!court) return null;
     courts.push(court);
   }
-  return { roundNo: value.roundNo, courts, rests: value.rests };
+  let breakMemberIds: number[] | undefined;
+  if (value.breakMemberIds !== undefined) {
+    if (!isNumberArray(value.breakMemberIds)) {
+      pushError(errors, `${label}の休憩指定が不正です`);
+      return null;
+    }
+    breakMemberIds = value.breakMemberIds;
+  }
+  return {
+    roundNo: value.roundNo,
+    courts,
+    rests: value.rests,
+    ...(breakMemberIds ? { breakMemberIds } : {}),
+  };
 }
 
 function parseMember(value: unknown, index: number, errors: string[]): Member | null {
@@ -527,45 +540,33 @@ export function duplicateMemberNames(members: Member[]): string[] {
     .map(([name]) => name);
 }
 
-/** 名前での統合が別人を混ぜる状態なら、その名前を返す。 */
-export function nameMergeConflicts(existing: Member[], incoming: Member[]): string[] {
-  const names = new Set<string>([
-    ...duplicateMemberNames(existing),
-    ...duplicateMemberNames(incoming),
-  ]);
-  return Array.from(names);
+/** 名前の重複がこの端末側か、読み込むファイル側か。 */
+export function nameMergeConflicts(
+  existing: Member[],
+  incoming: Member[]
+): { local: string[]; file: string[] } {
+  return {
+    local: duplicateMemberNames(existing),
+    file: duplicateMemberNames(incoming),
+  };
 }
 
-export function planMemberMergeById(existing: Member[], incoming: Member[]): MemberMergePlan {
-  const used = new Set<number>();
-  const matches: MemberMergePlan['matches'] = [];
-  const creates: Member[] = [];
-  const aliases: MemberMergePlan['aliases'] = [];
-  const pendingKeyToIncomingId = new Map<string, number>();
-
-  for (const member of incoming) {
-    const key = `${member.isDeleted ? '1' : '0'}:${member.name.trim()}`;
-    const same = existing.find(
-      (item) =>
-        item.id != null &&
-        !used.has(item.id) &&
-        item.isDeleted === member.isDeleted &&
-        item.name.trim() === member.name.trim()
+export function formatNameMergeConflict(conflicts: {
+  local: string[];
+  file: string[];
+}): string {
+  const parts: string[] = [];
+  if (conflicts.local.length > 0) {
+    parts.push(
+      `この端末に同じ名前が2人以上います（${conflicts.local.join('、')}）`
     );
-    if (same?.id != null) {
-      used.add(same.id);
-      matches.push({ incomingId: member.id, existingId: same.id });
-      continue;
-    }
-    const pendingId = pendingKeyToIncomingId.get(key);
-    if (pendingId != null) {
-      aliases.push({ incomingId: member.id, createIncomingId: pendingId });
-      continue;
-    }
-    creates.push(member);
-    pendingKeyToIncomingId.set(key, member.id);
   }
-  return { matches, creates, aliases };
+  if (conflicts.file.length > 0) {
+    parts.push(
+      `読み込むファイル（書き出した端末）に同じ名前が2人います（${conflicts.file.join('、')}）`
+    );
+  }
+  return `${parts.join('。')}。重複している側の名前を変えてから、もう一度統合してください`;
 }
 
 export function buildMemberIdMap(
@@ -615,10 +616,14 @@ export function remapRound(round: Round, idMap: Map<number, number>): Round {
     if (players.size !== 4) continue;
     courts.push({ ...court, pairA, pairB });
   }
+  const { breakMemberIds, ...rest } = round;
   return {
-    ...round,
+    ...rest,
     courts,
     rests: round.rests.map((id) => mapId(id, idMap)),
+    ...(breakMemberIds
+      ? { breakMemberIds: breakMemberIds.map((id) => mapId(id, idMap)) }
+      : {}),
   };
 }
 
@@ -725,17 +730,10 @@ export async function applyBackup(
       const existingSessions = await db.practiceSessions.toArray();
       const existingSettings = await db.practiceSettings.get(1);
       const conflicts = nameMergeConflicts(existingMembers, data.members);
-      if (conflicts.length > 0) {
-        throw new Error(
-          mode === 'merge'
-            ? `同じ名前が複数あるため、名前では統合できません（${conflicts.join('、')}）`
-            : `同じ名前が複数あります（${conflicts.join('、')}）。片方を改名してから統合してください`
-        );
+      if (conflicts.local.length > 0 || conflicts.file.length > 0) {
+        throw new Error(formatNameMergeConflict(conflicts));
       }
-      const plan =
-        mode === 'merge-id'
-          ? planMemberMergeById(existingMembers, data.members)
-          : planMemberMerge(existingMembers, data.members);
+      const plan = planMemberMerge(existingMembers, data.members);
       const createdIds = new Map<number, number>();
 
       for (const member of plan.creates) {

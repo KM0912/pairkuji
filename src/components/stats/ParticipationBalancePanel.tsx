@@ -25,20 +25,23 @@ export function ParticipationBalancePanel({
   }
 
   const excess = balance.warningExcessPoints;
-  const even = excess < 5;
+  const judged = balance.participationJudged;
+  const even = judged && excess < 5;
 
   return (
     <div className="space-y-3">
       <div
         className={`rounded-lg border px-3 py-2 text-sm ${
-          even
+          !judged || even
             ? 'border-border bg-muted/40 text-foreground'
             : 'border-amber-200 bg-amber-50 text-amber-900'
         }`}
       >
-        {even
-          ? '参加したラウンドの中での出場率は、人数とコート数から見て揃っています。'
-          : `出場率は、1回の練習で最後までいた人について、人数とコート数から見た差より${excess}ポイント開いています。`}
+        {!judged
+          ? 'ラウンドが少ないため判定していません'
+          : even
+            ? '参加したラウンドの中での出場率は、人数とコート数から見て揃っています。'
+            : `出場率は、1回の練習で最後までいた人について、人数とコート数から見た差より${excess}ポイント開いています。`}
       </div>
       <div className="space-y-2">
         {balance.records.map((record) => {

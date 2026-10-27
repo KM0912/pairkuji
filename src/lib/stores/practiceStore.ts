@@ -173,7 +173,7 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
 
       if (activePlayers.length < 4) {
         set({
-          error: `出場できる人が${activePlayers.length}人です（4人必要）。休憩の人を戻すか、コートを減らしてください`,
+          error: `出場できる人が${activePlayers.length}人です（4人必要）。休憩・早退の人を戻すか、参加者を追加してください`,
           isLoading: false,
         });
         return;
@@ -245,6 +245,7 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
     const currentRound = previous ? previous.roundNo : 0;
     const updatedAt = new Date().toISOString();
     const breakMemberIds = last.breakMemberIds ?? [];
+    const restoredIds: number[] = [];
 
     try {
       await db.transaction(
@@ -261,16 +262,18 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
           });
           for (const memberId of breakMemberIds) {
             const player = await db.practicePlayers.get(memberId);
-            if (!player) continue;
+            // 生成後に早退などへ変えた人は、いまの状態を残す
+            if (!player || player.status !== 'active') continue;
             await db.practicePlayers.put({
               ...player,
               status: 'rest',
               restKind: 'break',
             });
+            restoredIds.push(memberId);
           }
         }
       );
-      const restored = new Set(breakMemberIds);
+      const restored = new Set(restoredIds);
       set({
         rounds: remaining,
         settings: { ...settings, currentRound, updatedAt },
