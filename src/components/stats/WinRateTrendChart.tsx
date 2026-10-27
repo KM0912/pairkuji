@@ -10,6 +10,8 @@ interface WinRateTrendChartProps {
   sessionWinRates: SessionWinRate[];
 }
 
+const MAX_TREND_PLAYERS = 5;
+
 const CHART_COLORS = [
   'hsl(var(--chart-1))',
   'hsl(var(--chart-2))',
@@ -18,17 +20,54 @@ const CHART_COLORS = [
   'hsl(var(--chart-5))',
 ];
 
+const LINE_STYLES: Array<{ dash?: string; marker: 'circle' | 'square' | 'triangle' | 'diamond' | 'bar' }> = [
+  { marker: 'circle' },
+  { dash: '7 4', marker: 'square' },
+  { dash: '2 3', marker: 'triangle' },
+  { dash: '8 3 2 3', marker: 'diamond' },
+  { dash: '1 3', marker: 'bar' },
+];
+
 const SVG_WIDTH = 320;
 const SVG_HEIGHT = 180;
-const PADDING = { top: 20, right: 16, bottom: 28, left: 36 };
+const PADDING = { top: 20, right: 64, bottom: 28, left: 36 };
 const CHART_WIDTH = SVG_WIDTH - PADDING.left - PADDING.right;
 const CHART_HEIGHT = SVG_HEIGHT - PADDING.top - PADDING.bottom;
+
+function shortName(name: string): string {
+  return name.length > 6 ? `${name.slice(0, 5)}…` : name;
+}
+
+function Marker({
+  kind,
+  x,
+  y,
+  color,
+}: {
+  kind: (typeof LINE_STYLES)[number]['marker'];
+  x: number;
+  y: number;
+  color: string;
+}) {
+  if (kind === 'square') {
+    return <rect x={x - 3} y={y - 3} width={6} height={6} fill={color} />;
+  }
+  if (kind === 'triangle') {
+    return <polygon points={`${x},${y - 4} ${x - 4},${y + 3} ${x + 4},${y + 3}`} fill={color} />;
+  }
+  if (kind === 'diamond') {
+    return <polygon points={`${x},${y - 4} ${x + 4},${y} ${x},${y + 4} ${x - 4},${y}`} fill={color} />;
+  }
+  if (kind === 'bar') {
+    return <rect x={x - 1.5} y={y - 4} width={3} height={8} fill={color} />;
+  }
+  return <circle cx={x} cy={y} r={3} fill={color} />;
+}
 
 export function WinRateTrendChart({
   memberMap,
   sessionWinRates,
 }: WinRateTrendChartProps) {
-  // 全プレイヤーIDを抽出
   const allPlayerIds = useMemo(() => {
     const ids = new Set<number>();
     for (const session of sessionWinRates) {
@@ -40,13 +79,13 @@ export function WinRateTrendChart({
   }, [sessionWinRates]);
 
   const [selectedIds, setSelectedIds] = useState<Set<number>>(
-    () => new Set(allPlayerIds.slice(0, 5))
+    () => new Set(allPlayerIds.slice(0, MAX_TREND_PLAYERS))
   );
 
   if (sessionWinRates.length === 0) {
     return (
       <div className="text-caption text-muted-foreground">
-        勝率推移を表示するには2回以上のセッションが必要です。
+        試合結果を記録すると、勝率の推移が表示されます。
       </div>
     );
   }
@@ -56,33 +95,36 @@ export function WinRateTrendChart({
       const next = new Set(prev);
       if (next.has(id)) {
         next.delete(id);
-      } else {
-        next.add(id);
+        return next;
       }
+      if (next.size >= MAX_TREND_PLAYERS) return prev;
+      next.add(id);
       return next;
     });
   };
 
   const sessionCount = sessionWinRates.length;
   const xStep = sessionCount > 1 ? CHART_WIDTH / (sessionCount - 1) : CHART_WIDTH / 2;
-
-  // Y軸のグリッドライン（0%, 25%, 50%, 75%, 100%）
   const yGridLines = [0, 25, 50, 75, 100];
+  const selectedIdsInOrder = allPlayerIds.filter((id) => selectedIds.has(id));
+  const selectedNames = selectedIdsInOrder.map((id) => getDisplayName(memberMap, id));
+  const chartLabel = `勝率の推移。${sessionCount}回分。${selectedNames.join('、') || '選手未選択'}`;
 
   return (
     <div className="space-y-4">
       <div className="text-small text-muted-foreground">
-        セッションごとの勝率推移
+        セッションごとの勝率推移。線は{MAX_TREND_PLAYERS}人までで、線の種類と端の名前でも区別します。
       </div>
 
-      {/* SVGグラフ */}
       <div className="bg-card rounded-lg border border-border p-2 overflow-x-auto">
         <svg
           viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
           className="w-full h-auto max-h-[220px]"
           preserveAspectRatio="xMidYMid meet"
+          role="img"
+          aria-label={chartLabel}
         >
-          {/* Y軸グリッド */}
+          <title>{chartLabel}</title>
           {yGridLines.map((val) => {
             const y = PADDING.top + CHART_HEIGHT - (val / 100) * CHART_HEIGHT;
             return (
@@ -94,7 +136,7 @@ export function WinRateTrendChart({
                   y2={y}
                   stroke="hsl(var(--border))"
                   strokeWidth={0.5}
-                  strokeDasharray={val === 0 || val === 100 ? '' : '2,2'}
+                  strokeDasharray={val === 0 || val === 100 ? undefined : '2,2'}
                 />
                 <text
                   x={PADDING.left - 4}
@@ -110,7 +152,6 @@ export function WinRateTrendChart({
             );
           })}
 
-          {/* X軸ラベル */}
           {sessionWinRates.map((session, i) => {
             const x =
               sessionCount > 1
@@ -118,7 +159,7 @@ export function WinRateTrendChart({
                 : PADDING.left + CHART_WIDTH / 2;
             return (
               <text
-                key={i}
+                key={session.sessionIndex}
                 x={x}
                 y={SVG_HEIGHT - 6}
                 textAnchor="middle"
@@ -130,75 +171,76 @@ export function WinRateTrendChart({
             );
           })}
 
-          {/* 各プレイヤーの折れ線 */}
-          {allPlayerIds
-            .filter((id) => selectedIds.has(id))
-            .map((playerId, colorIdx) => {
-              const color = CHART_COLORS[colorIdx % CHART_COLORS.length]!;
-              const points: Array<{ x: number; y: number }> = [];
+          {selectedIdsInOrder.map((playerId, colorIdx) => {
+            const color = CHART_COLORS[colorIdx % CHART_COLORS.length]!;
+            const style = LINE_STYLES[colorIdx % LINE_STYLES.length]!;
+            const points: Array<{ x: number; y: number }> = [];
 
-              for (let i = 0; i < sessionWinRates.length; i++) {
-                const rate = sessionWinRates[i]!.playerRates.get(playerId);
-                if (rate == null) continue;
+            for (let i = 0; i < sessionWinRates.length; i++) {
+              const rate = sessionWinRates[i]!.playerRates.get(playerId);
+              if (rate == null) continue;
 
-                const x =
-                  sessionCount > 1
-                    ? PADDING.left + i * xStep
-                    : PADDING.left + CHART_WIDTH / 2;
-                const y =
-                  PADDING.top + CHART_HEIGHT - rate * CHART_HEIGHT;
-                points.push({ x, y });
-              }
+              const x =
+                sessionCount > 1
+                  ? PADDING.left + i * xStep
+                  : PADDING.left + CHART_WIDTH / 2;
+              const y = PADDING.top + CHART_HEIGHT - rate * CHART_HEIGHT;
+              points.push({ x, y });
+            }
 
-              if (points.length === 0) return null;
+            if (points.length === 0) return null;
 
-              const polylinePoints = points
-                .map((p) => `${p.x},${p.y}`)
-                .join(' ');
+            const last = points[points.length - 1]!;
+            const polylinePoints = points.map((p) => `${p.x},${p.y}`).join(' ');
+            const name = shortName(getDisplayName(memberMap, playerId));
 
-              return (
-                <g key={playerId}>
-                  <polyline
-                    points={polylinePoints}
-                    fill="none"
-                    stroke={color}
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  {points.map((p, j) => (
-                    <circle
-                      key={j}
-                      cx={p.x}
-                      cy={p.y}
-                      r={3}
-                      fill={color}
-                    />
-                  ))}
-                </g>
-              );
-            })}
+            return (
+              <g key={playerId}>
+                <polyline
+                  points={polylinePoints}
+                  fill="none"
+                  stroke={color}
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeDasharray={style.dash}
+                />
+                {points.map((p, j) => (
+                  <Marker key={j} kind={style.marker} x={p.x} y={p.y} color={color} />
+                ))}
+                <text
+                  x={last.x + 4}
+                  y={last.y}
+                  fill={color}
+                  fontSize={8}
+                  dominantBaseline="middle"
+                >
+                  {name}
+                </text>
+              </g>
+            );
+          })}
         </svg>
       </div>
 
-      {/* プレイヤー選択チップ */}
       <div className="flex flex-wrap gap-1.5">
-        {allPlayerIds.map((id, i) => {
+        {allPlayerIds.map((id) => {
           const name = getDisplayName(memberMap, id);
           const isSelected = selectedIds.has(id);
+          const colorIndex = selectedIdsInOrder.indexOf(id);
           const color = isSelected
-            ? CHART_COLORS[
-                allPlayerIds
-                  .filter((pid) => selectedIds.has(pid))
-                  .indexOf(id) % CHART_COLORS.length
-              ]
+            ? CHART_COLORS[colorIndex % CHART_COLORS.length]
             : undefined;
+          const atCap = !isSelected && selectedIds.size >= MAX_TREND_PLAYERS;
 
           return (
             <button
               key={id}
+              type="button"
+              aria-pressed={isSelected}
+              disabled={atCap}
               onClick={() => togglePlayer(id)}
-              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-all duration-fast ${
+              className={`inline-flex min-h-11 items-center gap-1 rounded-full px-3 text-xs font-medium transition-all duration-fast disabled:opacity-40 ${
                 isSelected
                   ? 'bg-primary/10 text-foreground border border-primary/30'
                   : 'bg-muted text-muted-foreground border border-border'

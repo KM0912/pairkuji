@@ -28,7 +28,7 @@ export function WinRatePanel({ memberMap, winRates }: WinRatePanelProps) {
   return (
     <div className="space-y-4">
       <div className="text-small text-muted-foreground">
-        今回の練習の勝率（未登録の試合は除外）
+        今回の練習の勝率（結果未入力の試合は除く）
       </div>
 
       <div className="space-y-2">
@@ -52,12 +52,12 @@ export function WinRatePanel({ memberMap, winRates }: WinRatePanelProps) {
               </div>
               <div className="flex items-center gap-3 shrink-0">
                 <div className="text-xs text-muted-foreground">
-                  <span className="text-accent font-medium">{record.wins}W</span>
+                  <span className="text-accent font-medium">{record.wins}勝</span>
                   {' '}
-                  <span className="text-destructive font-medium">{record.losses}L</span>
+                  <span className="text-destructive font-medium">{record.losses}敗</span>
                   {record.unrecorded > 0 && (
-                    <span className="ml-1 text-muted-foreground" title="未登録の試合数">
-                      未登録{record.unrecorded}
+                    <span className="ml-1 text-muted-foreground" title="結果未入力の試合数">
+                      結果未入力{record.unrecorded}
                     </span>
                   )}
                 </div>

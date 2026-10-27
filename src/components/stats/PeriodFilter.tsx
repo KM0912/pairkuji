@@ -23,8 +23,10 @@ export function PeriodFilter({ value, onChange }: PeriodFilterProps) {
         return (
           <button
             key={option}
+            type="button"
+            aria-pressed={isSelected}
             onClick={() => onChange(option)}
-            className={`inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-all duration-fast shrink-0 ${
+            className={`inline-flex min-h-11 items-center whitespace-nowrap rounded-full px-3 text-xs font-medium transition-all duration-fast shrink-0 ${
               isSelected
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-muted text-muted-foreground border border-border hover:bg-muted/80'

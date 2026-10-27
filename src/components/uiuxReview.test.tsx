@@ -198,6 +198,39 @@ describe('練習画面の文言', () => {
     expect(source).not.toContain('isLoading || isInitialLoading');
   });
 
+  test('開始できない案内は無効ボタンの外に出す', () => {
+    const html = renderToStaticMarkup(
+      <ParticipantSelection
+        members={[member(1, '山田')]}
+        courts={1}
+        setCourts={() => undefined}
+        selected={[]}
+        onToggleSelect={() => undefined}
+        onReorderSelected={() => undefined}
+        onStart={() => undefined}
+        onCreateMember={async () => undefined}
+      />
+    );
+    expect(html).toContain('あと 4 名選択してください');
+    const start = html.match(/<button[^>]*type="submit"[\s\S]*?<\/button>/);
+    expect(start?.[0]).toContain('disabled');
+    expect(start?.[0]).not.toContain('あと');
+  });
+
+  test('狭い画面の練習ヘッダーは文言を隠し、メニューは44px以上', () => {
+    const source = readFileSync('src/app/practice/page.tsx', 'utf8');
+    expect(source).toContain('hidden text-small font-semibold sm:inline');
+    expect(source).toContain('min-h-11 min-w-11 shrink-0 px-0');
+  });
+
+  test('safe-area と viewport-fit を定義する', () => {
+    const css = readFileSync('src/app/globals.css', 'utf8');
+    const layout = readFileSync('src/app/layout.tsx', 'utf8');
+    expect(css).toContain('.safe-area-pb');
+    expect(css).toContain('env(safe-area-inset-bottom)');
+    expect(layout).toContain("viewportFit: 'cover'");
+  });
+
   test('ナビは名前と現在地を読み上げる', () => {
     const html = renderToStaticMarkup(<BottomNavigation />);
     expect(html).toContain('aria-label="メインメニュー"');

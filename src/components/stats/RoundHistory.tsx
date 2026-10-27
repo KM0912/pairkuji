@@ -56,7 +56,7 @@ export function RoundHistory({
                       ラウンド {round.roundNo}
                     </h3>
                     <span className="text-sm text-muted-foreground">
-                      ({round.courts.length}コート, 休憩{round.rests.length}名)
+                      ({round.courts.length}コート, 待機{round.rests.length}名)
                     </span>
                   </div>
 
@@ -138,7 +138,7 @@ export function RoundHistory({
                       <div className="flex items-center gap-2 mb-2">
                         <Users className="w-4 h-4 text-amber-600" />
                         <span className="text-sm font-medium text-amber-700">
-                          休憩 ({round.rests.length}名)
+                          待機 ({round.rests.length}名)
                         </span>
                       </div>
                       <div className="flex flex-wrap gap-2">

@@ -10,6 +10,9 @@ import {
   filterSessions,
   filterSessionsByTag,
   getUniqueTags,
+  MIN_RANKED_MATCHES,
+  pickMatchupHighlights,
+  shouldIncludeCurrentPractice,
 } from './statsCalculator';
 
 function makeRound(
@@ -115,6 +118,46 @@ describe('calculateOverallStats', () => {
     expect(stats[1]!.winRate).toBe(1);
     expect(stats[2]!.winRate).toBe(0);
     expect(stats[3]!.winRate).toBe(0);
+  });
+
+  test('1勝0敗より試合数の多い9勝1敗が前に来る', () => {
+    const rounds = [
+      makeRound(1, [{ pairA: [1, 2], pairB: [3, 4], result: 'pairA' }]),
+      ...Array.from({ length: 9 }, (_, index) =>
+        makeRound(index + 2, [
+          { pairA: [5, 6], pairB: [7, 8], result: 'pairA' },
+        ])
+      ),
+      makeRound(11, [{ pairA: [5, 6], pairB: [7, 8], result: 'pairB' }]),
+    ];
+    const stats = calculateOverallStats([makeSession(rounds, [])], []);
+    const id = (playerId: number) =>
+      stats.find((stat) => stat.playerId === playerId)!;
+    expect(id(5).totalMatches).toBeGreaterThanOrEqual(MIN_RANKED_MATCHES);
+    expect(id(1).totalMatches).toBeLessThan(MIN_RANKED_MATCHES);
+    expect(id(1).winRate).toBe(1);
+    expect(stats.indexOf(id(5))).toBeLessThan(stats.indexOf(id(1)));
+  });
+
+  test('同じ勝率なら試合数が多い人が前', () => {
+    const rounds = [
+      makeRound(1, [{ pairA: [9, 10], pairB: [1, 2], result: 'pairA' }]),
+      makeRound(2, [{ pairA: [9, 10], pairB: [1, 2], result: 'pairA' }]),
+      makeRound(3, [{ pairA: [9, 10], pairB: [1, 2], result: 'pairB' }]),
+      makeRound(4, [{ pairA: [11, 12], pairB: [3, 4], result: 'pairA' }]),
+      makeRound(5, [{ pairA: [11, 12], pairB: [3, 4], result: 'pairA' }]),
+      makeRound(6, [{ pairA: [11, 12], pairB: [3, 4], result: 'pairA' }]),
+      makeRound(7, [{ pairA: [11, 12], pairB: [3, 4], result: 'pairA' }]),
+      makeRound(8, [{ pairA: [11, 12], pairB: [3, 4], result: 'pairB' }]),
+      makeRound(9, [{ pairA: [11, 12], pairB: [3, 4], result: 'pairB' }]),
+    ];
+    const stats = calculateOverallStats([makeSession(rounds, [])], []);
+    const id = (playerId: number) =>
+      stats.find((stat) => stat.playerId === playerId)!;
+    expect(id(9).winRate).toBeCloseTo(2 / 3);
+    expect(id(11).winRate).toBeCloseTo(2 / 3);
+    expect(id(11).totalMatches).toBeGreaterThan(id(9).totalMatches);
+    expect(stats.indexOf(id(11))).toBeLessThan(stats.indexOf(id(9)));
   });
 });
 
@@ -600,5 +643,81 @@ describe('calculateParticipationBalance', () => {
     );
     expect(balance.warningExcessPoints).toBe(0);
     expect(balance.participationJudged).toBe(false);
+  });
+});
+
+describe('shouldIncludeCurrentPractice', () => {
+  test('今回と全期間だけ進行中の練習を足す', () => {
+    expect(
+      shouldIncludeCurrentPractice({
+        period: 'current',
+        clubFilter: [],
+        currentClubTags: ['クラブB'],
+      })
+    ).toBe(true);
+    expect(
+      shouldIncludeCurrentPractice({
+        period: 'all',
+        clubFilter: [],
+        currentClubTags: [],
+      })
+    ).toBe(true);
+    expect(
+      shouldIncludeCurrentPractice({
+        period: 'last3',
+        clubFilter: [],
+        currentClubTags: [],
+      })
+    ).toBe(false);
+    expect(
+      shouldIncludeCurrentPractice({
+        period: 'thisMonth',
+        clubFilter: [],
+        currentClubTags: ['クラブA'],
+      })
+    ).toBe(false);
+  });
+
+  test('クラブが一致しない進行中の練習は足さない', () => {
+    expect(
+      shouldIncludeCurrentPractice({
+        period: 'all',
+        clubFilter: ['クラブA'],
+        currentClubTags: ['クラブB'],
+      })
+    ).toBe(false);
+    expect(
+      shouldIncludeCurrentPractice({
+        period: 'current',
+        clubFilter: ['クラブA', 'クラブB'],
+        currentClubTags: ['クラブB'],
+      })
+    ).toBe(true);
+  });
+});
+
+describe('pickMatchupHighlights', () => {
+  test('3試合未満や、最大と最小が同じ人のときは出さない', () => {
+    expect(
+      pickMatchupHighlights([
+        { opponentId: 2, wins: 1, losses: 0, winRate: 1, totalMatches: 1 },
+      ])
+    ).toEqual({ favorable: null, unfavorable: null });
+
+    expect(
+      pickMatchupHighlights([
+        { opponentId: 2, wins: 2, losses: 1, winRate: 2 / 3, totalMatches: 3 },
+      ])
+    ).toEqual({ favorable: null, unfavorable: null });
+  });
+
+  test('3試合以上で勝率の高い相手と低い相手を分ける', () => {
+    const highlights = pickMatchupHighlights([
+      { opponentId: 2, wins: 3, losses: 0, winRate: 1, totalMatches: 3 },
+      { opponentId: 3, wins: 0, losses: 3, winRate: 0, totalMatches: 3 },
+      { opponentId: 4, wins: 1, losses: 0, winRate: 1, totalMatches: 1 },
+    ]);
+    expect(highlights.favorable?.opponentId).toBe(2);
+    expect(highlights.unfavorable?.opponentId).toBe(3);
   });
 });

@@ -80,9 +80,9 @@ export function PairCompatibility({
 
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <div>
-                  <span className="text-accent font-medium">{pair.wins}W</span>
+                  <span className="text-accent font-medium">{pair.wins}勝</span>
                   {' '}
-                  <span className="text-destructive font-medium">{pair.losses}L</span>
+                  <span className="text-destructive font-medium">{pair.losses}敗</span>
                 </div>
                 <span>{pair.totalMatches}試合</span>
               </div>

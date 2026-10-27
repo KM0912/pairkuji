@@ -24,7 +24,7 @@ export function ClubFilter({ tags, value, onChange }: ClubFilterProps) {
         aria-pressed={value.length === 0}
         onClick={() => onChange([])}
         className={cn(
-          'inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-all duration-fast shrink-0',
+          'inline-flex min-h-11 items-center whitespace-nowrap rounded-full px-3 text-xs font-medium transition-all duration-fast shrink-0',
           value.length === 0
             ? 'bg-primary text-primary-foreground'
             : 'bg-muted text-muted-foreground border border-border hover:bg-muted/80'
@@ -41,7 +41,7 @@ export function ClubFilter({ tags, value, onChange }: ClubFilterProps) {
             aria-pressed={isSelected}
             onClick={() => toggleTag(tag)}
             className={cn(
-              'inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-all duration-fast shrink-0',
+              'inline-flex min-h-11 items-center whitespace-nowrap rounded-full px-3 text-xs font-medium transition-all duration-fast shrink-0',
               isSelected
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-muted text-muted-foreground border border-border hover:bg-muted/80'

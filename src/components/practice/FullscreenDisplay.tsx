@@ -268,7 +268,7 @@ export function FullscreenDisplay({
         )}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 z-sticky space-y-2 border-t border-border bg-background/95 p-2">
+      <div className="safe-area-pb fixed bottom-0 left-0 right-0 z-sticky space-y-2 border-t border-border bg-background/95 p-2">
         {toast && (
           <div
             role="status"

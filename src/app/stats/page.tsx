@@ -22,6 +22,7 @@ import {
   filterSessions,
   filterSessionsByTag,
   getUniqueTags,
+  shouldIncludeCurrentPractice,
 } from '@/lib/statsCalculator';
 
 export default function StatsPage() {
@@ -34,6 +35,7 @@ export default function StatsPage() {
   const {
     rounds,
     sessions,
+    settings,
     isLoading: practiceLoading,
     isInitialLoad: practiceInitialLoad,
     load,
@@ -55,7 +57,20 @@ export default function StatsPage() {
     [allMembers]
   );
 
-  const tags = useMemo(() => getUniqueTags(sessions), [sessions]);
+  const tags = useMemo(() => {
+    const merged = new Set(getUniqueTags(sessions));
+    for (const tag of settings?.clubTags ?? []) merged.add(tag);
+    return Array.from(merged).sort((a, b) => a.localeCompare(b, 'ja'));
+  }, [sessions, settings]);
+
+  const currentRounds = useMemo(() => {
+    const include = shouldIncludeCurrentPractice({
+      period: periodFilter,
+      clubFilter,
+      currentClubTags: settings?.clubTags ?? [],
+    });
+    return include ? rounds : [];
+  }, [periodFilter, clubFilter, settings, rounds]);
 
   // クラブフィルタ → 期間フィルタ の順で適用
   const clubFilteredSessions = useMemo(
@@ -70,25 +85,25 @@ export default function StatsPage() {
 
   // 通算統計
   const overallStats = useMemo(
-    () => calculateOverallStats(filteredSessions, rounds),
-    [filteredSessions, rounds]
+    () => calculateOverallStats(filteredSessions, currentRounds),
+    [filteredSessions, currentRounds]
   );
 
   const participation = useMemo(
-    () => calculateParticipationBalance(filteredSessions, rounds),
-    [filteredSessions, rounds]
+    () => calculateParticipationBalance(filteredSessions, currentRounds),
+    [filteredSessions, currentRounds]
   );
 
   // セッション別勝率（推移グラフ用）
   const sessionWinRates = useMemo(
-    () => calculateSessionWinRates(filteredSessions, rounds),
-    [filteredSessions, rounds]
+    () => calculateSessionWinRates(filteredSessions, currentRounds),
+    [filteredSessions, currentRounds]
   );
 
   // ペア相性
   const pairWinRates = useMemo(
-    () => calculatePairWinRates(filteredSessions, rounds),
-    [filteredSessions, rounds]
+    () => calculatePairWinRates(filteredSessions, currentRounds),
+    [filteredSessions, currentRounds]
   );
 
   // 全プレイヤーID（直接対決用）
@@ -151,7 +166,7 @@ export default function StatsPage() {
         <TabsContent value="overall" className="mt-6 space-y-6">
           <section>
             <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              出場と休憩
+              出場と待機
             </h2>
             <ParticipationBalancePanel
               memberMap={memberMap}
@@ -184,7 +199,7 @@ export default function StatsPage() {
           <HeadToHead
             memberMap={memberMap}
             sessions={filteredSessions}
-            currentRounds={rounds}
+            currentRounds={currentRounds}
             playerIds={allPlayerIds}
           />
         </TabsContent>

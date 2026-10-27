@@ -66,6 +66,12 @@ export function SessionDetailView({ sessionId }: { sessionId: number }) {
   >(null);
   const [tagInput, setTagInput] = useState('');
   const [isAddingTag, setIsAddingTag] = useState(false);
+  const [resultToast, setResultToast] = useState<{
+    message: string;
+    roundNo: number;
+    courtNo: number;
+    previous: MatchResult;
+  } | null>(null);
 
   const loadSession = useCallback(() => {
     if (!isNaN(sessionId)) {
@@ -89,6 +95,12 @@ export function SessionDetailView({ sessionId }: { sessionId: number }) {
     loadSession();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
+
+  useEffect(() => {
+    if (!resultToast) return;
+    const id = window.setTimeout(() => setResultToast(null), 8000);
+    return () => window.clearTimeout(id);
+  }, [resultToast]);
 
   const memberMap = useMemo(
     () => new Map(allMembers.map((m) => [m.id!, m])),
@@ -138,10 +150,25 @@ export function SessionDetailView({ sessionId }: { sessionId: number }) {
   const handleResultToggle = async (roundNo: number, courtNo: number, currentResult: MatchResult | undefined) => {
     if (!session?.id) return;
     const cycle: MatchResult[] = ['pairA', 'pairB', null];
-    const currentIndex = cycle.indexOf(currentResult ?? null);
+    const previous = currentResult ?? null;
+    const currentIndex = cycle.indexOf(previous);
     const nextResult = cycle[(currentIndex + 1) % cycle.length] ?? null;
 
     await updateSessionResult(session.id, roundNo, courtNo, nextResult);
+    setResultToast({
+      message: '勝敗を記録しました',
+      roundNo,
+      courtNo,
+      previous,
+    });
+    loadSession();
+  };
+
+  const undoResultChange = async () => {
+    if (!session?.id || !resultToast) return;
+    const { roundNo, courtNo, previous } = resultToast;
+    setResultToast(null);
+    await updateSessionResult(session.id, roundNo, courtNo, previous);
     loadSession();
   };
 
@@ -381,14 +408,20 @@ export function SessionDetailView({ sessionId }: { sessionId: number }) {
                             court.result
                           )
                         }
-                        aria-label="勝敗を変更"
+                        aria-label={
+                          court.result === 'pairA'
+                            ? `${pairNumbers(court.pairA, sessionPlayerMap)}の勝ち。タップで次の結果に変える`
+                            : court.result === 'pairB'
+                              ? `${pairNumbers(court.pairB, sessionPlayerMap)}の勝ち。タップで次の結果に変える`
+                              : '結果未入力。タップで次の結果に変える'
+                        }
                       >
                         <Trophy className="w-3 h-3 inline-block mr-0.5" />
                         {court.result === 'pairA'
                           ? `${pairNumbers(court.pairA, sessionPlayerMap)}の勝ち`
                           : court.result === 'pairB'
                             ? `${pairNumbers(court.pairB, sessionPlayerMap)}の勝ち`
-                            : '未記録'}
+                            : '結果未入力'}
                       </button>
                       <button
                         className="text-muted-foreground hover:text-destructive transition-colors p-1 min-h-[44px] min-w-[44px] flex items-center justify-center"
@@ -527,6 +560,24 @@ export function SessionDetailView({ sessionId }: { sessionId: number }) {
                 削除
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {resultToast && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-24 left-4 right-4 z-toast"
+        >
+          <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 rounded-xl bg-foreground px-4 py-3 text-sm text-background shadow-level-3">
+            <span>{resultToast.message}</span>
+            <button
+              type="button"
+              className="inline-flex min-h-11 shrink-0 items-center px-2 font-semibold underline"
+              onClick={() => void undoResultChange()}
+            >
+              元に戻す
+            </button>
           </div>
         </div>
       )}

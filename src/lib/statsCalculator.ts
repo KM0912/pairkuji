@@ -41,6 +41,26 @@ export function getUniqueTags(sessions: PracticeSession[]): string[] {
 }
 
 /**
+ * 進行中の練習を統計に足すか。
+ * 「今回」と「全期間」だけが対象で、クラブを選んでいるときはタグが重なるときだけ足す。
+ */
+export function shouldIncludeCurrentPractice(input: {
+  period: PeriodFilterType;
+  clubFilter: string[];
+  currentClubTags: string[];
+}): boolean {
+  if (input.period !== 'current' && input.period !== 'all') return false;
+  if (input.clubFilter.length === 0) return true;
+  return input.currentClubTags.some((tag) => input.clubFilter.includes(tag));
+}
+
+/** 通算の順位に入れる最低試合数。これ未満は順位もトロフィーも付けない。 */
+export const MIN_RANKED_MATCHES = 3;
+
+/** 相性◎・苦手に出す最低試合数。 */
+export const MIN_HIGHLIGHT_MATCHES = 3;
+
+/**
  * 期間フィルタに応じてセッションを絞り込む
  * 「今回」の場合は空配列を返す（currentRoundsのみで集計するため）
  */
@@ -208,12 +228,30 @@ export function calculateOverallStats(
     });
   });
 
-  return results.sort((a, b) => {
-    if (a.winRate !== null && b.winRate !== null) return b.winRate - a.winRate;
-    if (a.winRate !== null) return -1;
-    if (b.winRate !== null) return 1;
-    return 0;
-  });
+  return results.sort((a, b) => compareWinRateRank(a, b));
+}
+
+function isRankedStat(stat: {
+  winRate: number | null;
+  totalMatches: number;
+}): boolean {
+  return stat.winRate !== null && stat.totalMatches >= MIN_RANKED_MATCHES;
+}
+
+function compareWinRateRank(
+  a: { winRate: number | null; totalMatches: number; playerId?: number },
+  b: { winRate: number | null; totalMatches: number; playerId?: number }
+): number {
+  const aRanked = isRankedStat(a);
+  const bRanked = isRankedStat(b);
+  if (aRanked !== bRanked) return aRanked ? -1 : 1;
+  if (a.winRate !== null && b.winRate !== null && a.winRate !== b.winRate) {
+    return b.winRate - a.winRate;
+  }
+  if (a.winRate !== null && b.winRate === null) return -1;
+  if (a.winRate === null && b.winRate !== null) return 1;
+  if (a.totalMatches !== b.totalMatches) return b.totalMatches - a.totalMatches;
+  return (a.playerId ?? 0) - (b.playerId ?? 0);
 }
 
 /**
@@ -395,11 +433,40 @@ export function calculateHeadToHead(
   });
 
   return results.sort((a, b) => {
-    if (a.winRate !== null && b.winRate !== null) return b.winRate - a.winRate;
-    if (a.winRate !== null) return -1;
-    if (b.winRate !== null) return 1;
-    return 0;
+    if (a.winRate !== null && b.winRate !== null && a.winRate !== b.winRate) {
+      return b.winRate - a.winRate;
+    }
+    if (a.winRate !== null && b.winRate === null) return -1;
+    if (a.winRate === null && b.winRate !== null) return 1;
+    return b.totalMatches - a.totalMatches;
   });
+}
+
+/** 3試合以上の相手から相性◎と苦手を選ぶ。同じ人ならどちらも出さない。 */
+export function pickMatchupHighlights(records: HeadToHeadRecord[]): {
+  favorable: HeadToHeadRecord | null;
+  unfavorable: HeadToHeadRecord | null;
+} {
+  const eligible = records.filter(
+    (record) =>
+      record.totalMatches >= MIN_HIGHLIGHT_MATCHES && record.winRate !== null
+  );
+  if (eligible.length === 0) {
+    return { favorable: null, unfavorable: null };
+  }
+  const favorable = eligible.reduce((best, record) =>
+    record.winRate! > best.winRate! ? record : best
+  );
+  const unfavorable = eligible.reduce((worst, record) =>
+    record.winRate! < worst.winRate! ? record : worst
+  );
+  if (favorable.opponentId === unfavorable.opponentId) {
+    return { favorable: null, unfavorable: null };
+  }
+  return {
+    favorable: favorable.winRate! > 0 ? favorable : null,
+    unfavorable: unfavorable.winRate! < 1 ? unfavorable : null,
+  };
 }
 
 /** 参加したラウンドに対する出場率。来た回数の合計では比べない。 */

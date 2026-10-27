@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { type CourtDisplayMode } from '@/hooks/useCourtDisplayMode';
 import { type Member } from '@/types/member';
 import { type PracticePlayer } from '@/types/practice';
@@ -6,7 +5,8 @@ import { type Round, type MatchResult } from '@/types/round';
 import { PiCourtBasketball } from 'react-icons/pi';
 import { IconBadge } from '../ui/IconBadge';
 import { PlayerNumber } from '../ui/PlayerNumber';
-import { MoreVertical, Swords, Trophy, Users } from 'lucide-react';
+import { Swords, Trophy, Users } from 'lucide-react';
+import { AvailabilityMenu } from './AvailabilityMenu';
 import { cn } from '@/lib/utils';
 import {
   NEXT_BREAK_ONCE,
@@ -110,9 +110,6 @@ export function CourtManagement({
   courtDisplayMode = 'normal',
 }: CourtManagementProps) {
   const numberEmphasis = courtDisplayMode === 'numberEmphasis';
-  const [availabilityMemberId, setAvailabilityMemberId] = useState<number | null>(
-    null
-  );
   const handleResultClick = (
     roundNo: number,
     courtNo: number,
@@ -179,11 +176,11 @@ export function CourtManagement({
                         const matchCount = matchCounts.get(id) ?? 0;
                         const nextOut = nextOutLabel(player);
                         return (
+                          <div key={id} className="flex items-stretch gap-1">
                           <button
-                            key={id}
                             type="button"
                             className={cn(
-                              'relative rounded-lg transition-all duration-fast w-full min-w-0 active:scale-[0.97] border-2',
+                              'relative rounded-lg transition-all duration-fast min-w-0 flex-1 active:scale-[0.97] border-2',
                               numberEmphasis
                                 ? 'flex items-center justify-center px-2 pb-2 pt-5 min-h-[64px]'
                                 : 'flex items-center gap-1.5 px-2 py-1.5 min-h-[48px] sm:gap-2.5 sm:px-3 sm:py-2.5',
@@ -230,6 +227,19 @@ export function CourtManagement({
                               />
                             )}
                           </button>
+                          {onSetAvailability && (
+                            <AvailabilityMenu
+                              name={name}
+                              className="shrink-0 rounded-lg"
+                              onBreak={() => {
+                                void onSetAvailability(id, 'break');
+                              }}
+                              onEarly={() => {
+                                void onSetAvailability(id, 'early');
+                              }}
+                            />
+                          )}
+                          </div>
                         );
                       })}
                     </div>
@@ -283,11 +293,11 @@ export function CourtManagement({
                         const matchCount = matchCounts.get(id) ?? 0;
                         const nextOut = nextOutLabel(player);
                         return (
+                          <div key={id} className="flex items-stretch gap-1">
                           <button
-                            key={id}
                             type="button"
                             className={cn(
-                              'relative rounded-lg transition-all duration-fast w-full min-w-0 active:scale-[0.97] border-2',
+                              'relative rounded-lg transition-all duration-fast min-w-0 flex-1 active:scale-[0.97] border-2',
                               numberEmphasis
                                 ? 'flex items-center justify-center px-2 pb-2 pt-5 min-h-[64px]'
                                 : 'flex items-center gap-1.5 px-2 py-1.5 min-h-[48px] sm:gap-2.5 sm:px-3 sm:py-2.5',
@@ -334,6 +344,19 @@ export function CourtManagement({
                               />
                             )}
                           </button>
+                          {onSetAvailability && (
+                            <AvailabilityMenu
+                              name={name}
+                              className="shrink-0 rounded-lg"
+                              onBreak={() => {
+                                void onSetAvailability(id, 'break');
+                              }}
+                              onEarly={() => {
+                                void onSetAvailability(id, 'early');
+                              }}
+                            />
+                          )}
+                          </div>
                         );
                       })}
                     </div>
@@ -399,7 +422,6 @@ export function CourtManagement({
                       const name = member?.name ?? '???';
                       const number = player?.playerNumber ?? '?';
                       const matchCount = matchCounts.get(id) ?? 0;
-                      const menuOpen = availabilityMemberId === id;
                       return (
                         <div key={id} className="relative inline-flex items-stretch">
                           <button
@@ -415,7 +437,6 @@ export function CourtManagement({
                                 : 'bg-white/90 border-border/60 text-foreground hover:bg-muted hover:border-border hover:shadow-level-2'
                             )}
                             onClick={() => {
-                              setAvailabilityMemberId(null);
                               void onPlayerClick(id);
                             }}
                             title={numberEmphasis ? name : undefined}
@@ -445,55 +466,21 @@ export function CourtManagement({
                             )}
                           </button>
                           {onSetAvailability && (
-                            <button
-                              type="button"
+                            <AvailabilityMenu
+                              name={name}
                               className={cn(
-                                'inline-flex min-h-11 min-w-11 items-center justify-center border-2 border-l-0 bg-white/90 text-foreground shadow-level-1',
+                                'border-border/60',
                                 numberEmphasis
-                                  ? 'ml-1 rounded-full border-l-2'
-                                  : 'rounded-r-full'
+                                  ? 'ml-1 rounded-full'
+                                  : 'rounded-r-full border-l-0'
                               )}
-                              aria-haspopup="menu"
-                              aria-expanded={menuOpen}
-                              aria-label={`${name}の休憩か早退を選ぶ`}
-                              onClick={() =>
-                                setAvailabilityMemberId((current) =>
-                                  current === id ? null : id
-                                )
-                              }
-                            >
-                              <MoreVertical className="h-4 w-4" />
-                            </button>
-                          )}
-                          {onSetAvailability && menuOpen && (
-                            <div
-                              role="menu"
-                              aria-label={`${name}の出場`}
-                              className="absolute left-0 bottom-full z-toast mb-1 min-w-[14rem] rounded-lg border border-border bg-popover p-1 shadow-level-2"
-                            >
-                              <button
-                                type="button"
-                                role="menuitem"
-                                className="flex min-h-11 w-full items-center rounded-md px-3 text-left text-sm"
-                                onClick={() => {
-                                  setAvailabilityMemberId(null);
-                                  void onSetAvailability(id, 'break');
-                                }}
-                              >
-                                次の1ラウンドだけ休憩
-                              </button>
-                              <button
-                                type="button"
-                                role="menuitem"
-                                className="flex min-h-11 w-full items-center rounded-md px-3 text-left text-sm"
-                                onClick={() => {
-                                  setAvailabilityMemberId(null);
-                                  void onSetAvailability(id, 'early');
-                                }}
-                              >
-                                早退
-                              </button>
-                            </div>
+                              onBreak={() => {
+                                void onSetAvailability(id, 'break');
+                              }}
+                              onEarly={() => {
+                                void onSetAvailability(id, 'early');
+                              }}
+                            />
                           )}
                         </div>
                       );

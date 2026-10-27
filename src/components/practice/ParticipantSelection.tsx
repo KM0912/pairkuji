@@ -1,6 +1,6 @@
 import { type Member } from '@/types/member';
 import { useState, useMemo } from 'react';
-import { Search, X, Users, AlertTriangle, Play, Plus } from 'lucide-react';
+import { Search, X, Users, Play, Plus } from 'lucide-react';
 import {
   InputGroup,
   InputGroupAddon,
@@ -333,6 +333,11 @@ export function ParticipantSelection({
 
           <div className="fixed bottom-24 left-4 right-4 z-overlay">
             <div className="mx-auto max-w-2xl">
+              {selected.length < minToStart && (
+                <p className="mb-2 text-center text-sm font-semibold text-foreground">
+                  あと {needMore} 名選択してください
+                </p>
+              )}
               <Button
                 type="submit"
                 variant="default"
@@ -340,17 +345,12 @@ export function ParticipantSelection({
                 className="w-full font-bold shadow-2xl"
                 disabled={starting || selected.length < minToStart}
               >
-                {selected.length < minToStart ? (
-                  <span className="inline-flex items-center gap-3">
-                    <AlertTriangle className="w-6 h-6" />
-                    あと {needMore} 名選択してください
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-3">
-                    <Play className="w-6 h-6" />
-                    ダブルス練習開始 ({selected.length}名)
-                  </span>
-                )}
+                <span className="inline-flex items-center gap-3">
+                  <Play className="w-6 h-6" />
+                  {selected.length < minToStart
+                    ? 'ダブルス練習開始'
+                    : `ダブルス練習開始 (${selected.length}名)`}
+                </span>
               </Button>
             </div>
           </div>

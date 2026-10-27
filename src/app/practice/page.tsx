@@ -28,17 +28,14 @@ import {
   GENERATING_LABEL,
   substitutionToast,
 } from '@/lib/practiceLabels';
+import {
+  canUndoSubstitution,
+  type SubstitutionUndoState,
+} from '@/lib/substitutionUndo';
 
 type PracticeToast = {
   message: string;
-  undo?:
-    | { kind: 'round' }
-    | {
-        kind: 'substitution';
-        fromId: number;
-        toId: number;
-        roundNo: number;
-      };
+  undo?: { kind: 'round' } | ({ kind: 'substitution' } & SubstitutionUndoState);
 };
 
 const HIDE_RESULT_REMINDER_KEY = 'pairkuji-hide-result-reminder';
@@ -187,6 +184,12 @@ export default function PracticePage() {
   };
 
   const latestRound = rounds[rounds.length - 1];
+  const toastCanUndo =
+    toast?.undo?.kind === 'round'
+      ? true
+      : toast?.undo?.kind === 'substitution'
+        ? canUndoSubstitution(toast.undo, latestRound, players)
+        : false;
 
   const missedResultCount = useMemo(() => {
     return rounds
@@ -264,9 +267,28 @@ export default function PracticePage() {
     const swapped = await substitutePlayer(fromId, toId);
     setSubstituting(null);
     if (!swapped || roundNo == null) return;
+    const state = usePracticeStore.getState();
+    const swappedRound = state.rounds.find((round) => round.roundNo === roundNo);
     setToast({
       message: substitutionToast(fromName, toName),
-      undo: { kind: 'substitution', fromId, toId, roundNo },
+      undo: {
+        kind: 'substitution',
+        fromId,
+        toId,
+        roundNo,
+        results: (swappedRound?.courts ?? []).map((court) => ({
+          courtNo: court.courtNo,
+          result: court.result ?? null,
+        })),
+        players: [fromId, toId].map((memberId) => {
+          const player = state.players.find((item) => item.memberId === memberId);
+          return {
+            memberId,
+            status: player?.status ?? 'active',
+            restKind: player?.restKind,
+          };
+        }),
+      },
     });
   };
 
@@ -326,11 +348,16 @@ export default function PracticePage() {
       await handleUndoRound();
       return;
     }
-    const { fromId, toId, roundNo } = current.undo;
-    const currentRounds = usePracticeStore.getState().rounds;
-    const latest = currentRounds[currentRounds.length - 1];
-    if (!latest || latest.roundNo !== roundNo) {
-      setToast({ message: '次のラウンドのあとなので、入れ替えは戻せません' });
+    const { fromId, toId } = current.undo;
+    const state = usePracticeStore.getState();
+    const latest = state.rounds[state.rounds.length - 1];
+    if (!canUndoSubstitution(current.undo, latest, state.players)) {
+      setToast({
+        message:
+          latest?.roundNo !== current.undo.roundNo
+            ? '次のラウンドのあとなので、入れ替えは戻せません'
+            : '勝敗か出場が変わったので、入れ替えは戻せません',
+      });
       return;
     }
     const restored = await substitutePlayer(fromId, toId);
@@ -415,40 +442,43 @@ export default function PracticePage() {
       ) : (
         <>
           {/* ヘッダーエリア */}
-          <div className="flex gap-2 mb-5">
+          <div className="mb-5 flex gap-1.5">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setShowRoundSummary(true)}
-              className="flex-1 min-w-0 text-base sm:text-sm shadow-level-1 hover:shadow-level-2"
+              aria-label={`ラウンド ${rounds.length}`}
+              className="min-w-0 flex-1 px-1.5 text-base shadow-level-1 hover:shadow-level-2 sm:px-3.5 sm:text-sm"
             >
               <Shuffle className="w-4 h-4" />
-              <span className="sm:text-inherit text-small font-semibold">ラウンド</span>
-              <span className="sm:text-inherit text-small font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded">{rounds.length}</span>
+              <span className="hidden text-small font-semibold sm:inline">ラウンド</span>
+              <span className="rounded bg-primary/10 px-1.5 py-0.5 text-small font-bold text-primary">{rounds.length}</span>
             </Button>
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setShowCourtModal(true)}
-              className="flex-1 min-w-0 text-base sm:text-sm shadow-level-1 hover:shadow-level-2"
+              aria-label={`コート ${settings.courts}`}
+              className="min-w-0 flex-1 px-1.5 text-base shadow-level-1 hover:shadow-level-2 sm:px-3.5 sm:text-sm"
             >
               <PiCourtBasketball className="w-4 h-4" />
-              <span className="sm:text-inherit text-small font-semibold">コート</span>
-              <span className="sm:text-inherit text-small font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded">{settings.courts}</span>
+              <span className="hidden text-small font-semibold sm:inline">コート</span>
+              <span className="rounded bg-primary/10 px-1.5 py-0.5 text-small font-bold text-primary">{settings.courts}</span>
             </Button>
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={handleOpenParticipants}
-              className="flex-1 min-w-0 text-base sm:text-sm shadow-level-1 hover:shadow-level-2"
+              aria-label={`参加者 出場${activeCount}人、全体${players.length}人`}
+              className="min-w-0 flex-1 px-1.5 text-base shadow-level-1 hover:shadow-level-2 sm:px-3.5 sm:text-sm"
             >
               <Users className="w-4 h-4" />
-              <span className="sm:text-inherit text-small font-semibold">参加者</span>
+              <span className="hidden text-small font-semibold sm:inline">参加者</span>
               <span
-                className="sm:text-inherit text-small font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded"
+                className="rounded bg-primary/10 px-1.5 py-0.5 text-small font-bold text-primary"
                 title={`出場できる人 ${activeCount}人、全体 ${players.length}人`}
               >
                 {activeCount}/{players.length}
@@ -459,7 +489,7 @@ export default function PracticePage() {
               variant="outline"
               size="sm"
               onClick={() => setShowPracticeMenu(true)}
-              className="shrink-0 px-2 shadow-level-1"
+              className="min-h-11 min-w-11 shrink-0 px-0 shadow-level-1"
               aria-label="練習メニュー"
             >
               <MoreVertical className="w-4 h-4" />
@@ -854,7 +884,7 @@ export default function PracticePage() {
           isGenerating={isGenerating}
           toast={
             toast
-              ? { message: toast.message, canUndo: toast.undo != null }
+              ? { message: toast.message, canUndo: toastCanUndo }
               : null
           }
           onUndo={() => void handleToastUndo()}
@@ -871,7 +901,7 @@ export default function PracticePage() {
         >
           <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 rounded-xl bg-foreground px-4 py-3 text-sm text-background shadow-level-3">
             <span>{toast.message}</span>
-            {toast.undo && (
+            {toastCanUndo && (
               <button
                 type="button"
                 className="inline-flex min-h-11 shrink-0 items-center px-2 font-semibold underline"
