@@ -9,12 +9,12 @@ import { usePracticeStore } from '@/lib/stores/practiceStore';
 import type { Member } from '@/types/member';
 import type { Round } from '@/types/round';
 
-function member(id: number, name: string): Member {
+function member(id: number, name: string, isDeleted = false): Member {
   return {
     id,
     name,
-    isActive: true,
-    isDeleted: false,
+    isActive: !isDeleted,
+    isDeleted,
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
   };
@@ -152,7 +152,7 @@ describe('applyBackup', () => {
     expect((await db.practiceSessions.toArray())[0]?.playerIds).toEqual([5]);
   });
 
-  test('IDで統合すると同じ履歴は増えない', async () => {
+  test('同じ名前が複数あるときはIDでも統合せず改名を案内する', async () => {
     await db.members.bulkPut([member(1, '山田'), member(5, '山田')]);
     const session = {
       startedAt: '2026-02-01T00:00:00.000Z',
@@ -162,21 +162,91 @@ describe('applyBackup', () => {
       rounds: [],
     };
     await db.practiceSessions.add(session);
-    const summary = await applyBackup(
-      backup({
-        members: [member(1, 'Aくん'), member(5, '山田')],
-        practiceSessions: [session],
-      }),
-      'merge-id'
-    );
-    expect(summary.addedMembers).toBe(0);
-    expect(summary.addedSessions).toBe(0);
+    await expect(
+      applyBackup(
+        backup({
+          members: [member(1, 'Aくん'), member(5, '山田')],
+          practiceSessions: [session],
+        }),
+        'merge-id'
+      )
+    ).rejects.toThrow(/片方を改名してから統合してください/);
+    expect(await db.practiceSessions.count()).toBe(1);
+    expect((await db.practiceSessions.toArray())[0]?.playerIds).toEqual([5]);
+  });
+
+  test('削除済みの選手の履歴は同じIDの別人に付かない', async () => {
+    await db.members.put(member(10, '中村'));
+    const session = {
+      startedAt: '2026-03-01T00:00:00.000Z',
+      endedAt: '2026-03-01T01:00:00.000Z',
+      courts: 1,
+      playerIds: [10, 11, 12, 13],
+      rounds: [
+        {
+          roundNo: 1,
+          courts: [
+            {
+              courtNo: 1,
+              pairA: [10, 11] as [number, number],
+              pairB: [12, 13] as [number, number],
+              result: 'pairA' as const,
+            },
+          ],
+          rests: [],
+        },
+      ],
+    };
+    const file = backup({
+      members: [
+        member(10, '伊藤', true),
+        member(11, '佐藤'),
+        member(12, '鈴木'),
+        member(13, '高橋'),
+      ],
+      practiceSessions: [session],
+    });
+    await applyBackup(file, 'merge');
+    expect((await db.members.get(10))?.name).toBe('中村');
+    const ito = (await db.members.toArray()).find((item) => item.name === '伊藤');
+    expect(ito?.isDeleted).toBe(true);
+    expect(ito?.id).not.toBe(10);
     const sessions = await db.practiceSessions.toArray();
     expect(sessions).toHaveLength(1);
-    expect(sessions[0]?.playerIds).toEqual([5]);
-    const names = (await db.members.toArray()).map((item) => item.name);
-    expect(names.filter((name) => name === '山田')).toHaveLength(2);
-    expect(names).not.toContain('Aくん');
+    expect(sessions[0]?.playerIds).toContain(ito?.id);
+    expect(sessions[0]?.playerIds).not.toContain(10);
+
+    const again = await applyBackup(file, 'merge');
+    expect(again.addedMembers).toBe(0);
+    expect(again.addedSessions).toBe(0);
+    expect(
+      (await db.members.toArray()).filter((item) => item.name === '伊藤')
+    ).toHaveLength(1);
+  });
+
+  test('同じファイルを2回取り込んでも件数は増えない', async () => {
+    const file = backup({
+      members: [member(3, '小林')],
+      practiceSessions: [
+        {
+          startedAt: '2026-03-01T00:00:00.000Z',
+          endedAt: '2026-03-01T01:00:00.000Z',
+          courts: 1,
+          playerIds: [3],
+          rounds: [],
+        },
+      ],
+    });
+    const first = await applyBackup(file, 'merge-id');
+    const second = await applyBackup(file, 'merge-id');
+    expect(first.addedMembers).toBe(1);
+    expect(first.addedSessions).toBe(1);
+    expect(second.addedMembers).toBe(0);
+    expect(second.addedSessions).toBe(0);
+    expect(
+      (await db.members.toArray()).filter((item) => item.name === '小林')
+    ).toHaveLength(1);
+    expect(await db.practiceSessions.count()).toBe(1);
   });
 });
 
@@ -207,6 +277,24 @@ describe('undoLastRound', () => {
     expect(await db.rounds.count()).toBe(1);
     expect((await db.rounds.toArray())[0]?.roundNo).toBe(1);
     expect(usePracticeStore.getState().settings?.currentRound).toBe(1);
+  });
+
+  test('休憩にして生成したラウンドを取り消すと休憩指定が戻る', async () => {
+    await usePracticeStore.getState().startPractice(1, [1, 2, 3, 4, 5]);
+    await usePracticeStore.getState().setPlayerAvailability(5, 'break');
+    await usePracticeStore.getState().generateNextRound();
+    expect(
+      usePracticeStore.getState().players.find((player) => player.memberId === 5)?.status
+    ).toBe('active');
+
+    const undone = await usePracticeStore.getState().undoLastRound();
+    expect(undone).toBe(true);
+    const restored = usePracticeStore.getState().players.find(
+      (player) => player.memberId === 5
+    );
+    expect(restored?.status).toBe('rest');
+    expect(restored?.restKind).toBe('break');
+    expect((await db.practicePlayers.get(5))?.restKind).toBe('break');
   });
 });
 

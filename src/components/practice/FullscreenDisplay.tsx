@@ -14,6 +14,7 @@ interface FullscreenDisplayProps {
   roundNumber: number;
   onClose: () => void;
   onGenerateNextRound: () => Promise<void>;
+  generateBlockedReason?: string | null;
   toast?: { message: string; canUndo: boolean } | null;
   onUndo?: () => void;
 }
@@ -26,6 +27,7 @@ export function FullscreenDisplay({
   roundNumber,
   onClose,
   onGenerateNextRound,
+  generateBlockedReason,
   toast,
   onUndo,
 }: FullscreenDisplayProps) {
@@ -95,16 +97,11 @@ export function FullscreenDisplay({
   };
 
   const restingPlayers = getRestingPlayers();
-  const offCourt = (player: PracticePlayer) =>
-    player.status === 'rest' &&
-    !round.courts.some((court) =>
-      [...court.pairA, ...court.pairB].includes(player.memberId)
-    );
   const breakPlayers = players.filter(
-    (player) => offCourt(player) && player.restKind === 'break'
+    (player) => player.status === 'rest' && player.restKind === 'break'
   );
   const earlyPlayers = players.filter(
-    (player) => offCourt(player) && player.restKind !== 'break'
+    (player) => player.status === 'rest' && player.restKind !== 'break'
   );
 
   const renderPlayer = (id: number) => {
@@ -112,18 +109,29 @@ export function FullscreenDisplay({
     const player = playerMap.get(id);
     const name = member?.name ?? '???';
     const number = player?.playerNumber ?? '?';
+    const nextOut =
+      player?.status === 'rest'
+        ? player.restKind === 'break'
+          ? '次は休憩'
+          : '次は早退'
+        : null;
     return (
       <div
         key={id}
         className="flex min-h-[72px] w-full min-w-0 items-center gap-3 rounded-md border border-primary/30 bg-card p-3"
-        aria-label={`番号${number}、${name}`}
+        aria-label={`番号${number}、${name}${nextOut ? `、${nextOut}` : ''}`}
       >
         <PlayerNumber number={number} variant="primary" size="xl" />
-        <div
-          className="min-w-0 flex-1 truncate text-left text-2xl font-bold text-foreground landscape:text-3xl"
-          title={name}
-        >
-          {name}
+        <div className="min-w-0 flex-1">
+          <div
+            className="truncate text-left text-2xl font-bold text-foreground landscape:text-3xl"
+            title={name}
+          >
+            {name}
+          </div>
+          {nextOut && (
+            <div className="text-sm font-semibold text-amber-800">{nextOut}</div>
+          )}
         </div>
       </div>
     );
@@ -266,7 +274,17 @@ export function FullscreenDisplay({
             )}
           </div>
         )}
-        <Button variant="default" onClick={onGenerateNextRound} className="w-full">
+        {generateBlockedReason && (
+          <p role="status" className="text-center text-xs text-amber-900">
+            {generateBlockedReason}
+          </p>
+        )}
+        <Button
+          variant="default"
+          onClick={onGenerateNextRound}
+          className="w-full"
+          disabled={generateBlockedReason != null}
+        >
           <span className="inline-flex items-center gap-2">
             <Shuffle className="h-4 w-4" />
             次の組み合わせを生成

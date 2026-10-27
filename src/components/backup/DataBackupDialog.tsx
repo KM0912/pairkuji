@@ -225,7 +225,9 @@ export function DataBackupDialog() {
           {step.kind === 'preview' && (
             <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm space-y-3">
               <p>
-                {step.fileName}：選手{step.data.members.length}名、履歴
+                {step.fileName}：選手
+                {step.data.members.filter((member) => !member.isDeleted).length}
+                名、履歴
                 {step.data.practiceSessions.length}件
                 {step.data.practiceSettings ? '、進行中の練習あり' : ''}
               </p>
@@ -264,7 +266,7 @@ export function DataBackupDialog() {
             >
               <p>
                 同じ名前の選手が複数います（{step.names.join('、')}
-                ）。名前での統合は行いません。IDが同じ選手として履歴を重ねるか、中止してください。別の端末で同じIDが別人のとき、履歴が別人に付きます。
+                ）。名前での統合は行いません。片方を改名してから、もう一度統合してください。
               </p>
               <div className="flex gap-2">
                 <Button
@@ -279,22 +281,7 @@ export function DataBackupDialog() {
                     })
                   }
                 >
-                  中止
-                </Button>
-                <Button
-                  type="button"
-                  className="flex-1"
-                  onClick={() =>
-                    setStep({
-                      kind: 'confirm',
-                      data: step.data,
-                      mode: 'merge-id',
-                      fileName: step.fileName,
-                      intent: 'import',
-                    })
-                  }
-                >
-                  IDで統合
+                  戻る
                 </Button>
               </div>
             </div>

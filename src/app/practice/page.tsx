@@ -56,6 +56,12 @@ export default function PracticePage() {
     recordResult,
   } = usePracticeStore();
 
+  const activeCount = players.filter((player) => player.status === 'active').length;
+  const generateBlockedReason =
+    activeCount < 4
+      ? `出場できる人が${activeCount}人です（4人必要）。休憩の人を戻すか、コートを減らしてください`
+      : null;
+
   const [courts, setCourts] = useState(2);
   const [clubTags, setClubTags] = useState<string[]>([]);
   const [selected, setSelected] = useState<number[]>([]);
@@ -389,7 +395,12 @@ export default function PracticePage() {
             >
               <Users className="w-4 h-4" />
               <span className="sm:text-inherit text-small font-semibold">参加者</span>
-              <span className="sm:text-inherit text-small font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded">{players.length}</span>
+              <span
+                className="sm:text-inherit text-small font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded"
+                title={`出場できる人 ${activeCount}人、全体 ${players.length}人`}
+              >
+                {activeCount}/{players.length}
+              </span>
             </Button>
             <Button
               type="button"
@@ -559,15 +570,20 @@ export default function PracticePage() {
       {/* Fixed Bottom Buttons */}
       {settings && (
         <div className="fixed bottom-24 left-4 right-4 z-overlay">
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-2xl mx-auto space-y-2">
+            {generateBlockedReason && (
+              <p
+                role="status"
+                className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-center text-xs text-amber-900"
+              >
+                {generateBlockedReason}
+              </p>
+            )}
             <div className="flex gap-3">
               <Button
                 onClick={() => void executeGenerateNextRound()}
                 className="flex-1 shadow-level-3"
-                disabled={
-                  practiceLoading ||
-                  players.filter((p) => p.status === 'active').length < 4
-                }
+                disabled={practiceLoading || generateBlockedReason != null}
               >
                 <span className="inline-flex items-center gap-2 font-bold">
                   <Shuffle className="w-5 h-5" />
@@ -617,8 +633,7 @@ export default function PracticePage() {
               参加者の管理
             </DialogTitle>
             <p className="text-xs text-muted-foreground">
-              出場可 {players.filter((p) => p.status === 'active').length} /
-              全体 {players.length}
+              出場できる人 {activeCount}人 / 全体 {players.length}人
             </p>
           </div>
           <DialogDescription className="sr-only">参加者のステータスを管理します</DialogDescription>
@@ -778,6 +793,7 @@ export default function PracticePage() {
           roundNumber={latestRound.roundNo}
           onClose={() => setShowBoard(false)}
           onGenerateNextRound={executeGenerateNextRound}
+          generateBlockedReason={generateBlockedReason}
           toast={toast}
           onUndo={() => void handleUndoRound()}
         />

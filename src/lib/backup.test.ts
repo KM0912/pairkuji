@@ -122,7 +122,7 @@ describe('validateBackup', () => {
     expect(missing.ok).toBe(true);
     if (missing.ok) {
       const removed = missing.data.members.find((item) => item.id === 99);
-      expect(removed?.name).toBe(DELETED_MEMBER_NAME);
+      expect(removed?.name).toBe(`${DELETED_MEMBER_NAME} #99`);
       expect(removed?.isDeleted).toBe(true);
       expect(removed?.isActive).toBe(false);
     }
@@ -205,6 +205,22 @@ describe('planMemberMerge', () => {
     expect(idMap.get(3)).toBe(20);
   });
 
+  test('削除済みの選手は同じIDの別人に付けず、同じ名前の削除済みにだけ付ける', () => {
+    const differentPerson = planMemberMerge(
+      [member(10, '中村')],
+      [member(10, '伊藤', true)]
+    );
+    expect(differentPerson.matches).toEqual([]);
+    expect(differentPerson.creates.map((item) => item.name)).toEqual(['伊藤']);
+
+    const sameDeleted = planMemberMerge(
+      [member(20, '伊藤', true)],
+      [member(10, '伊藤', true)]
+    );
+    expect(sameDeleted.matches).toEqual([{ incomingId: 10, existingId: 20 }]);
+    expect(sameDeleted.creates).toEqual([]);
+  });
+
   test('同じ名前が複数あるときは名前での統合を止める材料にする', () => {
     expect(
       nameMergeConflicts(
@@ -219,16 +235,16 @@ describe('planMemberMerge', () => {
 });
 
 describe('planMemberMergeById', () => {
-  test('同名でもIDが同じ相手に付け、新しいIDだけ追加する', () => {
+  test('同じ名前と同じ削除状態の人を使い、IDが同じだけの別人には付けない', () => {
     const plan = planMemberMergeById(
-      [member(1, '山田'), member(5, '山田')],
-      [member(1, 'Aくん'), member(5, '山田'), member(9, '佐藤')]
+      [member(1, '山田'), member(8, '佐藤'), member(10, '中村')],
+      [member(3, '山田'), member(4, '佐藤'), member(10, '伊藤', true), member(9, '小林')]
     );
     expect(plan.matches).toEqual([
-      { incomingId: 1, existingId: 1 },
-      { incomingId: 5, existingId: 5 },
+      { incomingId: 3, existingId: 1 },
+      { incomingId: 4, existingId: 8 },
     ]);
-    expect(plan.creates.map((item) => item.id)).toEqual([9]);
+    expect(plan.creates.map((item) => item.id)).toEqual([10, 9]);
     expect(plan.aliases).toEqual([]);
   });
 });

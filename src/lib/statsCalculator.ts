@@ -422,6 +422,11 @@ export interface ParticipationBalance {
   rateSpreadPoints: number;
   /** 人数とコート数の余りだけで生じる差。これを超えた分だけ警告する */
   theoreticalSpreadPoints: number;
+  /**
+   * 練習ごとの、最後までいた人の差から理論値を引いた値の最大。
+   * 各人が5ラウンド未満の練習や、途中参加・早退の人は警告に入れない。合計はしない。
+   */
+  warningExcessPoints: number;
 }
 
 function emptyParticipation(): ParticipationBalance {
@@ -431,18 +436,18 @@ function emptyParticipation(): ParticipationBalance {
     rateMin: 0,
     rateSpreadPoints: 0,
     theoreticalSpreadPoints: 0,
+    warningExcessPoints: 0,
   };
 }
 
-function rateOf(playedMap: Map<number, number>, restedMap: Map<number, number>, id: number): number {
-  const playedCount = playedMap.get(id) ?? 0;
-  const restedCount = restedMap.get(id) ?? 0;
-  const total = playedCount + restedCount;
-  return total === 0 ? 0 : playedCount / total;
+const MIN_ROUNDS_FOR_WARNING = 5;
+
+function spreadPoints(rates: number[]): number {
+  if (rates.length === 0) return 0;
+  return Math.round((Math.max(...rates) - Math.min(...rates)) * 100);
 }
 
-/** 休憩枠をできるだけ均等に配ったときの出場率の差。 */
-function theoreticalSpreadPoints(rounds: Round[]): number {
+function theoreticalRateMap(rounds: Round[]): Map<number, number> {
   const played = new Map<number, number>();
   const rested = new Map<number, number>();
   for (const round of rounds) {
@@ -471,9 +476,67 @@ function theoreticalSpreadPoints(rounds: Round[]): number {
       }
     }
   }
-  const rates = Array.from(played.keys()).map((id) => rateOf(played, rested, id));
-  if (rates.length === 0) return 0;
-  return Math.round((Math.max(...rates) - Math.min(...rates)) * 100);
+  const rates = new Map<number, number>();
+  played.forEach((_, id) => {
+    rates.set(id, rateOf(played, rested, id));
+  });
+  return rates;
+}
+
+function rateOf(playedMap: Map<number, number>, restedMap: Map<number, number>, id: number): number {
+  const playedCount = playedMap.get(id) ?? 0;
+  const restedCount = restedMap.get(id) ?? 0;
+  const total = playedCount + restedCount;
+  return total === 0 ? 0 : playedCount / total;
+}
+
+/** 休憩枠をできるだけ均等に配ったときの出場率の差。 */
+function theoreticalSpreadPoints(rounds: Round[]): number {
+  return spreadPoints(Array.from(theoreticalRateMap(rounds).values()));
+}
+
+function appearanceRows(rounds: Round[]): Map<number, { played: number; rested: number }> {
+  const rows = new Map<number, { played: number; rested: number }>();
+  for (const round of rounds) {
+    const seen = new Set<number>();
+    const add = (id: number, played: boolean) => {
+      if (seen.has(id)) return;
+      seen.add(id);
+      const row = rows.get(id) ?? { played: 0, rested: 0 };
+      if (played) row.played += 1;
+      else row.rested += 1;
+      rows.set(id, row);
+    };
+    for (const court of round.courts) {
+      for (const id of [...court.pairA, ...court.pairB]) add(id, true);
+    }
+    for (const id of round.rests) add(id, false);
+  }
+  return rows;
+}
+
+/**
+ * その練習で最初から最後までいた人だけの差。
+ * ラウンドが少ないとき、途中参加、早退は警告にしない。
+ */
+function participationWarningExcess(rounds: Round[]): number {
+  if (rounds.length < MIN_ROUNDS_FOR_WARNING) return 0;
+  const rows = appearanceRows(rounds);
+  const fullIds = Array.from(rows.entries())
+    .filter(([, row]) => row.played + row.rested === rounds.length)
+    .map(([id]) => id);
+  if (fullIds.length < 2) return 0;
+  const observed = fullIds.map((id) => {
+    const row = rows.get(id);
+    const total = (row?.played ?? 0) + (row?.rested ?? 0);
+    return total === 0 ? 0 : (row?.played ?? 0) / total;
+  });
+  const theoretical = theoreticalRateMap(rounds);
+  const cohort = fullIds
+    .map((id) => theoretical.get(id))
+    .filter((rate): rate is number => rate != null);
+  if (cohort.length < 2) return 0;
+  return Math.max(0, spreadPoints(observed) - spreadPoints(cohort));
 }
 
 /**
@@ -511,6 +574,12 @@ export function calculateParticipationBalance(
     ...sessions.flatMap((session) => session.rounds),
     ...currentRounds,
   ];
+  const warningChunks = sessions.map((session) => session.rounds);
+  if (currentRounds.length > 0) warningChunks.push(currentRounds);
+  let warningExcessPoints = 0;
+  for (const chunk of warningChunks) {
+    warningExcessPoints = Math.max(warningExcessPoints, participationWarningExcess(chunk));
+  }
 
   const records: ParticipationRecord[] = Array.from(played.keys()).map(
     (playerId) => {
@@ -548,6 +617,7 @@ export function calculateParticipationBalance(
     rateMin,
     rateSpreadPoints: Math.round((rateMax - rateMin) * 100),
     theoreticalSpreadPoints: theoreticalSpreadPoints(allRounds),
+    warningExcessPoints,
   };
 }
 

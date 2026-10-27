@@ -437,7 +437,7 @@ export function validateBackup(input: unknown): BackupValidation {
     if (memberIds.has(id)) continue;
     members.push({
       id,
-      name: DELETED_MEMBER_NAME,
+      name: `${DELETED_MEMBER_NAME} #${id}`,
       isActive: false,
       isDeleted: true,
       createdAt: exportedAt,
@@ -475,15 +475,25 @@ export function planMemberMerge(existing: Member[], incoming: Member[]): MemberM
   const creates: Member[] = [];
   const aliases: MemberMergePlan['aliases'] = [];
   const pendingNameToIncomingId = new Map<string, number>();
+  const pendingDeletedName = new Map<string, number>();
 
   for (const member of incoming) {
     if (member.isDeleted) {
-      const sameId = existing.find((item) => item.id === member.id);
-      if (sameId?.id != null) {
-        matches.push({ incomingId: member.id, existingId: sameId.id });
-      } else {
-        creates.push(member);
+      const key = member.name.trim();
+      const sameDeleted = existing.find(
+        (item) => item.isDeleted && item.id != null && item.name.trim() === key
+      );
+      if (sameDeleted?.id != null) {
+        matches.push({ incomingId: member.id, existingId: sameDeleted.id });
+        continue;
       }
+      const pendingId = pendingDeletedName.get(key);
+      if (pendingId != null) {
+        aliases.push({ incomingId: member.id, createIncomingId: pendingId });
+        continue;
+      }
+      creates.push(member);
+      pendingDeletedName.set(key, member.id);
       continue;
     }
     const key = member.name.trim();
@@ -527,21 +537,35 @@ export function nameMergeConflicts(existing: Member[], incoming: Member[]): stri
 }
 
 export function planMemberMergeById(existing: Member[], incoming: Member[]): MemberMergePlan {
-  const existingIds = new Set(
-    existing
-      .map((member) => member.id)
-      .filter((id): id is number => id != null)
-  );
+  const used = new Set<number>();
   const matches: MemberMergePlan['matches'] = [];
   const creates: Member[] = [];
+  const aliases: MemberMergePlan['aliases'] = [];
+  const pendingKeyToIncomingId = new Map<string, number>();
+
   for (const member of incoming) {
-    if (existingIds.has(member.id)) {
-      matches.push({ incomingId: member.id, existingId: member.id });
-    } else {
-      creates.push(member);
+    const key = `${member.isDeleted ? '1' : '0'}:${member.name.trim()}`;
+    const same = existing.find(
+      (item) =>
+        item.id != null &&
+        !used.has(item.id) &&
+        item.isDeleted === member.isDeleted &&
+        item.name.trim() === member.name.trim()
+    );
+    if (same?.id != null) {
+      used.add(same.id);
+      matches.push({ incomingId: member.id, existingId: same.id });
+      continue;
     }
+    const pendingId = pendingKeyToIncomingId.get(key);
+    if (pendingId != null) {
+      aliases.push({ incomingId: member.id, createIncomingId: pendingId });
+      continue;
+    }
+    creates.push(member);
+    pendingKeyToIncomingId.set(key, member.id);
   }
-  return { matches, creates, aliases: [] };
+  return { matches, creates, aliases };
 }
 
 export function buildMemberIdMap(
@@ -700,13 +724,13 @@ export async function applyBackup(
       const existingMembers = await db.members.toArray();
       const existingSessions = await db.practiceSessions.toArray();
       const existingSettings = await db.practiceSettings.get(1);
-      if (mode === 'merge') {
-        const conflicts = nameMergeConflicts(existingMembers, data.members);
-        if (conflicts.length > 0) {
-          throw new Error(
-            `同じ名前が複数あるため、名前では統合できません（${conflicts.join('、')}）`
-          );
-        }
+      const conflicts = nameMergeConflicts(existingMembers, data.members);
+      if (conflicts.length > 0) {
+        throw new Error(
+          mode === 'merge'
+            ? `同じ名前が複数あるため、名前では統合できません（${conflicts.join('、')}）`
+            : `同じ名前が複数あります（${conflicts.join('、')}）。片方を改名してから統合してください`
+        );
       }
       const plan =
         mode === 'merge-id'

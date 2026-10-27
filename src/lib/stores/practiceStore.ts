@@ -172,7 +172,10 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
       const activePlayers = state.players.filter((p) => p.status === 'active');
 
       if (activePlayers.length < 4) {
-        set({ error: '参加者が4名未満のため組み合わせを生成できません', isLoading: false });
+        set({
+          error: `出場できる人が${activePlayers.length}人です（4人必要）。休憩の人を戻すか、コートを減らしてください`,
+          isLoading: false,
+        });
         return;
       }
 
@@ -184,10 +187,11 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
       );
 
       const nextNo = s.currentRound + 1;
-      const round: Round = { roundNo: nextNo, courts, rests };
       const returning = state.players.filter(
         (player) => player.status === 'rest' && player.restKind === 'break'
       );
+      const breakMemberIds = returning.map((player) => player.memberId);
+      const round: Round = { roundNo: nextNo, courts, rests, breakMemberIds };
 
       await db.transaction(
         'rw',
@@ -240,19 +244,41 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
     const previous = remaining[remaining.length - 1];
     const currentRound = previous ? previous.roundNo : 0;
     const updatedAt = new Date().toISOString();
+    const breakMemberIds = last.breakMemberIds ?? [];
 
     try {
-      await db.transaction('rw', db.rounds, db.practiceSettings, async () => {
-        await db.rounds.delete(last.roundNo);
-        await db.practiceSettings.put({
-          ...settings,
-          currentRound,
-          updatedAt,
-        });
-      });
+      await db.transaction(
+        'rw',
+        db.rounds,
+        db.practiceSettings,
+        db.practicePlayers,
+        async () => {
+          await db.rounds.delete(last.roundNo);
+          await db.practiceSettings.put({
+            ...settings,
+            currentRound,
+            updatedAt,
+          });
+          for (const memberId of breakMemberIds) {
+            const player = await db.practicePlayers.get(memberId);
+            if (!player) continue;
+            await db.practicePlayers.put({
+              ...player,
+              status: 'rest',
+              restKind: 'break',
+            });
+          }
+        }
+      );
+      const restored = new Set(breakMemberIds);
       set({
         rounds: remaining,
         settings: { ...settings, currentRound, updatedAt },
+        players: state.players.map((player) =>
+          restored.has(player.memberId)
+            ? { ...player, status: 'rest', restKind: 'break' }
+            : player
+        ),
       });
       return true;
     } catch (e: unknown) {

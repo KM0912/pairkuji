@@ -29,6 +29,11 @@ function MatchCountIndicator({
   );
 }
 
+function nextOutLabel(player: PracticePlayer | undefined): string | null {
+  if (!player || player.status !== 'rest') return null;
+  return player.restKind === 'break' ? '次は休憩' : '次は早退';
+}
+
 function pairNumbers(
   ids: readonly number[],
   playerMap: Map<number, PracticePlayer>
@@ -171,13 +176,18 @@ export function CourtManagement({
                             )}
                             onClick={() => onPlayerClick(id)}
                             title={numberEmphasis ? name : undefined}
-                            aria-label={`番号${number}、${name}、${matchCount}試合。選択して入れ替え`}
+                            aria-label={`番号${number}、${name}、${matchCount}試合${nextOutLabel(player) ? `、${nextOutLabel(player)}` : ''}。選択して入れ替え`}
                           >
                             <PlayerNumber
                               number={number}
                               variant="primary"
                               size={numberEmphasis ? 'lg' : 'xs'}
                             />
+                            {nextOutLabel(player) && (
+                              <span className="shrink-0 rounded bg-amber-100 px-1 py-0.5 text-[10px] font-semibold leading-none text-amber-900">
+                                {nextOutLabel(player)}
+                              </span>
+                            )}
                             {!numberEmphasis && (
                               <div className="flex flex-1 min-w-0 flex-col items-start gap-0.5 sm:flex-row sm:items-center sm:gap-1.5">
                                 <div
@@ -262,13 +272,18 @@ export function CourtManagement({
                             )}
                             onClick={() => onPlayerClick(id)}
                             title={numberEmphasis ? name : undefined}
-                            aria-label={`番号${number}、${name}、${matchCount}試合。選択して入れ替え`}
+                            aria-label={`番号${number}、${name}、${matchCount}試合${nextOutLabel(player) ? `、${nextOutLabel(player)}` : ''}。選択して入れ替え`}
                           >
                             <PlayerNumber
                               number={number}
                               variant="primary"
                               size={numberEmphasis ? 'lg' : 'xs'}
                             />
+                            {nextOutLabel(player) && (
+                              <span className="shrink-0 rounded bg-amber-100 px-1 py-0.5 text-[10px] font-semibold leading-none text-amber-900">
+                                {nextOutLabel(player)}
+                              </span>
+                            )}
                             {!numberEmphasis && (
                               <div className="flex flex-1 min-w-0 flex-col items-start gap-0.5 sm:flex-row sm:items-center sm:gap-1.5">
                                 <div
@@ -418,10 +433,7 @@ export function CourtManagement({
                 player.status === 'rest' &&
                 (section.kind === 'break'
                   ? player.restKind === 'break'
-                  : player.restKind !== 'break') &&
-                !latestRound.courts.some((court) =>
-                  [...court.pairA, ...court.pairB].includes(player.memberId)
-                )
+                  : player.restKind !== 'break')
             );
             if (sectionPlayers.length === 0) return null;
             return (

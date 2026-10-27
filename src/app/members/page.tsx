@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Search, X, Trash2, Users, Edit3, Plus } from 'lucide-react';
+import { db } from '@/lib/db';
 import { useMemberStore } from '@/lib/stores/memberStore';
 import { usePracticeStore } from '@/lib/stores/practiceStore';
 import { Button } from '@/components/ui/button';
@@ -48,6 +49,9 @@ export default function MembersPage() {
   } | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [confirmDeletedName, setConfirmDeletedName] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     load();
@@ -131,11 +135,21 @@ export default function MembersPage() {
 
   const closeEditModal = () => {
     setEditingMember(null);
+    setConfirmDeletedName(null);
   };
 
   const handleEditSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingMember) return;
+    const trimmed = editingMember.name.trim();
+    const rows = await db.members.toArray();
+    const deletedSame = rows.some(
+      (row) => row.isDeleted && row.id !== editingMember.id && row.name.trim() === trimmed
+    );
+    if (deletedSame && confirmDeletedName !== trimmed) {
+      setConfirmDeletedName(trimmed);
+      return;
+    }
 
     const saved = await update(editingMember.id, { name: editingMember.name });
     if (!saved) return;
@@ -412,15 +426,22 @@ export default function MembersPage() {
                     type="text"
                     className="w-full border rounded-lg px-3 py-2 bg-card border-border focus:outline-none focus:ring-2 focus:ring-primary"
                     value={editingMember.name}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      setConfirmDeletedName(null);
                       setEditingMember({
                         ...editingMember,
                         name: e.target.value,
-                      })
-                    }
+                      });
+                    }}
                     required
                   />
                 </div>
+                {confirmDeletedName === editingMember.name.trim() && (
+                  <p role="alert" className="text-sm text-amber-900">
+                    削除済みの「{confirmDeletedName}」と同じ名前です。履歴では「(削除)
+                    {confirmDeletedName} #番号」と区別して表示します。この名前で保存しますか？
+                  </p>
+                )}
                 <div className="flex gap-3 pt-4">
                   <Button
                     type="button"
@@ -436,7 +457,9 @@ export default function MembersPage() {
                     variant="default"
                     className="flex-1"
                   >
-                    保存
+                    {confirmDeletedName === editingMember.name.trim()
+                      ? 'この名前で保存'
+                      : '保存'}
                   </Button>
                 </div>
               </form>
