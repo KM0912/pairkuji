@@ -2,7 +2,13 @@ import 'fake-indexeddb/auto';
 import Dexie from 'dexie';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { db } from '@/lib/db';
-import { applyBackup, collectBackup, type PairkujiBackup } from '@/lib/backup';
+import {
+  applyBackup,
+  collectBackup,
+  countRosterMembers,
+  validateBackup,
+  type PairkujiBackup,
+} from '@/lib/backup';
 import { loadSafetySnapshot } from '@/lib/safetyBackup';
 import { useMemberStore } from '@/lib/stores/memberStore';
 import { usePracticeStore } from '@/lib/stores/practiceStore';
@@ -60,6 +66,43 @@ beforeEach(async () => {
 });
 
 describe('applyBackup', () => {
+  test('上書き完了の人数はプレビューと同じく削除済みを数えない', async () => {
+    const validated = validateBackup({
+      app: 'pairkuji',
+      version: 1,
+      exportedAt: '2026-04-01T00:00:00.000Z',
+      members: [
+        member(1, '山田'),
+        member(2, '佐藤'),
+        member(3, '鈴木'),
+        member(4, '高橋'),
+      ],
+      practiceSettings: null,
+      practicePlayers: [],
+      rounds: [
+        {
+          roundNo: 1,
+          courts: [{ courtNo: 1, pairA: [1, 2], pairB: [3, 4], result: null }],
+          rests: [5],
+        },
+      ],
+      practiceSessions: [],
+    });
+    expect(validated.ok).toBe(true);
+    if (!validated.ok) return;
+    const previewCount = countRosterMembers(validated.data.members);
+    expect(previewCount).toBe(4);
+    expect(validated.data.members).toHaveLength(5);
+
+    const summary = await applyBackup(validated.data, 'replace');
+    expect(summary.addedMembers).toBe(previewCount);
+    const stored = await db.members.toArray();
+    expect(stored).toHaveLength(5);
+    expect(stored.some((item) => item.isDeleted && item.name === '削除済みの選手 #5')).toBe(
+      true
+    );
+  });
+
   test('上書きの前に今のデータを退避する', async () => {
     await db.members.add({
       name: '残したい',

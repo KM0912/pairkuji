@@ -13,7 +13,7 @@ export function getDisplayName(
   const member = memberMap.get(id);
   if (!member) return '???';
   if (!member.isDeleted) return member.name;
-  const stripped = member.name.replace(/\s*#\d+$/, '').trim();
-  if (stripped.startsWith('削除済みの選手')) return `削除済みの選手 ID ${id}`;
-  return `(削除)${stripped} ID ${id}`;
+  // ファイルに無い選手へ付ける名前だけ、ファイル側の番号を外してこの端末のIDを出す。
+  if (/^削除済みの選手 #\d+$/.test(member.name)) return `削除済みの選手 ID ${id}`;
+  return `(削除)${member.name} ID ${id}`;
 }

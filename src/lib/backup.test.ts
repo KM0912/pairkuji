@@ -6,6 +6,7 @@ import {
   BACKUP_VERSION,
   DELETED_MEMBER_NAME,
   buildMemberIdMap,
+  countRosterMembers,
   nameMergeConflicts,
   planMemberMerge,
   remapRound,
@@ -110,6 +111,35 @@ describe('validateBackup', () => {
     );
     expect(remapped.breakMemberIds).toEqual([11]);
     expect(remapped.courts[0]?.pairA).toEqual([11, 12]);
+  });
+
+  test('上書きの人数はプレビューと同じく削除済みの補完を数えない', () => {
+    const result = validateBackup(
+      validBackup({
+        members: [
+          member(1, '山田'),
+          member(2, '佐藤'),
+          member(3, '鈴木'),
+          member(4, '高橋'),
+        ],
+        rounds: [
+          {
+            roundNo: 1,
+            courts: [
+              { courtNo: 1, pairA: [1, 2], pairB: [3, 4], result: null },
+            ],
+            rests: [5],
+          },
+        ],
+      })
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.members).toHaveLength(5);
+    expect(result.data.members.some((item) => item.name === `${DELETED_MEMBER_NAME} #5`)).toBe(
+      true
+    );
+    expect(countRosterMembers(result.data.members)).toBe(4);
   });
 
   test('別アプリや壊れた選手は拒否する', () => {

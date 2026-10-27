@@ -32,6 +32,11 @@ export type ImportMode = 'replace' | 'merge';
 
 export const DELETED_MEMBER_NAME = '削除済みの選手';
 
+/** プレビューと上書き完了で揃える人数。補完した削除済みは数えない。 */
+export function countRosterMembers(members: Member[]): number {
+  return members.filter((member) => !member.isDeleted).length;
+}
+
 export interface MemberMergePlan {
   matches: Array<{ incomingId: number; existingId: number }>;
   creates: Member[];
@@ -710,7 +715,7 @@ export async function applyBackup(
       }
     );
     return {
-      addedMembers: data.members.length,
+      addedMembers: countRosterMembers(data.members),
       addedSessions: data.practiceSessions.length,
       practiceImported: data.practiceSettings != null,
     };

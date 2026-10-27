@@ -13,6 +13,7 @@ import {
 import {
   applyBackup,
   collectBackup,
+  countRosterMembers,
   nameMergeConflicts,
   validateBackup,
   type ImportMode,
@@ -232,7 +233,7 @@ export function DataBackupDialog() {
             <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm space-y-3">
               <p>
                 {step.fileName}：選手
-                {step.data.members.filter((member) => !member.isDeleted).length}
+                {countRosterMembers(step.data.members)}
                 名、履歴
                 {step.data.practiceSessions.length}件
                 {step.data.practiceSettings ? '、進行中の練習あり' : ''}
