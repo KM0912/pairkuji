@@ -13,10 +13,12 @@ import {
 import {
   applyBackup,
   collectBackup,
+  nameMergeConflicts,
   validateBackup,
   type ImportMode,
   type PairkujiBackup,
 } from '@/lib/backup';
+import { db } from '@/lib/db';
 import { downloadJson, formatBackupStamp } from '@/lib/downloadJson';
 import { loadSafetySnapshot } from '@/lib/safetyBackup';
 import { useMemberStore } from '@/lib/stores/memberStore';
@@ -26,7 +28,19 @@ type Step =
   | { kind: 'idle' }
   | { kind: 'invalid'; errors: string[] }
   | { kind: 'preview'; data: PairkujiBackup; fileName: string }
-  | { kind: 'confirm'; data: PairkujiBackup; mode: ImportMode }
+  | {
+      kind: 'name-conflict';
+      data: PairkujiBackup;
+      fileName: string;
+      names: string[];
+    }
+  | {
+      kind: 'confirm';
+      data: PairkujiBackup;
+      mode: ImportMode;
+      fileName: string;
+      intent: 'import' | 'restore';
+    }
   | { kind: 'done'; message: string };
 
 export function DataBackupDialog() {
@@ -88,7 +102,25 @@ export function DataBackupDialog() {
       setStep({ kind: 'preview', data: result.data, fileName: file.name });
     } catch {
       setStep({ kind: 'invalid', errors: ['JSONとして読めませんでした'] });
+    } finally {
+      if (fileRef.current) fileRef.current.value = '';
     }
+  };
+
+  const beginMerge = async (data: PairkujiBackup, fileName: string) => {
+    const existing = await db.members.toArray();
+    const names = nameMergeConflicts(existing, data.members);
+    if (names.length > 0) {
+      setStep({ kind: 'name-conflict', data, fileName, names });
+      return;
+    }
+    setStep({
+      kind: 'confirm',
+      data,
+      mode: 'merge',
+      fileName,
+      intent: 'import',
+    });
   };
 
   const handleImport = async () => {
@@ -110,9 +142,11 @@ export function DataBackupDialog() {
         loadPractice(),
         loadSessions(),
       ]);
+      const keepsCurrentPractice =
+        step.mode === 'merge' || step.mode === 'merge-id';
       const practiceNote = summary.practiceImported
         ? '進行中の練習も読み込みました。'
-        : step.mode === 'merge'
+        : keepsCurrentPractice
           ? '進行中の練習がある場合は、そちらを残しています。'
           : '進行中の練習はありません。';
       const replaceNote =
@@ -201,7 +235,13 @@ export function DataBackupDialog() {
                   variant="destructiveOutline"
                   className="flex-1"
                   onClick={() =>
-                    setStep({ kind: 'confirm', data: step.data, mode: 'replace' })
+                    setStep({
+                      kind: 'confirm',
+                      data: step.data,
+                      mode: 'replace',
+                      fileName: step.fileName,
+                      intent: 'import',
+                    })
                   }
                 >
                   上書き
@@ -209,9 +249,7 @@ export function DataBackupDialog() {
                 <Button
                   type="button"
                   className="flex-1"
-                  onClick={() =>
-                    setStep({ kind: 'confirm', data: step.data, mode: 'merge' })
-                  }
+                  onClick={() => void beginMerge(step.data, step.fileName)}
                 >
                   統合
                 </Button>
@@ -219,12 +257,14 @@ export function DataBackupDialog() {
             </div>
           )}
 
-          {step.kind === 'confirm' && (
-            <div className="rounded-lg border border-border p-3 text-sm space-y-3">
+          {step.kind === 'name-conflict' && (
+            <div
+              role="alert"
+              className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950 space-y-3"
+            >
               <p>
-                {step.mode === 'replace'
-                  ? 'この端末の名簿・履歴・進行中の練習を、ファイルの内容に置き換えます。実行前に、今のデータを自動で書き出します。'
-                  : '同じ名前の選手は今の名簿を使い、新しい選手と履歴を足します。進行中の練習がすでにある場合は、ファイル側の練習では置き換えません。'}
+                同じ名前の選手が複数います（{step.names.join('、')}
+                ）。名前での統合は行いません。IDが同じ選手として履歴を重ねるか、中止してください。別の端末で同じIDが別人のとき、履歴が別人に付きます。
               </p>
               <div className="flex gap-2">
                 <Button
@@ -235,8 +275,55 @@ export function DataBackupDialog() {
                     setStep({
                       kind: 'preview',
                       data: step.data,
-                      fileName: '選択したファイル',
+                      fileName: step.fileName,
                     })
+                  }
+                >
+                  中止
+                </Button>
+                <Button
+                  type="button"
+                  className="flex-1"
+                  onClick={() =>
+                    setStep({
+                      kind: 'confirm',
+                      data: step.data,
+                      mode: 'merge-id',
+                      fileName: step.fileName,
+                      intent: 'import',
+                    })
+                  }
+                >
+                  IDで統合
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {step.kind === 'confirm' && (
+            <div className="rounded-lg border border-border p-3 text-sm space-y-3">
+              <p>
+                {step.intent === 'restore'
+                  ? '上書きする直前に退避した内容へ戻します。今の名簿・履歴・練習は、戻す前にファイルへ書き出します。'
+                  : step.mode === 'replace'
+                    ? 'この端末の名簿・履歴・進行中の練習を、ファイルの内容に置き換えます。実行前に、今のデータを自動で書き出します。'
+                    : step.mode === 'merge-id'
+                      ? '同じIDの選手は今の名簿を使い、新しいIDの選手と履歴を足します。別の端末で同じIDが別人のとき、履歴が別人に付きます。進行中の練習がすでにある場合は、ファイル側の練習では置き換えません。'
+                      : '同じ名前の選手は今の名簿を使い、新しい選手と履歴を足します。進行中の練習がすでにある場合は、ファイル側の練習では置き換えません。'}
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="flex-1"
+                  onClick={() =>
+                    step.intent === 'restore'
+                      ? setStep({ kind: 'idle' })
+                      : setStep({
+                          kind: 'preview',
+                          data: step.data,
+                          fileName: step.fileName,
+                        })
                   }
                   disabled={busy}
                 >
@@ -272,6 +359,8 @@ export function DataBackupDialog() {
                   kind: 'confirm',
                   data: safety,
                   mode: 'replace',
+                  fileName: '前回の上書き前の退避',
+                  intent: 'restore',
                 })
               }
             >

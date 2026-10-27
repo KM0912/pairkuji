@@ -16,6 +16,9 @@
 # production
 /build
 
+# scripts/write-sw.mjs が next build のたびに書く
+/public/sw.js
+
 # misc
 .DS_Store
 *.pem

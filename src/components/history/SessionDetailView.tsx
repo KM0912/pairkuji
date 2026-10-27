@@ -27,6 +27,18 @@ import type { PracticePlayer } from '@/types/practice';
 import type { PracticeSession } from '@/types/practiceSession';
 import type { MatchResult } from '@/types/round';
 
+function pairNumbers(
+  ids: readonly number[],
+  playerMap: Map<number, PracticePlayer>
+): string {
+  return ids
+    .map((id) => {
+      const number = playerMap.get(id)?.playerNumber;
+      return number != null ? String(number) : '?';
+    })
+    .join('・');
+}
+
 export function SessionDetailView({ sessionId }: { sessionId: number }) {
   const router = useRouter();
   const {
@@ -373,9 +385,9 @@ export function SessionDetailView({ sessionId }: { sessionId: number }) {
                       >
                         <Trophy className="w-3 h-3 inline-block mr-0.5" />
                         {court.result === 'pairA'
-                          ? '左ペアの勝ち'
+                          ? `${pairNumbers(court.pairA, sessionPlayerMap)}の勝ち`
                           : court.result === 'pairB'
-                            ? '右ペアの勝ち'
+                            ? `${pairNumbers(court.pairB, sessionPlayerMap)}の勝ち`
                             : '未記録'}
                       </button>
                       <button

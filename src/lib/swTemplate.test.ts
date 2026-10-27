@@ -14,6 +14,9 @@ describe('renderServiceWorker', () => {
     expect(source).toContain('response.ok');
     expect(source).toContain('NAV_TIMEOUT_MS');
     expect(source).toContain('/history?id=');
+    expect(source).toContain("request.headers.get('RSC')");
+    expect(source).toContain('_rsc');
+    expect(source).toContain('status: 504');
     expect(source).not.toContain("caches.match('/')");
   });
 });

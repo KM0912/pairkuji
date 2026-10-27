@@ -178,7 +178,8 @@ export function calculatePlayerStats(
 export function generateFairRound(
   activePlayers: PracticePlayer[],
   maxCourts: number,
-  rounds: Round[]
+  rounds: Round[],
+  seed?: string | number
 ): { courts: CourtMatch[]; rests: number[] } {
   assertUniquePlayerIds(activePlayers);
 
@@ -208,7 +209,10 @@ export function generateFairRound(
     rounds: rounds.map(toSchedulerRound),
   });
 
-  const proposal = generateNextRound(schedulerState);
+  const proposal = generateNextRound(
+    schedulerState,
+    seed === undefined ? undefined : { seed }
+  );
   const validation = validateRound(schedulerState, proposal.round);
 
   if (!validation.valid) {

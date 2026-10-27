@@ -57,6 +57,44 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+function isRscRequest(request, url) {
+  if (request.headers.get('RSC') === '1') return true;
+  if (request.headers.get('Next-Router-Prefetch') === '1') return true;
+  return url.searchParams.has('_rsc');
+}
+
+async function revalidateRsc(request) {
+  try {
+    const response = await withTimeout(fetch(request), NAV_TIMEOUT_MS);
+    if (response && response.ok) {
+      const cache = await caches.open(CACHE);
+      await cache.put(request, response.clone());
+    }
+  } catch {
+    // 古いRSCを残す
+  }
+}
+
+async function handleRsc(event, request) {
+  const cached = await caches.match(request);
+  if (cached) {
+    event.waitUntil(revalidateRsc(request));
+    return cached;
+  }
+  try {
+    const response = await withTimeout(fetch(request), NAV_TIMEOUT_MS);
+    if (response && response.ok) {
+      const cache = await caches.open(CACHE);
+      await cache.put(request, response.clone());
+      return response;
+    }
+    if (response) return response;
+  } catch {
+    // タイムアウト時は待たずに失敗させる
+  }
+  return new Response('', { status: 504 });
+}
+
 function historyDetailId(pathname) {
   const match = pathname.match(/^\\/history\\/([^/]+)\\/?$/);
   return match ? decodeURIComponent(match[1]) : null;
@@ -135,6 +173,11 @@ self.addEventListener('fetch', (event) => {
 
   if (request.mode === 'navigate') {
     event.respondWith(handleNavigate(request, url));
+    return;
+  }
+
+  if (isRscRequest(request, url)) {
+    event.respondWith(handleRsc(event, request));
     return;
   }
 

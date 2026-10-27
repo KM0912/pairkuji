@@ -128,6 +128,56 @@ describe('applyBackup', () => {
     expect(sessions[0]?.playerIds).toContain(Number(existingId));
     expect(sessions[0]?.playerIds).toHaveLength(2);
   });
+
+  test('同じ名前が複数あるファイルは名前では統合せず履歴も増えない', async () => {
+    await db.members.bulkPut([member(1, '山田'), member(5, '山田')]);
+    const session = {
+      startedAt: '2026-02-01T00:00:00.000Z',
+      endedAt: '2026-02-01T01:00:00.000Z',
+      courts: 1,
+      playerIds: [5],
+      rounds: [],
+    };
+    await db.practiceSessions.add(session);
+    await expect(
+      applyBackup(
+        backup({
+          members: [member(1, 'Aくん'), member(5, '山田')],
+          practiceSessions: [session],
+        }),
+        'merge'
+      )
+    ).rejects.toThrow(/同じ名前が複数あるため/);
+    expect(await db.practiceSessions.count()).toBe(1);
+    expect((await db.practiceSessions.toArray())[0]?.playerIds).toEqual([5]);
+  });
+
+  test('IDで統合すると同じ履歴は増えない', async () => {
+    await db.members.bulkPut([member(1, '山田'), member(5, '山田')]);
+    const session = {
+      startedAt: '2026-02-01T00:00:00.000Z',
+      endedAt: '2026-02-01T01:00:00.000Z',
+      courts: 1,
+      playerIds: [5],
+      rounds: [],
+    };
+    await db.practiceSessions.add(session);
+    const summary = await applyBackup(
+      backup({
+        members: [member(1, 'Aくん'), member(5, '山田')],
+        practiceSessions: [session],
+      }),
+      'merge-id'
+    );
+    expect(summary.addedMembers).toBe(0);
+    expect(summary.addedSessions).toBe(0);
+    const sessions = await db.practiceSessions.toArray();
+    expect(sessions).toHaveLength(1);
+    expect(sessions[0]?.playerIds).toEqual([5]);
+    const names = (await db.members.toArray()).map((item) => item.name);
+    expect(names.filter((name) => name === '山田')).toHaveLength(2);
+    expect(names).not.toContain('Aくん');
+  });
 });
 
 describe('undoLastRound', () => {
@@ -185,5 +235,18 @@ describe('memberStore', () => {
     const renamed = await db.members.get(id);
     expect(renamed?.name).toBe('改名');
     expect(renamed?.isSample).toBe(false);
+  });
+
+  test('同じ名前への変更は保存しない', async () => {
+    const yamada = await useMemberStore.getState().add('山田');
+    const sample = await useMemberStore.getState().add('Aくん');
+    expect(yamada).not.toBeNull();
+    expect(sample).not.toBeNull();
+    const saved = await useMemberStore.getState().update(sample as number, {
+      name: '山田',
+    });
+    expect(saved).toBe(false);
+    expect((await db.members.get(sample as number))?.name).toBe('Aくん');
+    expect(useMemberStore.getState().error).toBe('同じ名前の選手がすでにいます');
   });
 });

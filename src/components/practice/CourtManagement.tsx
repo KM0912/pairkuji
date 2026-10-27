@@ -29,6 +29,15 @@ function MatchCountIndicator({
   );
 }
 
+function pairNumbers(
+  ids: readonly number[],
+  playerMap: Map<number, PracticePlayer>
+): string {
+  return ids
+    .map((id) => String(playerMap.get(id)?.playerNumber ?? '?'))
+    .join('・');
+}
+
 function PairCountIndicator({
   pair,
   pairCounts,
@@ -121,7 +130,11 @@ export function CourtManagement({
                   {cm.result != null && (
                     <span className="text-xs font-medium text-accent">
                       <Trophy className="w-3.5 h-3.5 inline-block mr-0.5" />
-                      {cm.result === 'pairA' ? '左ペアの勝ち' : '右ペアの勝ち'}
+                      {pairNumbers(
+                        cm.result === 'pairA' ? cm.pairA : cm.pairB,
+                        playerMap
+                      )}
+                      の勝ち
                     </span>
                   )}
                 </div>
@@ -205,12 +218,14 @@ export function CourtManagement({
                         }
                         aria-label={
                           cm.result === 'pairA'
-                            ? '左ペアの勝ち。もう一度押すと記録を消せます'
-                            : '左ペアを勝ちにする'
+                            ? `${pairNumbers(cm.pairA, playerMap)}の勝ち。もう一度押すと記録を消せます`
+                            : `${pairNumbers(cm.pairA, playerMap)}を勝ちにする`
                         }
                       >
                         <Trophy className="w-3.5 h-3.5 inline-block mr-1" />
-                        {cm.result === 'pairA' ? '勝ち✓' : '勝ち'}
+                        {cm.result === 'pairA'
+                          ? `${pairNumbers(cm.pairA, playerMap)}の勝ち✓`
+                          : '勝ち'}
                       </button>
                     )}
                   </div>
@@ -294,12 +309,14 @@ export function CourtManagement({
                         }
                         aria-label={
                           cm.result === 'pairB'
-                            ? '右ペアの勝ち。もう一度押すと記録を消せます'
-                            : '右ペアを勝ちにする'
+                            ? `${pairNumbers(cm.pairB, playerMap)}の勝ち。もう一度押すと記録を消せます`
+                            : `${pairNumbers(cm.pairB, playerMap)}を勝ちにする`
                         }
                       >
                         <Trophy className="w-3.5 h-3.5 inline-block mr-1" />
-                        {cm.result === 'pairB' ? '勝ち✓' : '勝ち'}
+                        {cm.result === 'pairB'
+                          ? `${pairNumbers(cm.pairB, playerMap)}の勝ち✓`
+                          : '勝ち'}
                       </button>
                     )}
                   </div>
@@ -382,32 +399,43 @@ export function CourtManagement({
               )
             );
           })()}
-          {players.some(
-            (player) =>
-              player.status === 'rest' &&
-              !latestRound.courts.some((court) =>
-                [...court.pairA, ...court.pairB].includes(player.memberId)
-              )
-          ) && (
-            <div className="rounded-xl border border-dashed border-border bg-muted/30 p-3">
-              <div className="mb-1 font-heading font-semibold text-foreground text-caption">
-                早退
-              </div>
-              <p className="mb-2 text-xs text-muted-foreground">
-                次のラウンドから組み合わせに入りません。タップすると出場に戻せます。
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {players
-                  .filter(
-                    (player) =>
-                      player.status === 'rest' &&
-                      !latestRound.courts.some((court) =>
-                        [...court.pairA, ...court.pairB].includes(player.memberId)
-                      )
-                  )
-                  .map((player) => {
-                    const member = memberMap.get(player.memberId);
-                    const name = member?.name ?? '???';
+          {(
+            [
+              {
+                kind: 'break' as const,
+                title: '休憩',
+                note: '次の1ラウンドだけ組み合わせから外れ、その次は戻ります。タップすると今すぐ戻せます。',
+              },
+              {
+                kind: 'early' as const,
+                title: '早退',
+                note: '戻すまで、次のラウンドの組み合わせに入りません。タップすると出場に戻せます。',
+              },
+            ] as const
+          ).map((section) => {
+            const sectionPlayers = players.filter(
+              (player) =>
+                player.status === 'rest' &&
+                (section.kind === 'break'
+                  ? player.restKind === 'break'
+                  : player.restKind !== 'break') &&
+                !latestRound.courts.some((court) =>
+                  [...court.pairA, ...court.pairB].includes(player.memberId)
+                )
+            );
+            if (sectionPlayers.length === 0) return null;
+            return (
+              <div
+                key={section.kind}
+                className="rounded-xl border border-dashed border-border bg-muted/30 p-3"
+              >
+                <div className="mb-1 font-heading font-semibold text-foreground text-caption">
+                  {section.title}
+                </div>
+                <p className="mb-2 text-xs text-muted-foreground">{section.note}</p>
+                <div className="flex flex-wrap gap-2">
+                  {sectionPlayers.map((player) => {
+                    const name = memberMap.get(player.memberId)?.name ?? '???';
                     return (
                       <button
                         key={player.memberId}
@@ -425,9 +453,10 @@ export function CourtManagement({
                       </button>
                     );
                   })}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })}
         </div>
       ) : (
         <div className="text-muted-foreground text-caption">

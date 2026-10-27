@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useMemberStore } from '@/lib/stores/memberStore';
 import { type Member } from '@/types/member';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -41,10 +42,13 @@ export function AddParticipantModal({
     if (!name || adding) return;
     setAdding(true);
     setCreateError(null);
+    useMemberStore.getState().clearError();
     const id = await onCreateMember(name);
     setAdding(false);
     if (id == null) {
-      setCreateError('同じ名前の選手がすでにいます');
+      setCreateError(
+        useMemberStore.getState().error ?? '選手を追加できませんでした'
+      );
       return;
     }
     setNewName('');

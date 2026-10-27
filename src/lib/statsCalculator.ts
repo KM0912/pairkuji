@@ -420,6 +420,8 @@ export interface ParticipationBalance {
   rateMin: number;
   /** 最大と最小の差。100ポイント満点 */
   rateSpreadPoints: number;
+  /** 人数とコート数の余りだけで生じる差。これを超えた分だけ警告する */
+  theoreticalSpreadPoints: number;
 }
 
 function emptyParticipation(): ParticipationBalance {
@@ -428,7 +430,50 @@ function emptyParticipation(): ParticipationBalance {
     rateMax: 0,
     rateMin: 0,
     rateSpreadPoints: 0,
+    theoreticalSpreadPoints: 0,
   };
+}
+
+function rateOf(playedMap: Map<number, number>, restedMap: Map<number, number>, id: number): number {
+  const playedCount = playedMap.get(id) ?? 0;
+  const restedCount = restedMap.get(id) ?? 0;
+  const total = playedCount + restedCount;
+  return total === 0 ? 0 : playedCount / total;
+}
+
+/** 休憩枠をできるだけ均等に配ったときの出場率の差。 */
+function theoreticalSpreadPoints(rounds: Round[]): number {
+  const played = new Map<number, number>();
+  const rested = new Map<number, number>();
+  for (const round of rounds) {
+    const ids = new Set<number>();
+    for (const court of round.courts) {
+      for (const id of [...court.pairA, ...court.pairB]) ids.add(id);
+    }
+    for (const id of round.rests) ids.add(id);
+    const list = Array.from(ids);
+    if (list.length === 0) continue;
+    const restCount = Math.min(round.rests.length, list.length);
+    const ranked = [...list].sort(
+      (a, b) =>
+        rateOf(played, rested, b) - rateOf(played, rested, a) ||
+        (played.get(b) ?? 0) - (played.get(a) ?? 0) ||
+        a - b
+    );
+    const resting = new Set(ranked.slice(0, restCount));
+    for (const id of list) {
+      if (resting.has(id)) {
+        rested.set(id, (rested.get(id) ?? 0) + 1);
+        if (!played.has(id)) played.set(id, 0);
+      } else {
+        played.set(id, (played.get(id) ?? 0) + 1);
+        if (!rested.has(id)) rested.set(id, 0);
+      }
+    }
+  }
+  const rates = Array.from(played.keys()).map((id) => rateOf(played, rested, id));
+  if (rates.length === 0) return 0;
+  return Math.round((Math.max(...rates) - Math.min(...rates)) * 100);
 }
 
 /**
@@ -462,6 +507,10 @@ export function calculateParticipationBalance(
 
   for (const session of sessions) consume(session.rounds);
   consume(currentRounds);
+  const allRounds = [
+    ...sessions.flatMap((session) => session.rounds),
+    ...currentRounds,
+  ];
 
   const records: ParticipationRecord[] = Array.from(played.keys()).map(
     (playerId) => {
@@ -498,6 +547,7 @@ export function calculateParticipationBalance(
     rateMax,
     rateMin,
     rateSpreadPoints: Math.round((rateMax - rateMin) * 100),
+    theoreticalSpreadPoints: theoreticalSpreadPoints(allRounds),
   };
 }
 

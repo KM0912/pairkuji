@@ -490,9 +490,10 @@ describe('途中から4人になった場合', () => {
     const players = createTestPlayers(8);
     const rounds: Round[] = [];
 
+    const seed = 'pairkuji-8to4-1';
     // 最初の5ラウンドは8人で実施
     for (let i = 0; i < 5; i++) {
-      const result = generateFairRound(players, 2, rounds);
+      const result = generateFairRound(players, 2, rounds, seed);
       rounds.push({
         roundNo: i + 1,
         courts: result.courts,
@@ -506,7 +507,7 @@ describe('途中から4人になった場合', () => {
     const additionalRounds = 12; // 4人×3で12ラウンド分確認
 
     for (let i = 0; i < additionalRounds; i++) {
-      const result = generateFairRound(reducedPlayers, 1, rounds);
+      const result = generateFairRound(reducedPlayers, 1, rounds, seed);
       rounds.push({
         roundNo: startRound + i,
         courts: result.courts,

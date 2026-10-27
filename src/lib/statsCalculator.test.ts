@@ -473,5 +473,44 @@ describe('calculateParticipationBalance', () => {
     const balance = calculateParticipationBalance([], []);
     expect(balance.records).toEqual([]);
     expect(balance.rateSpreadPoints).toBe(0);
+    expect(balance.theoreticalSpreadPoints).toBe(0);
+  });
+
+  test('10人2面で余りとして出る差は理論値を超えない', () => {
+    const everyone = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    const restPairs = [
+      [1, 2],
+      [3, 4],
+      [5, 6],
+      [7, 8],
+    ];
+    const rounds: Round[] = restPairs.map((rests, index) => {
+      const playing = everyone.filter((id) => !rests.includes(id));
+      return {
+        roundNo: index + 1,
+        courts: [
+          {
+            courtNo: 1,
+            pairA: [playing[0]!, playing[1]!],
+            pairB: [playing[2]!, playing[3]!],
+            result: null,
+          },
+          {
+            courtNo: 2,
+            pairA: [playing[4]!, playing[5]!],
+            pairB: [playing[6]!, playing[7]!],
+            result: null,
+          },
+        ],
+        rests,
+      };
+    });
+    const balance = calculateParticipationBalance(
+      [makeSession(rounds, everyone)],
+      []
+    );
+    expect(balance.rateSpreadPoints).toBe(25);
+    expect(balance.theoreticalSpreadPoints).toBe(25);
+    expect(balance.rateSpreadPoints - balance.theoreticalSpreadPoints).toBeLessThan(5);
   });
 });

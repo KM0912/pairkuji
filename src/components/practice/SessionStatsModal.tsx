@@ -40,6 +40,15 @@ interface SessionStatsModalProps {
   ) => Promise<void>;
 }
 
+function pairNumbers(
+  ids: readonly number[],
+  playerMap: Map<number, PracticePlayer>
+): string {
+  return ids
+    .map((id) => String(playerMap.get(id)?.playerNumber ?? '?'))
+    .join('・');
+}
+
 function HistoryPlayerLabel({
   memberId,
   memberMap,
@@ -134,9 +143,11 @@ export function SessionStatsModal({
                                 {court.result != null && (
                                   <span className="text-xs text-accent ml-auto">
                                     <Trophy className="w-3 h-3 inline-block mr-0.5" />
-                                    {court.result === 'pairA'
-                                      ? '左ペアの勝ち'
-                                      : '右ペアの勝ち'}
+                                    {pairNumbers(
+                                      court.result === 'pairA' ? court.pairA : court.pairB,
+                                      playerMap
+                                    )}
+                                    の勝ち
                                   </span>
                                 )}
                               </div>
@@ -214,8 +225,8 @@ export function SessionStatsModal({
                                     }
                                   >
                                     {court.result === 'pairA'
-                                      ? '勝ち✓'
-                                      : '左を勝ちに'}
+                                      ? `${pairNumbers(court.pairA, playerMap)}の勝ち✓`
+                                      : '勝ち'}
                                   </button>
                                   <button
                                     type="button"
@@ -234,8 +245,8 @@ export function SessionStatsModal({
                                     }
                                   >
                                     {court.result === 'pairB'
-                                      ? '勝ち✓'
-                                      : '右を勝ちに'}
+                                      ? `${pairNumbers(court.pairB, playerMap)}の勝ち✓`
+                                      : '勝ち'}
                                   </button>
                                 </div>
                               )}

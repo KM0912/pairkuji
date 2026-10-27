@@ -24,7 +24,8 @@ export function ParticipationBalancePanel({
     );
   }
 
-  const even = balance.rateSpreadPoints < 5;
+  const excess = balance.rateSpreadPoints - balance.theoreticalSpreadPoints;
+  const even = excess < 5;
 
   return (
     <div className="space-y-3">
@@ -36,8 +37,8 @@ export function ParticipationBalancePanel({
         }`}
       >
         {even
-          ? '参加したラウンドの中での出場率は揃っています。来た回数の合計では比べていません。'
-          : `出場率の差は${balance.rateSpreadPoints}ポイントです（高い人 ${percent(balance.rateMax)}% / 低い人 ${percent(balance.rateMin)}%）。来た回数ではなく、その人が入ったラウンドの中での割合です。`}
+          ? '参加したラウンドの中での出場率は、人数とコート数から見て揃っています。'
+          : `出場率は、人数とコート数から見た差より${excess}ポイント開いています（高い人 ${percent(balance.rateMax)}% / 低い人 ${percent(balance.rateMin)}%）。`}
       </div>
       <div className="space-y-2">
         {balance.records.map((record) => {

@@ -95,12 +95,16 @@ export function FullscreenDisplay({
   };
 
   const restingPlayers = getRestingPlayers();
-  const manualRestPlayers = players.filter(
-    (player) =>
-      player.status === 'rest' &&
-      !round.courts.some((court) =>
-        [...court.pairA, ...court.pairB].includes(player.memberId)
-      )
+  const offCourt = (player: PracticePlayer) =>
+    player.status === 'rest' &&
+    !round.courts.some((court) =>
+      [...court.pairA, ...court.pairB].includes(player.memberId)
+    );
+  const breakPlayers = players.filter(
+    (player) => offCourt(player) && player.restKind === 'break'
+  );
+  const earlyPlayers = players.filter(
+    (player) => offCourt(player) && player.restKind !== 'break'
   );
 
   const renderPlayer = (id: number) => {
@@ -143,7 +147,7 @@ export function FullscreenDisplay({
         </div>
       </div>
 
-      <div className="p-3">
+      <div className="p-3 pb-52">
         <div className="grid grid-cols-1 gap-3 landscape:grid-cols-2">
           {round.courts.map((court) => (
             <div
@@ -196,11 +200,34 @@ export function FullscreenDisplay({
           </div>
         )}
 
-        {manualRestPlayers.length > 0 && (
+        {breakPlayers.length > 0 && (
+          <div className="mt-3 rounded-lg border border-border bg-muted p-3">
+            <h3 className="mb-2 text-lg font-bold text-foreground">休憩</h3>
+            <div className="flex flex-wrap gap-2">
+              {breakPlayers.map((player) => {
+                const member = memberMap.get(player.memberId);
+                const name = member?.name ?? '???';
+                return (
+                  <span
+                    key={player.memberId}
+                    className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-2"
+                  >
+                    <PlayerNumber number={player.playerNumber} variant="neutral" size="lg" />
+                    <span className="max-w-[180px] truncate text-xl font-bold text-foreground">
+                      {name}
+                    </span>
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {earlyPlayers.length > 0 && (
           <div className="mt-3 rounded-lg border border-dashed border-border bg-muted/40 p-3">
             <h3 className="mb-2 text-lg font-bold text-foreground">早退</h3>
             <div className="flex flex-wrap gap-2">
-              {manualRestPlayers.map((player) => {
+              {earlyPlayers.map((player) => {
                 const member = memberMap.get(player.memberId);
                 const name = member?.name ?? '???';
                 return (
@@ -224,14 +251,14 @@ export function FullscreenDisplay({
         )}
       </div>
 
-      <div className="sticky bottom-3 mx-3 mb-3 space-y-2">
+      <div className="fixed bottom-0 left-0 right-0 z-sticky space-y-2 border-t border-border bg-background/95 p-2">
         {toast && (
-          <div className="flex items-center justify-between gap-3 rounded-xl bg-foreground px-4 py-3 text-sm text-background shadow-level-3">
+          <div className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-foreground px-3 py-2 text-xs text-background shadow-level-3">
             <span>{toast.message}</span>
             {toast.canUndo && onUndo && (
               <button
                 type="button"
-                className="shrink-0 font-semibold underline"
+                className="inline-flex min-h-11 shrink-0 items-center px-2 font-semibold underline"
                 onClick={onUndo}
               >
                 元に戻す

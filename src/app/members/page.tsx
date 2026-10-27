@@ -137,8 +137,9 @@ export default function MembersPage() {
     e.preventDefault();
     if (!editingMember) return;
 
+    const saved = await update(editingMember.id, { name: editingMember.name });
+    if (!saved) return;
     setFlashingId(editingMember.id);
-    await update(editingMember.id, { name: editingMember.name });
     setTimeout(() => setFlashingId(null), 1000);
     setToast('保存しました');
     closeEditModal();
@@ -286,27 +287,27 @@ export default function MembersPage() {
                       </button>
                     </div>
                   </div>
-                  <div className="mt-2 flex items-center justify-between gap-3 border-t border-border/60 pt-2">
-                    <span className="text-xs text-muted-foreground" id={`away-${member.id}`}>
-                      今は来ない
-                    </span>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={!member.isActive}
-                      aria-labelledby={`away-${member.id}`}
-                      onClick={() => void handleToggleActive(member.id!, member.isActive)}
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={!member.isActive}
+                    onClick={() => void handleToggleActive(member.id!, member.isActive)}
+                    className="mt-2 flex min-h-11 w-full items-center justify-between gap-3 border-t border-border/60 pt-2 text-left"
+                  >
+                    <span className="text-xs text-muted-foreground">今は来ない</span>
+                    <span
                       className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${
                         member.isActive ? 'bg-muted' : 'bg-primary'
                       }`}
+                      aria-hidden="true"
                     >
                       <span
                         className={`absolute top-0.5 h-6 w-6 rounded-full bg-background shadow ${
                           member.isActive ? 'left-0.5' : 'left-5'
                         }`}
                       />
-                    </button>
-                  </div>
+                    </span>
+                  </button>
                 </div>
               </div>
             );

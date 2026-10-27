@@ -1,6 +1,5 @@
 import { type Member } from '@/types/member';
 import { type PracticePlayer, type PracticeSettings } from '@/types/practice';
-import { cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { PlayerNumber } from '../ui/PlayerNumber';
 
@@ -10,7 +9,10 @@ interface ParticipantManagementProps {
   memberMap: Map<number, Member>;
   matchCounts: Map<number, number>;
   updateCourts: (courts: number) => void;
-  toggleStatus: (memberId: number) => Promise<void>;
+  onSetAvailability: (
+    memberId: number,
+    mode: 'active' | 'break' | 'early'
+  ) => Promise<void>;
   onShowAddParticipant: () => void;
 }
 
@@ -20,7 +22,7 @@ export function ParticipantManagement({
   memberMap,
   matchCounts,
   updateCourts,
-  toggleStatus,
+  onSetAvailability,
   onShowAddParticipant,
 }: ParticipantManagementProps) {
   return (
@@ -49,23 +51,43 @@ export function ParticipantManagement({
                       {matchCounts.get(p.memberId) || 0}試合
                     </span>
                   </div>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={p.status === 'active' ? 'outline' : 'success'}
-                    className={cn(
-                      'shrink-0 min-w-[4.25rem]',
-                      p.status === 'rest' && 'text-muted-foreground'
+                  <div className="flex shrink-0 gap-1">
+                    {p.status === 'active' ? (
+                      <>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="min-h-11 px-2"
+                          onClick={() => void onSetAvailability(p.memberId, 'break')}
+                          aria-label={`${m.name}を次の1ラウンドだけ休憩にする`}
+                        >
+                          休憩
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="min-h-11 px-2"
+                          onClick={() => void onSetAvailability(p.memberId, 'early')}
+                          aria-label={`${m.name}を早退にする`}
+                        >
+                          早退
+                        </Button>
+                      </>
+                    ) : (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="success"
+                        className="min-h-11"
+                        onClick={() => void onSetAvailability(p.memberId, 'active')}
+                        aria-label={`${m.name}を出場に戻す`}
+                      >
+                        {p.restKind === 'break' ? '休憩を戻す' : '早退を戻す'}
+                      </Button>
                     )}
-                    onClick={() => void toggleStatus(p.memberId)}
-                    aria-label={
-                      p.status === 'active'
-                        ? `${m.name}を早退にする`
-                        : `${m.name}を出場に戻す`
-                    }
-                  >
-                    {p.status === 'active' ? '早退' : '戻す'}
-                  </Button>
+                  </div>
                 </div>
               );
             })}

@@ -18,7 +18,7 @@ type Actions = {
   update: (
     id: number,
     updates: Partial<Pick<Member, 'name' | 'isActive'>>
-  ) => Promise<void>;
+  ) => Promise<boolean>;
   remove: (id: number) => Promise<void>;
   clearError: () => void;
 };
@@ -136,10 +136,20 @@ export const useMemberStore = create<State & Actions>((set, get) => ({
   update: async (id, updates) => {
     try {
       const existing = await db.members.get(id);
-      if (!existing) return;
+      if (!existing) return false;
       const nextName = updates.name?.trim();
       const renamed =
         nextName != null && nextName.length > 0 && nextName !== existing.name.trim();
+      if (renamed && nextName) {
+        const rows = await db.members.toArray();
+        const duplicate = rows.some(
+          (row) => row.id !== id && !row.isDeleted && row.name.trim() === nextName
+        );
+        if (duplicate) {
+          set({ error: '同じ名前の選手がすでにいます' });
+          return false;
+        }
+      }
       const updated: Member = {
         ...existing,
         ...updates,
@@ -149,8 +159,10 @@ export const useMemberStore = create<State & Actions>((set, get) => ({
       };
       await db.members.put(updated);
       set({ members: get().members.map((m) => (m.id === id ? updated : m)) });
+      return true;
     } catch (e: unknown) {
       set({ error: e instanceof Error ? e.message : '選手を更新できませんでした' });
+      return false;
     }
   },
 

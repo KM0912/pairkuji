@@ -26,6 +26,10 @@ type Actions = {
   loadSessions: () => Promise<void>;
   startPractice: (courts: number, memberIds: number[], clubTags?: string[]) => Promise<void>;
   toggleStatus: (memberId: number) => Promise<void>;
+  setPlayerAvailability: (
+    memberId: number,
+    mode: 'active' | 'break' | 'early'
+  ) => Promise<void>;
   generateNextRound: () => Promise<void>;
   undoLastRound: () => Promise<boolean>;
   resetPractice: () => Promise<void>;
@@ -131,17 +135,27 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
   },
 
   toggleStatus: async (memberId) => {
+    const player = get().players.find((item) => item.memberId === memberId);
+    if (!player) return;
+    await get().setPlayerAvailability(
+      memberId,
+      player.status === 'active' ? 'break' : 'active'
+    );
+  },
+
+  setPlayerAvailability: async (memberId, mode) => {
     try {
       const player = await db.practicePlayers.get(memberId);
       if (!player) return;
-      const updated: PracticePlayer = {
-        ...player,
-        status: player.status === 'active' ? 'rest' : 'active',
-      };
+      const updated: PracticePlayer =
+        mode === 'active'
+          ? { ...player, status: 'active' }
+          : { ...player, status: 'rest', restKind: mode };
+      if (mode === 'active') delete updated.restKind;
       await db.practicePlayers.put(updated);
       set({
-        players: get().players.map((p) =>
-          p.memberId === memberId ? updated : p
+        players: get().players.map((item) =>
+          item.memberId === memberId ? updated : item
         ),
       });
     } catch (e: unknown) {
@@ -171,18 +185,39 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
 
       const nextNo = s.currentRound + 1;
       const round: Round = { roundNo: nextNo, courts, rests };
+      const returning = state.players.filter(
+        (player) => player.status === 'rest' && player.restKind === 'break'
+      );
 
-      await db.transaction('rw', db.rounds, db.practiceSettings, async () => {
-        await db.rounds.put(round);
-        await db.practiceSettings.put({
-          ...s,
-          currentRound: nextNo,
-          updatedAt: new Date().toISOString(),
-        });
-      });
+      await db.transaction(
+        'rw',
+        db.rounds,
+        db.practiceSettings,
+        db.practicePlayers,
+        async () => {
+          await db.rounds.put(round);
+          await db.practiceSettings.put({
+            ...s,
+            currentRound: nextNo,
+            updatedAt: new Date().toISOString(),
+          });
+          for (const player of returning) {
+            const next: PracticePlayer = { ...player, status: 'active' };
+            delete next.restKind;
+            await db.practicePlayers.put(next);
+          }
+        }
+      );
 
+      const returnedIds = new Set(returning.map((player) => player.memberId));
       set({
         rounds: [...state.rounds, round],
+        players: state.players.map((player) => {
+          if (!returnedIds.has(player.memberId)) return player;
+          const next: PracticePlayer = { ...player, status: 'active' };
+          delete next.restKind;
+          return next;
+        }),
         settings: {
           ...s,
           currentRound: nextNo,

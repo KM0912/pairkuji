@@ -28,7 +28,9 @@ export type BackupValidation =
   | { ok: true; data: PairkujiBackup }
   | { ok: false; errors: string[] };
 
-export type ImportMode = 'replace' | 'merge';
+export type ImportMode = 'replace' | 'merge' | 'merge-id';
+
+export const DELETED_MEMBER_NAME = '削除済みの選手';
 
 export interface MemberMergePlan {
   matches: Array<{ incomingId: number; existingId: number }>;
@@ -391,24 +393,26 @@ export function validateBackup(input: unknown): BackupValidation {
   const playerNumbers = new Set<number>();
   let duplicatePlayerId = false;
   let duplicatePlayerNumber = false;
+  let duplicateParticipant = false;
   for (const player of practicePlayers) {
     if (playerIds.has(player.memberId)) duplicatePlayerId = true;
     playerIds.add(player.memberId);
     if (playerNumbers.has(player.playerNumber)) duplicatePlayerNumber = true;
     playerNumbers.add(player.playerNumber);
   }
-  if (duplicatePlayerId) pushError(errors, '参加選手のIDが重複しています');
+  if (duplicatePlayerId) pushError(errors, '参加者が重複しています');
 
   for (const session of practiceSessions) {
     const numbers = new Set<number>();
     const participantIds = new Set<number>();
     for (const participant of session.participants ?? []) {
       if (numbers.has(participant.playerNumber)) duplicatePlayerNumber = true;
-      if (participantIds.has(participant.memberId)) duplicatePlayerNumber = true;
+      if (participantIds.has(participant.memberId)) duplicateParticipant = true;
       numbers.add(participant.playerNumber);
       participantIds.add(participant.memberId);
     }
   }
+  if (duplicateParticipant) pushError(errors, '参加者が重複しています');
   if (duplicatePlayerNumber) pushError(errors, '出場番号が重複しています');
 
   const referenced = new Set<number>();
@@ -428,11 +432,18 @@ export function validateBackup(input: unknown): BackupValidation {
     for (const participant of session.participants ?? []) referenced.add(participant.memberId);
     for (const round of session.rounds) addRoundIds(round);
   }
+  const exportedAt = typeof input.exportedAt === 'string' ? input.exportedAt : new Date().toISOString();
   for (const id of Array.from(referenced)) {
-    if (!memberIds.has(id)) {
-      pushError(errors, '名簿にない選手IDを参照しています');
-      break;
-    }
+    if (memberIds.has(id)) continue;
+    members.push({
+      id,
+      name: DELETED_MEMBER_NAME,
+      isActive: false,
+      isDeleted: true,
+      createdAt: exportedAt,
+      updatedAt: exportedAt,
+    });
+    memberIds.add(id);
   }
 
   if (errors.length > 0) return { ok: false, errors };
@@ -442,7 +453,7 @@ export function validateBackup(input: unknown): BackupValidation {
     data: {
       app: BACKUP_APP,
       version: BACKUP_VERSION,
-      exportedAt: typeof input.exportedAt === 'string' ? input.exportedAt : new Date().toISOString(),
+      exportedAt,
       members,
       practiceSettings,
       practicePlayers,
@@ -466,6 +477,15 @@ export function planMemberMerge(existing: Member[], incoming: Member[]): MemberM
   const pendingNameToIncomingId = new Map<string, number>();
 
   for (const member of incoming) {
+    if (member.isDeleted) {
+      const sameId = existing.find((item) => item.id === member.id);
+      if (sameId?.id != null) {
+        matches.push({ incomingId: member.id, existingId: sameId.id });
+      } else {
+        creates.push(member);
+      }
+      continue;
+    }
     const key = member.name.trim();
     const found = byName.get(key);
     if (found?.id != null) {
@@ -482,6 +502,46 @@ export function planMemberMerge(existing: Member[], incoming: Member[]): MemberM
   }
 
   return { matches, creates, aliases };
+}
+
+export function duplicateMemberNames(members: Member[]): string[] {
+  const counts = new Map<string, number>();
+  for (const member of members) {
+    if (member.isDeleted) continue;
+    const key = member.name.trim();
+    if (!key) continue;
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return Array.from(counts.entries())
+    .filter(([, count]) => count > 1)
+    .map(([name]) => name);
+}
+
+/** 名前での統合が別人を混ぜる状態なら、その名前を返す。 */
+export function nameMergeConflicts(existing: Member[], incoming: Member[]): string[] {
+  const names = new Set<string>([
+    ...duplicateMemberNames(existing),
+    ...duplicateMemberNames(incoming),
+  ]);
+  return Array.from(names);
+}
+
+export function planMemberMergeById(existing: Member[], incoming: Member[]): MemberMergePlan {
+  const existingIds = new Set(
+    existing
+      .map((member) => member.id)
+      .filter((id): id is number => id != null)
+  );
+  const matches: MemberMergePlan['matches'] = [];
+  const creates: Member[] = [];
+  for (const member of incoming) {
+    if (existingIds.has(member.id)) {
+      matches.push({ incomingId: member.id, existingId: member.id });
+    } else {
+      creates.push(member);
+    }
+  }
+  return { matches, creates, aliases: [] };
 }
 
 export function buildMemberIdMap(
@@ -640,7 +700,18 @@ export async function applyBackup(
       const existingMembers = await db.members.toArray();
       const existingSessions = await db.practiceSessions.toArray();
       const existingSettings = await db.practiceSettings.get(1);
-      const plan = planMemberMerge(existingMembers, data.members);
+      if (mode === 'merge') {
+        const conflicts = nameMergeConflicts(existingMembers, data.members);
+        if (conflicts.length > 0) {
+          throw new Error(
+            `同じ名前が複数あるため、名前では統合できません（${conflicts.join('、')}）`
+          );
+        }
+      }
+      const plan =
+        mode === 'merge-id'
+          ? planMemberMergeById(existingMembers, data.members)
+          : planMemberMerge(existingMembers, data.members);
       const createdIds = new Map<number, number>();
 
       for (const member of plan.creates) {

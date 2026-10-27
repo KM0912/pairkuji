@@ -4,8 +4,11 @@ import type { PracticeSession } from '@/types/practiceSession';
 import type { Round } from '@/types/round';
 import {
   BACKUP_VERSION,
+  DELETED_MEMBER_NAME,
   buildMemberIdMap,
+  nameMergeConflicts,
   planMemberMerge,
+  planMemberMergeById,
   remapSession,
   sessionIdentity,
   validateBackup,
@@ -103,7 +106,7 @@ describe('validateBackup', () => {
     expect(result.ok).toBe(false);
   });
 
-  test('名簿にない選手IDと、IDや番号の重複を拒否する', () => {
+  test('参照切れの選手は削除済みとして取り込み、IDの重複は拒否する', () => {
     const missing = validateBackup(
       validBackup({
         practicePlayers: [
@@ -116,9 +119,12 @@ describe('validateBackup', () => {
         ],
       })
     );
-    expect(missing.ok).toBe(false);
-    if (!missing.ok) {
-      expect(missing.errors).toContain('名簿にない選手IDを参照しています');
+    expect(missing.ok).toBe(true);
+    if (missing.ok) {
+      const removed = missing.data.members.find((item) => item.id === 99);
+      expect(removed?.name).toBe(DELETED_MEMBER_NAME);
+      expect(removed?.isDeleted).toBe(true);
+      expect(removed?.isActive).toBe(false);
     }
 
     const duplicated = validateBackup(
@@ -129,6 +135,55 @@ describe('validateBackup', () => {
     expect(duplicated.ok).toBe(false);
     if (!duplicated.ok) {
       expect(duplicated.errors).toContain('同じ選手IDが重複しています');
+    }
+  });
+
+  test('参加者の重複と出場番号の重複は別の文にする', () => {
+    const sessionBase = {
+      startedAt: '2026-01-01T00:00:00Z',
+      endedAt: '2026-01-01T01:00:00Z',
+      courts: 1,
+      playerIds: [1, 2],
+      rounds: [],
+    };
+    const duplicatedPeople = validateBackup(
+      validBackup({
+        members: [member(1, '山田'), member(2, '佐藤')],
+        practiceSessions: [
+          {
+            ...sessionBase,
+            participants: [
+              { memberId: 1, playerNumber: 1 },
+              { memberId: 1, playerNumber: 2 },
+            ],
+          },
+        ],
+      })
+    );
+    expect(duplicatedPeople.ok).toBe(false);
+    if (!duplicatedPeople.ok) {
+      expect(duplicatedPeople.errors).toContain('参加者が重複しています');
+      expect(duplicatedPeople.errors).not.toContain('出場番号が重複しています');
+    }
+
+    const duplicatedNumbers = validateBackup(
+      validBackup({
+        members: [member(1, '山田'), member(2, '佐藤')],
+        practiceSessions: [
+          {
+            ...sessionBase,
+            participants: [
+              { memberId: 1, playerNumber: 1 },
+              { memberId: 2, playerNumber: 1 },
+            ],
+          },
+        ],
+      })
+    );
+    expect(duplicatedNumbers.ok).toBe(false);
+    if (!duplicatedNumbers.ok) {
+      expect(duplicatedNumbers.errors).toContain('出場番号が重複しています');
+      expect(duplicatedNumbers.errors).not.toContain('参加者が重複しています');
     }
   });
 });
@@ -148,6 +203,33 @@ describe('planMemberMerge', () => {
     expect(idMap.get(1)).toBe(10);
     expect(idMap.get(2)).toBe(20);
     expect(idMap.get(3)).toBe(20);
+  });
+
+  test('同じ名前が複数あるときは名前での統合を止める材料にする', () => {
+    expect(
+      nameMergeConflicts(
+        [member(1, '山田'), member(5, '山田')],
+        [member(1, 'Aくん'), member(5, '山田')]
+      )
+    ).toEqual(['山田']);
+    expect(
+      nameMergeConflicts([member(1, '山田')], [member(2, '佐藤')])
+    ).toEqual([]);
+  });
+});
+
+describe('planMemberMergeById', () => {
+  test('同名でもIDが同じ相手に付け、新しいIDだけ追加する', () => {
+    const plan = planMemberMergeById(
+      [member(1, '山田'), member(5, '山田')],
+      [member(1, 'Aくん'), member(5, '山田'), member(9, '佐藤')]
+    );
+    expect(plan.matches).toEqual([
+      { incomingId: 1, existingId: 1 },
+      { incomingId: 5, existingId: 5 },
+    ]);
+    expect(plan.creates.map((item) => item.id)).toEqual([9]);
+    expect(plan.aliases).toEqual([]);
   });
 });
 

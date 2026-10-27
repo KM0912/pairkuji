@@ -45,7 +45,7 @@ export default function PracticePage() {
     error,
     load,
     startPractice,
-    toggleStatus,
+    setPlayerAvailability,
     generateNextRound,
     undoLastRound,
     resetPractice,
@@ -70,6 +70,7 @@ export default function PracticePage() {
   const [showPracticeMenu, setShowPracticeMenu] = useState(false);
   const [showBoard, setShowBoard] = useState(false);
   const [hideResultReminder, setHideResultReminder] = useState(false);
+  const [showUndoConfirm, setShowUndoConfirm] = useState(false);
   const [dismissResultReminder, setDismissResultReminder] = useState(false);
   const [toast, setToast] = useState<{ message: string; canUndo: boolean } | null>(
     null
@@ -80,8 +81,10 @@ export default function PracticePage() {
     useCourtDisplayMode();
 
   useEffect(() => {
+    clearMemberError();
     loadMembers();
     load();
+    return () => clearMemberError();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -152,6 +155,7 @@ export default function PracticePage() {
 
   const onStart = async (e: React.FormEvent) => {
     e.preventDefault();
+    clearMemberError();
     if (selected.length < 4) return;
     await startPractice(courts, selected, clubTags.length > 0 ? clubTags : undefined);
   };
@@ -168,7 +172,6 @@ export default function PracticePage() {
       );
   }, [rounds]);
 
-  // Calculate match counts for each player (include playedOffset, with -1 bias for joiners)
   const matchCounts = useMemo(() => {
     const counts = new Map<number, number>();
 
@@ -180,13 +183,9 @@ export default function PracticePage() {
       });
     });
 
-    // Add each player's playedOffset, and subtract 1 if they have an offset (prioritize next round)
-    players.forEach((p) => {
-      const base = counts.get(p.memberId) || 0;
-      const offset = p.playedOffset || 0;
-      const bias = offset > 0 ? 1 : 0;
-      const value = base + offset - bias;
-      counts.set(p.memberId, Math.max(0, value));
+    players.forEach((player) => {
+      const base = counts.get(player.memberId) || 0;
+      counts.set(player.memberId, base + (player.playedOffset || 0));
     });
 
     return counts;
@@ -207,9 +206,13 @@ export default function PracticePage() {
     return calculateWinRates(rounds);
   }, [rounds]);
 
-  const availableMembers = members.filter(
-    (m) => m.isActive && !players.some((p) => p.memberId === m.id)
-  );
+  const availableMembers = members
+    .filter((m) => m.isActive && !players.some((p) => p.memberId === m.id))
+    .slice()
+    .sort(
+      (a, b) =>
+        a.createdAt.localeCompare(b.createdAt) || (a.id ?? 0) - (b.id ?? 0)
+    );
 
   const onAddParticipants = async (memberIds: number[]) => {
     for (const id of memberIds) {
@@ -262,12 +265,23 @@ export default function PracticePage() {
     });
   };
 
-  const handleUndoRound = async () => {
+  const performUndoRound = async () => {
+    setShowUndoConfirm(false);
     setToast(null);
     const undone = await undoLastRound();
     if (undone) {
       setToast({ message: '直前のラウンドを元に戻しました', canUndo: false });
     }
+  };
+
+  const handleUndoRound = async () => {
+    const last = rounds[rounds.length - 1];
+    if (last?.courts.some((court) => court.result != null)) {
+      setShowPracticeMenu(false);
+      setShowUndoConfirm(true);
+      return;
+    }
+    await performUndoRound();
   };
 
   useEffect(() => {
@@ -309,7 +323,7 @@ export default function PracticePage() {
 
   return (
     <div>
-      {(error || memberError) && (
+      {(error || (memberError && !showAddParticipant)) && (
         <div
           role="alert"
           className="fixed top-16 left-4 right-4 z-toast mx-auto flex max-w-2xl items-center justify-between gap-3 rounded-lg bg-destructive p-3 text-sm text-destructive-foreground shadow-level-3"
@@ -407,20 +421,20 @@ export default function PracticePage() {
               <div className="mt-2 flex gap-3">
                 <button
                   type="button"
-                  className="underline"
+                  className="min-h-11 underline"
                   onClick={() => setDismissResultReminder(true)}
                 >
                   閉じる
                 </button>
                 <button
                   type="button"
-                  className="underline"
+                  className="min-h-11 underline"
                   onClick={() => {
                     window.localStorage.setItem(HIDE_RESULT_REMINDER_KEY, '1');
                     setHideResultReminder(true);
                   }}
                 >
-                  勝敗を記録しない
+                  未記録の通知を出さない
                 </button>
               </div>
             </div>
@@ -489,7 +503,7 @@ export default function PracticePage() {
                 substituting={substituting}
                 onPlayerClick={onPlayerClick}
                 onRecordResult={recordResult}
-                onToggleStatus={toggleStatus}
+                onToggleStatus={(memberId) => setPlayerAvailability(memberId, 'active')}
                 courtDisplayMode={courtDisplayMode}
               />
             </div>
@@ -570,7 +584,10 @@ export default function PracticePage() {
         availableMembers={availableMembers}
         onAddParticipants={onAddParticipants}
         onCreateMember={addMember}
-        onClose={() => setShowAddParticipant(false)}
+        onClose={() => {
+          clearMemberError();
+          setShowAddParticipant(false);
+        }}
       />
 
       <SubstitutionHint
@@ -613,7 +630,7 @@ export default function PracticePage() {
                 memberMap={memberMap}
                 matchCounts={matchCounts}
                 updateCourts={updateCourts}
-                toggleStatus={toggleStatus}
+                onSetAvailability={setPlayerAvailability}
                 onShowAddParticipant={() => setShowAddParticipant(true)}
               />
             )}
@@ -660,6 +677,36 @@ export default function PracticePage() {
       </Dialog>
 
       <Dialog
+        open={showUndoConfirm}
+        onOpenChange={(open) => !open && setShowUndoConfirm(false)}
+      >
+        <DialogContent className="max-w-sm rounded-2xl border-2 border-border/50 p-6">
+          <DialogTitle className="text-base font-semibold">ラウンドを元に戻しますか？</DialogTitle>
+          <DialogDescription>
+            このラウンドには勝敗が記録されています。元に戻すと、その勝敗も消えます。
+          </DialogDescription>
+          <div className="mt-4 flex gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              className="flex-1"
+              onClick={() => setShowUndoConfirm(false)}
+            >
+              キャンセル
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              className="flex-1"
+              onClick={() => void performUndoRound()}
+            >
+              元に戻す
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
         open={showPracticeMenu}
         onOpenChange={(open) => !open && setShowPracticeMenu(false)}
       >
@@ -679,6 +726,22 @@ export default function PracticePage() {
               }}
             >
               直前のラウンドを元に戻す
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                if (hideResultReminder) {
+                  window.localStorage.removeItem(HIDE_RESULT_REMINDER_KEY);
+                  setHideResultReminder(false);
+                } else {
+                  window.localStorage.setItem(HIDE_RESULT_REMINDER_KEY, '1');
+                  setHideResultReminder(true);
+                }
+                setShowPracticeMenu(false);
+              }}
+            >
+              {hideResultReminder ? '未記録の通知を出す' : '未記録の通知を出さない'}
             </Button>
             <Button
               type="button"
