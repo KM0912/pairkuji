@@ -4,6 +4,7 @@ import Script from 'next/script';
 import './globals.css';
 import { BottomNavigation } from '../components/layout/BottomNavigation';
 import { Header } from '../components/layout/Header';
+import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister';
 
 const barlow = Barlow({
   subsets: ['latin'],
@@ -172,6 +173,7 @@ export default function RootLayout({
             </Script>
           </>
         )}
+        <ServiceWorkerRegister />
         <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20">
           <Header />
           <main className="pb-20">

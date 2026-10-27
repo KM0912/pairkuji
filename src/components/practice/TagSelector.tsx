@@ -79,7 +79,7 @@ export function TagSelector({ value, onChange }: TagSelectorProps) {
           <div className="flex items-center gap-2">
             <IconBadge icon={Tag} className="text-primary" />
             <h3 className="text-base font-semibold text-foreground">
-              タグ
+              クラブ
             </h3>
             <span className="text-xs text-muted-foreground font-normal">
               任意
@@ -143,9 +143,9 @@ export function TagSelector({ value, onChange }: TagSelectorProps) {
                   setIsAdding(false);
                 }
               }}
-              placeholder="タグ名を入力してEnter"
+              placeholder="クラブ名を入力してEnter"
               className="w-full border rounded-lg px-3 py-2 bg-card border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[40px]"
-              aria-label="新しいタグ"
+              aria-label="新しいクラブ"
             />
             {suggestions.length > 0 && inputValue.trim() && (
               <ul className="absolute z-50 w-full mt-1 bg-card border border-border rounded-lg shadow-level-2 max-h-32 overflow-y-auto">
@@ -171,7 +171,7 @@ export function TagSelector({ value, onChange }: TagSelectorProps) {
             className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
           >
             <Plus className="w-3.5 h-3.5" />
-            新しいタグを追加
+            新しいクラブを追加
           </button>
         )}
       </CardContent>

@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { MAX_COURTS } from '@/lib/constants';
 
 interface CourtSelectorProps {
   courts: number;
@@ -10,7 +11,7 @@ interface CourtSelectorProps {
 export function CourtSelector({
   courts,
   setCourts,
-  maxCourts = 10,
+  maxCourts = MAX_COURTS,
   className = '',
 }: CourtSelectorProps) {
   return (
@@ -35,7 +36,11 @@ export function CourtSelector({
         type="button"
         size="sm"
         variant="outline"
-        onClick={() => setCourts(Math.min(maxCourts, courts + 1))}
+        onClick={() => {
+          if (courts >= maxCourts) return;
+          setCourts(Math.min(maxCourts, courts + 1));
+        }}
+        disabled={courts >= maxCourts}
         className={
           'rounded-full bg-card hover:bg-muted shadow-level-1 border-border flex items-center justify-center'
         }

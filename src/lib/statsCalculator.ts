@@ -402,6 +402,241 @@ export function calculateHeadToHead(
   });
 }
 
+/** 参加したラウンドに対する出場率。来た回数の合計では比べない。 */
+export interface ParticipationRecord {
+  playerId: number;
+  played: number;
+  rested: number;
+  /** コートか休憩に入ったラウンド数 */
+  rounds: number;
+  /** 0〜1。参加ラウンドが無い人は null */
+  playRate: number | null;
+}
+
+export interface ParticipationBalance {
+  records: ParticipationRecord[];
+  /** 参加ラウンドがある人の出場率（0〜1） */
+  rateMax: number;
+  rateMin: number;
+  /** 最大と最小の差。100ポイント満点 */
+  rateSpreadPoints: number;
+  /** 人数とコート数の余りだけで生じる差。これを超えた分だけ警告する */
+  theoreticalSpreadPoints: number;
+  /**
+   * 練習ごとの、最後までいた人の差から理論値を引いた値の最大。
+   * 各人が5ラウンド未満の練習や、途中参加・早退の人は警告に入れない。合計はしない。
+   */
+  warningExcessPoints: number;
+  /** 5ラウンド以上の練習があり、最後までいた人を比べられたとき true */
+  participationJudged: boolean;
+}
+
+function emptyParticipation(): ParticipationBalance {
+  return {
+    records: [],
+    rateMax: 0,
+    rateMin: 0,
+    rateSpreadPoints: 0,
+    theoreticalSpreadPoints: 0,
+    warningExcessPoints: 0,
+    participationJudged: false,
+  };
+}
+
+const MIN_ROUNDS_FOR_WARNING = 5;
+
+function spreadPoints(rates: number[]): number {
+  if (rates.length === 0) return 0;
+  return Math.round((Math.max(...rates) - Math.min(...rates)) * 100);
+}
+
+function theoreticalRateMap(rounds: Round[]): Map<number, number> {
+  const played = new Map<number, number>();
+  const rested = new Map<number, number>();
+  for (const round of rounds) {
+    const ids = new Set<number>();
+    for (const court of round.courts) {
+      for (const id of [...court.pairA, ...court.pairB]) ids.add(id);
+    }
+    for (const id of round.rests) ids.add(id);
+    const list = Array.from(ids);
+    if (list.length === 0) continue;
+    const restCount = Math.min(round.rests.length, list.length);
+    const ranked = [...list].sort(
+      (a, b) =>
+        rateOf(played, rested, b) - rateOf(played, rested, a) ||
+        (played.get(b) ?? 0) - (played.get(a) ?? 0) ||
+        a - b
+    );
+    const resting = new Set(ranked.slice(0, restCount));
+    for (const id of list) {
+      if (resting.has(id)) {
+        rested.set(id, (rested.get(id) ?? 0) + 1);
+        if (!played.has(id)) played.set(id, 0);
+      } else {
+        played.set(id, (played.get(id) ?? 0) + 1);
+        if (!rested.has(id)) rested.set(id, 0);
+      }
+    }
+  }
+  const rates = new Map<number, number>();
+  played.forEach((_, id) => {
+    rates.set(id, rateOf(played, rested, id));
+  });
+  return rates;
+}
+
+function rateOf(playedMap: Map<number, number>, restedMap: Map<number, number>, id: number): number {
+  const playedCount = playedMap.get(id) ?? 0;
+  const restedCount = restedMap.get(id) ?? 0;
+  const total = playedCount + restedCount;
+  return total === 0 ? 0 : playedCount / total;
+}
+
+/** 休憩枠をできるだけ均等に配ったときの出場率の差。 */
+function theoreticalSpreadPoints(rounds: Round[]): number {
+  return spreadPoints(Array.from(theoreticalRateMap(rounds).values()));
+}
+
+function appearanceRows(rounds: Round[]): Map<number, { played: number; rested: number }> {
+  const rows = new Map<number, { played: number; rested: number }>();
+  for (const round of rounds) {
+    const seen = new Set<number>();
+    const add = (id: number, played: boolean) => {
+      if (seen.has(id)) return;
+      seen.add(id);
+      const row = rows.get(id) ?? { played: 0, rested: 0 };
+      if (played) row.played += 1;
+      else row.rested += 1;
+      rows.set(id, row);
+    };
+    for (const court of round.courts) {
+      for (const id of [...court.pairA, ...court.pairB]) add(id, true);
+    }
+    for (const id of round.rests) add(id, false);
+  }
+  return rows;
+}
+
+/**
+ * その練習で最初から最後までいた人だけの差。
+ * ラウンドが少ないとき、途中参加、早退は警告にしない。
+ */
+function fullAttendanceIds(rounds: Round[]): number[] {
+  const rows = appearanceRows(rounds);
+  return Array.from(rows.entries())
+    .filter(([, row]) => row.played + row.rested === rounds.length)
+    .map(([id]) => id);
+}
+
+function canJudgeParticipation(rounds: Round[]): boolean {
+  return (
+    rounds.length >= MIN_ROUNDS_FOR_WARNING && fullAttendanceIds(rounds).length >= 2
+  );
+}
+
+function participationWarningExcess(rounds: Round[]): number {
+  if (!canJudgeParticipation(rounds)) return 0;
+  const rows = appearanceRows(rounds);
+  const fullIds = fullAttendanceIds(rounds);
+  const observed = fullIds.map((id) => {
+    const row = rows.get(id);
+    const total = (row?.played ?? 0) + (row?.rested ?? 0);
+    return total === 0 ? 0 : (row?.played ?? 0) / total;
+  });
+  const theoretical = theoreticalRateMap(rounds);
+  const cohort = fullIds
+    .map((id) => theoretical.get(id))
+    .filter((rate): rate is number => rate != null);
+  if (cohort.length < 2) return 0;
+  return Math.max(0, spreadPoints(observed) - spreadPoints(cohort));
+}
+
+/**
+ * その人が入ったラウンドだけを分母に、出場率の差を出す。
+ * 途中から来た人の「来た回数」は比べない。
+ */
+export function calculateParticipationBalance(
+  sessions: PracticeSession[],
+  currentRounds: Round[]
+): ParticipationBalance {
+  const played = new Map<number, number>();
+  const rested = new Map<number, number>();
+
+  const addPlayed = (id: number) => {
+    played.set(id, (played.get(id) ?? 0) + 1);
+    if (!rested.has(id)) rested.set(id, 0);
+  };
+  const addRested = (id: number) => {
+    rested.set(id, (rested.get(id) ?? 0) + 1);
+    if (!played.has(id)) played.set(id, 0);
+  };
+
+  const consume = (rounds: Round[]) => {
+    for (const round of rounds) {
+      for (const court of round.courts) {
+        for (const id of [...court.pairA, ...court.pairB]) addPlayed(id);
+      }
+      for (const id of round.rests) addRested(id);
+    }
+  };
+
+  for (const session of sessions) consume(session.rounds);
+  consume(currentRounds);
+  const allRounds = [
+    ...sessions.flatMap((session) => session.rounds),
+    ...currentRounds,
+  ];
+  const warningChunks = sessions.map((session) => session.rounds);
+  if (currentRounds.length > 0) warningChunks.push(currentRounds);
+  let warningExcessPoints = 0;
+  let participationJudged = false;
+  for (const chunk of warningChunks) {
+    if (canJudgeParticipation(chunk)) participationJudged = true;
+    warningExcessPoints = Math.max(warningExcessPoints, participationWarningExcess(chunk));
+  }
+
+  const records: ParticipationRecord[] = Array.from(played.keys()).map(
+    (playerId) => {
+      const playedCount = played.get(playerId) ?? 0;
+      const restedCount = rested.get(playerId) ?? 0;
+      const rounds = playedCount + restedCount;
+      return {
+        playerId,
+        played: playedCount,
+        rested: restedCount,
+        rounds,
+        playRate: rounds > 0 ? playedCount / rounds : null,
+      };
+    }
+  );
+
+  const rated = records.filter(
+    (record): record is ParticipationRecord & { playRate: number } =>
+      record.playRate != null
+  );
+  if (rated.length === 0) return emptyParticipation();
+
+  records.sort(
+    (a, b) =>
+      (a.playRate ?? 1) - (b.playRate ?? 1) || a.playerId - b.playerId
+  );
+
+  const rates = rated.map((record) => record.playRate);
+  const rateMax = Math.max(...rates);
+  const rateMin = Math.min(...rates);
+
+  return {
+    records,
+    rateMax,
+    rateMin,
+    rateSpreadPoints: Math.round((rateMax - rateMin) * 100),
+    theoreticalSpreadPoints: theoreticalSpreadPoints(allRounds),
+    warningExcessPoints,
+    participationJudged,
+  };
+}
+
 /**
  * ラウンド集合から、同一コートでチームメイトになった回数（メンバーID昇順の "a-b" キー）
  */

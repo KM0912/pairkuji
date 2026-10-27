@@ -44,7 +44,7 @@ const features = [
   {
     icon: <Users className="w-6 h-6" />,
     title: '柔軟な人数対応',
-    description: '途中参加・休憩も自動調整。8〜24名に対応',
+    description: '途中参加・休憩も自動調整。4名から使えます',
   },
   {
     icon: <Zap className="w-6 h-6" />,

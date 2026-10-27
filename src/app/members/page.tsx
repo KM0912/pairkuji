@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Search, X, Trash2, Users, Edit3, Plus } from 'lucide-react';
+import { db } from '@/lib/db';
 import { useMemberStore } from '@/lib/stores/memberStore';
 import { usePracticeStore } from '@/lib/stores/practiceStore';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,8 @@ import {
   InputGroupInput,
 } from '@/components/ui/input-group';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { SampleBadge } from '@/components/members/SampleBadge';
 interface EditingMember {
   id: number;
   name: string;
@@ -26,6 +29,7 @@ export default function MembersPage() {
     error,
     load,
     add,
+    addMany,
     update,
     remove,
     clearError,
@@ -33,6 +37,7 @@ export default function MembersPage() {
   const { players } = usePracticeStore();
 
   const [name, setName] = useState('');
+  const [bulkNames, setBulkNames] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [flashingId, setFlashingId] = useState<number | null>(null);
   const [editingMember, setEditingMember] = useState<EditingMember | null>(
@@ -44,6 +49,9 @@ export default function MembersPage() {
   } | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [confirmDeletedName, setConfirmDeletedName] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     load();
@@ -72,21 +80,53 @@ export default function MembersPage() {
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
-    await add(name.trim());
+    const single = name.trim();
+    const pasted = bulkNames
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+    if (!single && pasted.length === 0) return;
+
+    if (pasted.length > 0) {
+      const result = await addMany(single ? [single, ...pasted] : pasted);
+      const skipped =
+        result.skipped.length > 0
+          ? `（${result.skipped.length}名は同じ名前があるためスキップ）`
+          : '';
+      setToast(
+        result.added > 0
+          ? `${result.added}名追加しました${skipped}`
+          : `新しい名前はありませんでした${skipped}`
+      );
+    } else {
+      const id = await add(single);
+      if (id == null) return;
+      setToast('選手を追加しました');
+    }
     setName('');
+    setBulkNames('');
     setIsAddModalOpen(false);
-    setToast('選手を追加しました');
   };
 
   const openAddModal = () => {
     setIsAddModalOpen(true);
     setName('');
+    setBulkNames('');
   };
 
   const closeAddModal = () => {
     setIsAddModalOpen(false);
     setName('');
+    setBulkNames('');
+  };
+
+  const handleToggleActive = async (id: number, isActive: boolean) => {
+    await update(id, { isActive: !isActive });
+    setToast(
+      isActive
+        ? '今は来ないにしました。練習の参加者選択から外れます'
+        : '参加者選択に戻しました'
+    );
   };
 
   const openEditModal = (member: EditingMember) => {
@@ -95,14 +135,25 @@ export default function MembersPage() {
 
   const closeEditModal = () => {
     setEditingMember(null);
+    setConfirmDeletedName(null);
   };
 
   const handleEditSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingMember) return;
+    const trimmed = editingMember.name.trim();
+    const rows = await db.members.toArray();
+    const deletedSame = rows.some(
+      (row) => row.isDeleted && row.id !== editingMember.id && row.name.trim() === trimmed
+    );
+    if (deletedSame && confirmDeletedName !== trimmed) {
+      setConfirmDeletedName(trimmed);
+      return;
+    }
 
+    const saved = await update(editingMember.id, { name: editingMember.name });
+    if (!saved) return;
     setFlashingId(editingMember.id);
-    await update(editingMember.id, { name: editingMember.name });
     setTimeout(() => setFlashingId(null), 1000);
     setToast('保存しました');
     closeEditModal();
@@ -167,6 +218,11 @@ export default function MembersPage() {
               ? '読み込み中…'
               : `${filteredMembers.length} 名が表示されています`}
           </p>
+          {members.some((member) => member.isSample) && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              「サンプル」は最初から入っている見本です。不要なら削除できます。
+            </p>
+          )}
         </div>
 
         {error && (
@@ -190,13 +246,16 @@ export default function MembersPage() {
                   isFlashing
                     ? 'ring-2 ring-primary/40 bg-primary/10 border-primary/30'
                     : 'border-border/60'
-                } ${inPractice ? 'border-accent/40 bg-accent/10 shadow-accent/20' : ''}`}
+                } ${inPractice ? 'border-accent/40 bg-accent/10 shadow-accent/20' : ''} ${
+                  member.isActive ? '' : 'opacity-70'
+                }`}
               >
                 <div className="p-3">
                   <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-foreground truncate mb-1">
-                        {member.name}
+                      <h3 className="mb-1 flex items-center gap-1 font-medium text-foreground">
+                        <span className="truncate">{member.name}</span>
+                        {member.isSample && <SampleBadge />}
                       </h3>
                       {inPractice && (
                         <div className="flex items-center gap-1">
@@ -206,21 +265,27 @@ export default function MembersPage() {
                           </span>
                         </div>
                       )}
+                      {!member.isActive && (
+                        <span className="text-small font-medium text-muted-foreground">
+                          今は来ない
+                        </span>
+                      )}
                     </div>
-                    <div className="flex items-center gap-1 ml-2">
+                    <div className="ml-2 flex items-center">
                       <button
                         type="button"
-                        className="p-1.5 rounded-md hover:bg-primary/10 text-primary transition-colors"
+                        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-primary transition-colors hover:bg-primary/10"
                         onClick={() =>
                           openEditModal({ id: member.id!, name: member.name })
                         }
                         title="編集"
+                        aria-label={`${member.name}を編集`}
                       >
-                        <Edit3 className="w-3.5 h-3.5" />
+                        <Edit3 className="h-5 w-5" />
                       </button>
                       <button
                         type="button"
-                        className="p-1.5 rounded-md hover:bg-destructive/10 text-destructive disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-destructive transition-colors hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-40"
                         onClick={() =>
                           handleDeleteClick(member.id!, member.name)
                         }
@@ -229,12 +294,34 @@ export default function MembersPage() {
                             ? '練習に参加中の選手は削除できません'
                             : '削除'
                         }
+                        aria-label={`${member.name}を削除`}
                         disabled={inPractice}
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="h-5 w-5" />
                       </button>
                     </div>
                   </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={!member.isActive}
+                    onClick={() => void handleToggleActive(member.id!, member.isActive)}
+                    className="mt-2 flex min-h-11 w-full items-center justify-between gap-3 border-t border-border/60 pt-2 text-left"
+                  >
+                    <span className="text-xs text-muted-foreground">今は来ない</span>
+                    <span
+                      className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${
+                        member.isActive ? 'bg-muted' : 'bg-primary'
+                      }`}
+                      aria-hidden="true"
+                    >
+                      <span
+                        className={`absolute top-0.5 h-6 w-6 rounded-full bg-background shadow ${
+                          member.isActive ? 'left-0.5' : 'left-5'
+                        }`}
+                      />
+                    </span>
+                  </button>
                 </div>
               </div>
             );
@@ -284,9 +371,23 @@ export default function MembersPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="選手名を入力"
-                  required
                   autoFocus
                 />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-foreground">
+                  まとめて追加（改行区切り）
+                </label>
+                <Textarea
+                  value={bulkNames}
+                  onChange={(event) => setBulkNames(event.target.value)}
+                  placeholder={'山田\n佐藤\n鈴木'}
+                  aria-label="改行区切りの名前"
+                  className="min-h-28"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  すでにいる名前はスキップします。
+                </p>
               </div>
               <div className="flex gap-3 pt-4">
                 <Button
@@ -299,7 +400,7 @@ export default function MembersPage() {
                 </Button>
                 <Button
                   type="submit"
-                  disabled={!name.trim()}
+                  disabled={!name.trim() && !bulkNames.trim()}
                   variant="default"
                   className="flex-1"
                 >
@@ -325,15 +426,22 @@ export default function MembersPage() {
                     type="text"
                     className="w-full border rounded-lg px-3 py-2 bg-card border-border focus:outline-none focus:ring-2 focus:ring-primary"
                     value={editingMember.name}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      setConfirmDeletedName(null);
                       setEditingMember({
                         ...editingMember,
                         name: e.target.value,
-                      })
-                    }
+                      });
+                    }}
                     required
                   />
                 </div>
+                {confirmDeletedName === editingMember.name.trim() && (
+                  <p role="alert" className="text-sm text-amber-900">
+                    削除済みの「{confirmDeletedName}」と同じ名前です。履歴では「(削除)
+                    {confirmDeletedName} ID …」と、この端末の選手IDを付けて区別します。この名前で保存しますか？
+                  </p>
+                )}
                 <div className="flex gap-3 pt-4">
                   <Button
                     type="button"
@@ -349,7 +457,9 @@ export default function MembersPage() {
                     variant="default"
                     className="flex-1"
                   >
-                    保存
+                    {confirmDeletedName === editingMember.name.trim()
+                      ? 'この名前で保存'
+                      : '保存'}
                   </Button>
                 </div>
               </form>
@@ -375,10 +485,10 @@ export default function MembersPage() {
                     <span className="font-medium text-foreground">
                       「{deletingMember.name}」
                     </span>
-                    を削除します。
+                    を名簿から外します。
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    この操作は元に戻すことができません。
+                    過去の練習記録には名前が残ります。名簿の一覧には表示されなくなります。
                   </p>
                 </div>
 
@@ -404,7 +514,7 @@ export default function MembersPage() {
         </Dialog>
 
         {toast && (
-          <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-foreground text-background px-5 py-3 rounded-xl shadow-level-3 z-toast text-caption font-medium animate-in fade-in-0 slide-in-from-bottom-4 duration-slow">
+          <div className="fixed bottom-40 left-1/2 z-toast max-w-[calc(100%-2rem)] -translate-x-1/2 rounded-xl bg-foreground px-5 py-3 text-caption font-medium text-background shadow-level-3 animate-in fade-in-0 slide-in-from-bottom-4 duration-slow">
             {toast}
           </div>
         )}

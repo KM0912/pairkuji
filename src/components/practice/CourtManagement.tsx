@@ -29,6 +29,20 @@ function MatchCountIndicator({
   );
 }
 
+function nextOutLabel(player: PracticePlayer | undefined): string | null {
+  if (!player || player.status !== 'rest') return null;
+  return player.restKind === 'break' ? '次は休憩' : '次は早退';
+}
+
+function pairNumbers(
+  ids: readonly number[],
+  playerMap: Map<number, PracticePlayer>
+): string {
+  return ids
+    .map((id) => String(playerMap.get(id)?.playerNumber ?? '?'))
+    .join('・');
+}
+
 function PairCountIndicator({
   pair,
   pairCounts,
@@ -64,6 +78,7 @@ interface CourtManagementProps {
     courtNo: number,
     result: MatchResult
   ) => Promise<void>;
+  onToggleStatus?: (memberId: number) => Promise<void>;
   /** 番号を大きく表示し名前を隠す（投影・遠視用） */
   courtDisplayMode?: CourtDisplayMode;
 }
@@ -78,6 +93,7 @@ export function CourtManagement({
   substituting,
   onPlayerClick,
   onRecordResult,
+  onToggleStatus,
   courtDisplayMode = 'normal',
 }: CourtManagementProps) {
   const numberEmphasis = courtDisplayMode === 'numberEmphasis';
@@ -119,7 +135,11 @@ export function CourtManagement({
                   {cm.result != null && (
                     <span className="text-xs font-medium text-accent">
                       <Trophy className="w-3.5 h-3.5 inline-block mr-0.5" />
-                      {cm.result === 'pairA' ? '左' : '右'}
+                      {pairNumbers(
+                        cm.result === 'pairA' ? cm.pairA : cm.pairB,
+                        playerMap
+                      )}
+                      の勝ち
                     </span>
                   )}
                 </div>
@@ -141,6 +161,7 @@ export function CourtManagement({
                         const name = member?.name ?? '???';
                         const number = player?.playerNumber ?? '?';
                         const matchCount = matchCounts.get(id) ?? 0;
+                        const nextOut = nextOutLabel(player);
                         return (
                           <button
                             key={id}
@@ -148,7 +169,7 @@ export function CourtManagement({
                             className={cn(
                               'relative rounded-lg transition-all duration-fast w-full min-w-0 active:scale-[0.97] border-2',
                               numberEmphasis
-                                ? 'flex items-center justify-center px-2 py-2 min-h-[56px]'
+                                ? 'flex items-center justify-center px-2 pb-2 pt-5 min-h-[64px]'
                                 : 'flex items-center gap-1.5 px-2 py-1.5 min-h-[48px] sm:gap-2.5 sm:px-3 sm:py-2.5',
                               substituting === id
                                 ? 'bg-warning/10 border-warning ring-2 ring-warning/30 shadow-level-2'
@@ -156,13 +177,25 @@ export function CourtManagement({
                             )}
                             onClick={() => onPlayerClick(id)}
                             title={numberEmphasis ? name : undefined}
-                            aria-label={`番号${number}、${name}、${matchCount}試合。選択して入れ替え`}
+                            aria-label={`番号${number}、${name}、${matchCount}試合${nextOut ? `、${nextOut}` : ''}。選択して入れ替え`}
                           >
                             <PlayerNumber
                               number={number}
                               variant="primary"
                               size={numberEmphasis ? 'lg' : 'xs'}
                             />
+                            {nextOut && (
+                              <span
+                                className={cn(
+                                  'rounded bg-amber-100 px-1 py-0.5 text-[10px] font-semibold leading-none text-amber-900',
+                                  numberEmphasis
+                                    ? 'absolute top-0.5 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap'
+                                    : 'shrink-0'
+                                )}
+                              >
+                                {nextOut}
+                              </span>
+                            )}
                             {!numberEmphasis && (
                               <div className="flex flex-1 min-w-0 flex-col items-start gap-0.5 sm:flex-row sm:items-center sm:gap-1.5">
                                 <div
@@ -201,9 +234,16 @@ export function CourtManagement({
                             'pairA'
                           )
                         }
+                        aria-label={
+                          cm.result === 'pairA'
+                            ? `${pairNumbers(cm.pairA, playerMap)}の勝ち。もう一度押すと記録を消せます`
+                            : `${pairNumbers(cm.pairA, playerMap)}を勝ちにする`
+                        }
                       >
                         <Trophy className="w-3.5 h-3.5 inline-block mr-1" />
-                        {cm.result === 'pairA' ? 'WIN' : '勝ち'}
+                        {cm.result === 'pairA'
+                          ? `${pairNumbers(cm.pairA, playerMap)}の勝ち✓`
+                          : '勝ち'}
                       </button>
                     )}
                   </div>
@@ -225,6 +265,7 @@ export function CourtManagement({
                         const name = member?.name ?? '???';
                         const number = player?.playerNumber ?? '?';
                         const matchCount = matchCounts.get(id) ?? 0;
+                        const nextOut = nextOutLabel(player);
                         return (
                           <button
                             key={id}
@@ -232,7 +273,7 @@ export function CourtManagement({
                             className={cn(
                               'relative rounded-lg transition-all duration-fast w-full min-w-0 active:scale-[0.97] border-2',
                               numberEmphasis
-                                ? 'flex items-center justify-center px-2 py-2 min-h-[56px]'
+                                ? 'flex items-center justify-center px-2 pb-2 pt-5 min-h-[64px]'
                                 : 'flex items-center gap-1.5 px-2 py-1.5 min-h-[48px] sm:gap-2.5 sm:px-3 sm:py-2.5',
                               substituting === id
                                 ? 'bg-warning/10 border-warning ring-2 ring-warning/30 shadow-level-2'
@@ -240,13 +281,25 @@ export function CourtManagement({
                             )}
                             onClick={() => onPlayerClick(id)}
                             title={numberEmphasis ? name : undefined}
-                            aria-label={`番号${number}、${name}、${matchCount}試合。選択して入れ替え`}
+                            aria-label={`番号${number}、${name}、${matchCount}試合${nextOut ? `、${nextOut}` : ''}。選択して入れ替え`}
                           >
                             <PlayerNumber
                               number={number}
                               variant="primary"
                               size={numberEmphasis ? 'lg' : 'xs'}
                             />
+                            {nextOut && (
+                              <span
+                                className={cn(
+                                  'rounded bg-amber-100 px-1 py-0.5 text-[10px] font-semibold leading-none text-amber-900',
+                                  numberEmphasis
+                                    ? 'absolute top-0.5 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap'
+                                    : 'shrink-0'
+                                )}
+                              >
+                                {nextOut}
+                              </span>
+                            )}
                             {!numberEmphasis && (
                               <div className="flex flex-1 min-w-0 flex-col items-start gap-0.5 sm:flex-row sm:items-center sm:gap-1.5">
                                 <div
@@ -285,9 +338,16 @@ export function CourtManagement({
                             'pairB'
                           )
                         }
+                        aria-label={
+                          cm.result === 'pairB'
+                            ? `${pairNumbers(cm.pairB, playerMap)}の勝ち。もう一度押すと記録を消せます`
+                            : `${pairNumbers(cm.pairB, playerMap)}を勝ちにする`
+                        }
                       >
                         <Trophy className="w-3.5 h-3.5 inline-block mr-1" />
-                        {cm.result === 'pairB' ? 'WIN' : '勝ち'}
+                        {cm.result === 'pairB'
+                          ? `${pairNumbers(cm.pairB, playerMap)}の勝ち✓`
+                          : '勝ち'}
                       </button>
                     )}
                   </div>
@@ -370,6 +430,61 @@ export function CourtManagement({
               )
             );
           })()}
+          {(
+            [
+              {
+                kind: 'break' as const,
+                title: '休憩',
+                note: '次の1ラウンドだけ組み合わせから外れ、その次は戻ります。タップすると今すぐ戻せます。',
+              },
+              {
+                kind: 'early' as const,
+                title: '早退',
+                note: '戻すまで、次のラウンドの組み合わせに入りません。タップすると出場に戻せます。',
+              },
+            ] as const
+          ).map((section) => {
+            const sectionPlayers = players.filter(
+              (player) =>
+                player.status === 'rest' &&
+                (section.kind === 'break'
+                  ? player.restKind === 'break'
+                  : player.restKind !== 'break')
+            );
+            if (sectionPlayers.length === 0) return null;
+            return (
+              <div
+                key={section.kind}
+                className="rounded-xl border border-dashed border-border bg-muted/30 p-3"
+              >
+                <div className="mb-1 font-heading font-semibold text-foreground text-caption">
+                  {section.title}
+                </div>
+                <p className="mb-2 text-xs text-muted-foreground">{section.note}</p>
+                <div className="flex flex-wrap gap-2">
+                  {sectionPlayers.map((player) => {
+                    const name = memberMap.get(player.memberId)?.name ?? '???';
+                    return (
+                      <button
+                        key={player.memberId}
+                        type="button"
+                        className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-background/80 px-3 py-1.5 text-caption text-muted-foreground"
+                        onClick={() => void onToggleStatus?.(player.memberId)}
+                        aria-label={`${name}を出場に戻す`}
+                      >
+                        <PlayerNumber
+                          number={player.playerNumber}
+                          variant="neutral"
+                          size="xs"
+                        />
+                        <span className="max-w-[120px] truncate">{name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
         </div>
       ) : (
         <div className="text-muted-foreground text-caption">

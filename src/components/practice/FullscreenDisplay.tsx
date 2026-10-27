@@ -1,38 +1,78 @@
 import { useEffect } from 'react';
-import { type CourtDisplayMode } from '@/hooks/useCourtDisplayMode';
 import { type Member } from '@/types/member';
 import { type PracticePlayer } from '@/types/practice';
 import { type Round } from '@/types/round';
 import { X, Shuffle } from 'lucide-react';
 import { PlayerNumber } from '../ui/PlayerNumber';
 import { Button } from '../ui/button';
-import { cn } from '@/lib/utils';
 
 interface FullscreenDisplayProps {
   round: Round;
+  players: PracticePlayer[];
   memberMap: Map<number, Member>;
   playerMap: Map<number, PracticePlayer>;
   roundNumber: number;
-  substituting: number | null;
   onClose: () => void;
-  onPlayerClick: (memberId: number) => Promise<void>;
   onGenerateNextRound: () => Promise<void>;
-  courtDisplayMode?: CourtDisplayMode;
+  generateBlockedReason?: string | null;
+  toast?: { message: string; canUndo: boolean } | null;
+  onUndo?: () => void;
 }
 
 export function FullscreenDisplay({
   round,
+  players,
   memberMap,
   playerMap,
   roundNumber,
-  substituting,
   onClose,
-  onPlayerClick,
   onGenerateNextRound,
-  courtDisplayMode = 'normal',
+  generateBlockedReason,
+  toast,
+  onUndo,
 }: FullscreenDisplayProps) {
-  const numberEmphasis = courtDisplayMode === 'numberEmphasis';
-  // Escape key to close
+  useEffect(() => {
+    let lock: WakeLockSentinel | null = null;
+    let cancelled = false;
+
+    const requestLock = async () => {
+      if (!('wakeLock' in navigator)) return;
+      try {
+        const next = await navigator.wakeLock.request('screen');
+        if (cancelled) {
+          await next.release();
+          return;
+        }
+        lock = next;
+      } catch {
+        // 画面のスリープ防止が使えない環境では掲示だけ続ける
+      }
+    };
+
+    void requestLock();
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void requestLock();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      cancelled = true;
+      document.removeEventListener('visibilitychange', onVisible);
+      void lock?.release();
+    };
+  }, []);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    void root.requestFullscreen?.().catch(() => {
+      // フルスクリーンにできない端末では、この画面の拡大表示だけ使う
+    });
+    return () => {
+      if (document.fullscreenElement) {
+        void document.exitFullscreen?.().catch(() => {});
+      }
+    };
+  }, []);
+
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -48,199 +88,205 @@ export function FullscreenDisplay({
       ...court.pairA,
       ...court.pairB,
     ]);
-    return round.rests.filter((id) => !playersInCourts.includes(id));
+    return players
+      .filter(
+        (player) =>
+          player.status === 'active' && !playersInCourts.includes(player.memberId)
+      )
+      .map((player) => player.memberId);
   };
 
   const restingPlayers = getRestingPlayers();
+  const breakPlayers = players.filter(
+    (player) => player.status === 'rest' && player.restKind === 'break'
+  );
+  const earlyPlayers = players.filter(
+    (player) => player.status === 'rest' && player.restKind !== 'break'
+  );
+
+  const renderPlayer = (id: number) => {
+    const member = memberMap.get(id);
+    const player = playerMap.get(id);
+    const name = member?.name ?? '???';
+    const number = player?.playerNumber ?? '?';
+    const nextOut =
+      player?.status === 'rest'
+        ? player.restKind === 'break'
+          ? '次は休憩'
+          : '次は早退'
+        : null;
+    return (
+      <div
+        key={id}
+        className="flex min-h-[72px] w-full min-w-0 items-center gap-3 rounded-md border border-primary/30 bg-card p-3"
+        aria-label={`番号${number}、${name}${nextOut ? `、${nextOut}` : ''}`}
+      >
+        <PlayerNumber number={number} variant="primary" size="xl" />
+        <div className="min-w-0 flex-1">
+          <div
+            className="truncate text-left text-2xl font-bold text-foreground landscape:text-3xl"
+            title={name}
+          >
+            {name}
+          </div>
+          {nextOut && (
+            <div className="text-sm font-semibold text-amber-800">{nextOut}</div>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
-    <div className="fixed inset-0 z-modal bg-background overflow-auto">
-      {/* Header */}
-      <div className="sticky top-0 bg-background border-b border-border z-10">
-        <div className="flex items-center justify-between p-3">
-          <h1 className="font-heading font-bold text-foreground text-title">
+    <div className="fixed inset-0 z-modal overflow-auto bg-background">
+      <div className="sticky top-0 z-sticky border-b border-border bg-background/95 px-3 py-2 backdrop-blur-sm">
+        <div className="flex items-center justify-between">
+          <h1 className="font-heading text-title font-bold text-foreground">
             🏸 第{roundNumber}ラウンド
           </h1>
           <button
             onClick={onClose}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary hover:bg-muted rounded-lg transition-colors"
+            className="flex items-center gap-1.5 rounded-lg bg-secondary px-3 py-1.5 transition-colors hover:bg-muted"
             aria-label="フルスクリーンを閉じる"
           >
-            <X className="w-3 h-3" />
+            <X className="h-3 w-3" />
             <span className="text-xs">閉じる</span>
           </button>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="p-3">
-        <div className="space-y-3">
-          {/* Courts */}
-          <div className="space-y-3">
-            {round.courts.map((court) => (
-              <div
-                key={court.courtNo}
-                className="border border-border rounded-lg p-3 bg-card"
-              >
-                {/* Court title */}
-                <div className="text-center mb-3">
-                  <h2 className="font-heading font-bold text-foreground text-title">
-                    COURT {court.courtNo}
-                  </h2>
-                </div>
-
-                {/* Match */}
-                <div className="flex items-stretch gap-2">
-                  {/* Team A */}
-                  <div className="flex-1 rounded-md border border-primary/40 bg-primary/5 p-2 min-w-0">
-                    <div className="space-y-2">
-                      {court.pairA.map((id) => {
-                        const member = memberMap.get(id);
-                        const player = playerMap.get(id);
-                        const name = member?.name ?? '???';
-                        const number = player?.playerNumber ?? '?';
-                        return (
-                          <button
-                            key={id}
-                            type="button"
-                            className={cn(
-                              'bg-card border rounded-md w-full min-w-0 transition-all duration-fast active:scale-[0.97]',
-                              numberEmphasis
-                                ? 'flex items-center justify-center p-2 min-h-[52px]'
-                                : 'flex items-center gap-1.5 p-2 min-h-[36px]',
-                              substituting === id
-                                ? 'border-warning bg-warning/10 ring-2 ring-warning/30'
-                                : 'border-primary/30 hover:bg-primary/10 hover:border-primary/40'
-                            )}
-                            onClick={() => onPlayerClick(id)}
-                            title={numberEmphasis ? name : undefined}
-                            aria-label={`番号${number}、${name}を選択して入れ替え`}
-                          >
-                            <PlayerNumber
-                              number={number}
-                              variant="primary"
-                              size={numberEmphasis ? 'xl' : 'xs'}
-                            />
-                            {!numberEmphasis && (
-                              <div
-                                className="font-semibold text-foreground truncate text-sm"
-                                title={name}
-                              >
-                                {name}
-                              </div>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Team B */}
-                  <div className="flex-1 rounded-md border border-primary/40 bg-primary/5 p-2 min-w-0">
-                    <div className="space-y-2">
-                      {court.pairB.map((id) => {
-                        const member = memberMap.get(id);
-                        const player = playerMap.get(id);
-                        const name = member?.name ?? '???';
-                        const number = player?.playerNumber ?? '?';
-                        return (
-                          <button
-                            key={id}
-                            type="button"
-                            className={cn(
-                              'bg-card border rounded-md w-full min-w-0 transition-all duration-fast active:scale-[0.97]',
-                              numberEmphasis
-                                ? 'flex items-center justify-center p-2 min-h-[52px]'
-                                : 'flex items-center gap-1.5 p-2 min-h-[36px]',
-                              substituting === id
-                                ? 'border-warning bg-warning/10 ring-2 ring-warning/30'
-                                : 'border-primary/30 hover:bg-primary/10 hover:border-primary/40'
-                            )}
-                            onClick={() => onPlayerClick(id)}
-                            title={numberEmphasis ? name : undefined}
-                            aria-label={`番号${number}、${name}を選択して入れ替え`}
-                          >
-                            <PlayerNumber
-                              number={number}
-                              variant="primary"
-                              size={numberEmphasis ? 'xl' : 'xs'}
-                            />
-                            {!numberEmphasis && (
-                              <div
-                                className="font-semibold text-foreground truncate text-sm"
-                                title={name}
-                              >
-                                {name}
-                              </div>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
+      <div className="p-3 pb-52">
+        <div className="grid grid-cols-1 gap-3 landscape:grid-cols-2">
+          {round.courts.map((court) => (
+            <div
+              key={court.courtNo}
+              className="rounded-lg border border-border bg-card p-3"
+            >
+              <div className="mb-3 text-center">
+                <h2 className="font-heading text-title font-bold text-foreground">
+                  COURT {court.courtNo}
+                </h2>
               </div>
-            ))}
-          </div>
-
-          {/* Resting players */}
-          {restingPlayers.length > 0 && (
-            <div className="border border-border rounded-lg p-3 bg-muted">
-              <h3 className="font-bold text-foreground mb-2 text-base">休憩</h3>
-              <div className="flex flex-wrap gap-1.5">
-                {restingPlayers.map((id) => {
-                  const member = memberMap.get(id);
-                  const player = playerMap.get(id);
-                  const name = member?.name ?? '???';
-                  const number = player?.playerNumber ?? '?';
-                  return (
-                    <button
-                      key={id}
-                      type="button"
-                      className={cn(
-                        'bg-card border border-border rounded-full transition-all duration-fast active:scale-[0.97]',
-                        numberEmphasis
-                          ? 'flex items-center justify-center px-2 py-2 min-h-[44px] min-w-[44px]'
-                          : 'flex items-center gap-1.5 px-2.5 py-1.5 min-h-[32px]',
-                        substituting === id
-                          ? 'border-warning bg-warning/10 ring-2 ring-warning/30'
-                          : 'hover:bg-muted'
-                      )}
-                      onClick={() => onPlayerClick(id)}
-                      title={numberEmphasis ? name : undefined}
-                      aria-label={`番号${number}、${name}を選択して入れ替え`}
-                    >
-                      <PlayerNumber
-                        number={number}
-                        variant="neutral"
-                        size={numberEmphasis ? 'lg' : 'xs'}
-                      />
-                      {!numberEmphasis && (
-                        <div
-                          className="font-semibold text-foreground truncate text-sm max-w-[100px]"
-                          title={name}
-                        >
-                          {name}
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
+              <div className="flex items-stretch gap-2">
+                <div className="min-w-0 flex-1 rounded-md border border-primary/40 bg-primary/5 p-2">
+                  <div className="space-y-2">{court.pairA.map(renderPlayer)}</div>
+                </div>
+                <div className="min-w-0 flex-1 rounded-md border border-primary/40 bg-primary/5 p-2">
+                  <div className="space-y-2">{court.pairB.map(renderPlayer)}</div>
+                </div>
               </div>
             </div>
-          )}
+          ))}
         </div>
+
+        {restingPlayers.length > 0 && (
+          <div className="mt-3 rounded-lg border border-border bg-muted p-3">
+            <h3 className="mb-2 text-lg font-bold text-foreground">休憩中</h3>
+            <div className="flex flex-wrap gap-1.5">
+              {restingPlayers.map((id) => {
+                const member = memberMap.get(id);
+                const player = playerMap.get(id);
+                const name = member?.name ?? '???';
+                const number = player?.playerNumber ?? '?';
+                return (
+                  <div
+                    key={id}
+                    className="flex min-h-[52px] items-center gap-2 rounded-full border border-border bg-card px-3 py-2"
+                    aria-label={`番号${number}、${name}`}
+                  >
+                    <PlayerNumber number={number} variant="neutral" size="lg" />
+                    <div
+                      className="max-w-[180px] truncate text-xl font-bold text-foreground landscape:text-2xl"
+                      title={name}
+                    >
+                      {name}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {breakPlayers.length > 0 && (
+          <div className="mt-3 rounded-lg border border-border bg-muted p-3">
+            <h3 className="mb-2 text-lg font-bold text-foreground">休憩</h3>
+            <div className="flex flex-wrap gap-2">
+              {breakPlayers.map((player) => {
+                const member = memberMap.get(player.memberId);
+                const name = member?.name ?? '???';
+                return (
+                  <span
+                    key={player.memberId}
+                    className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-2"
+                  >
+                    <PlayerNumber number={player.playerNumber} variant="neutral" size="lg" />
+                    <span className="max-w-[180px] truncate text-xl font-bold text-foreground">
+                      {name}
+                    </span>
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {earlyPlayers.length > 0 && (
+          <div className="mt-3 rounded-lg border border-dashed border-border bg-muted/40 p-3">
+            <h3 className="mb-2 text-lg font-bold text-foreground">早退</h3>
+            <div className="flex flex-wrap gap-2">
+              {earlyPlayers.map((player) => {
+                const member = memberMap.get(player.memberId);
+                const name = member?.name ?? '???';
+                return (
+                  <span
+                    key={player.memberId}
+                    className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-2"
+                  >
+                    <PlayerNumber
+                      number={player.playerNumber}
+                      variant="neutral"
+                      size="lg"
+                    />
+                    <span className="max-w-[180px] truncate text-xl font-bold text-muted-foreground">
+                      {name}
+                    </span>
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Generate next round button - outside card */}
-      <div className="sticky bottom-3 mx-3 mb-3">
+      <div className="fixed bottom-0 left-0 right-0 z-sticky space-y-2 border-t border-border bg-background/95 p-2">
+        {toast && (
+          <div className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-foreground px-3 py-2 text-xs text-background shadow-level-3">
+            <span>{toast.message}</span>
+            {toast.canUndo && onUndo && (
+              <button
+                type="button"
+                className="inline-flex min-h-11 shrink-0 items-center px-2 font-semibold underline"
+                onClick={onUndo}
+              >
+                元に戻す
+              </button>
+            )}
+          </div>
+        )}
+        {generateBlockedReason && (
+          <p role="status" className="text-center text-xs text-amber-900">
+            {generateBlockedReason}
+          </p>
+        )}
         <Button
           variant="default"
           onClick={onGenerateNextRound}
           className="w-full"
+          disabled={generateBlockedReason != null}
         >
           <span className="inline-flex items-center gap-2">
-            <Shuffle className="w-4 h-4" />
+            <Shuffle className="h-4 w-4" />
             次の組み合わせを生成
           </span>
         </Button>

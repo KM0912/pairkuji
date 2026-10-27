@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { usePracticeStore } from '@/lib/stores/practiceStore';
 import { useMemberStore } from '@/lib/stores/memberStore';
 import { OverallStatsPanel } from '@/components/stats/OverallStatsPanel';
+import { ParticipationBalancePanel } from '@/components/stats/ParticipationBalancePanel';
 import { WinRateTrendChart } from '@/components/stats/WinRateTrendChart';
 import { PairCompatibility } from '@/components/stats/PairCompatibility';
 import { HeadToHead } from '@/components/stats/HeadToHead';
@@ -15,6 +16,7 @@ import { BarChart3 } from 'lucide-react';
 import {
   type PeriodFilterType,
   calculateOverallStats,
+  calculateParticipationBalance,
   calculateSessionWinRates,
   calculatePairWinRates,
   filterSessions,
@@ -69,6 +71,11 @@ export default function StatsPage() {
   // 通算統計
   const overallStats = useMemo(
     () => calculateOverallStats(filteredSessions, rounds),
+    [filteredSessions, rounds]
+  );
+
+  const participation = useMemo(
+    () => calculateParticipationBalance(filteredSessions, rounds),
     [filteredSessions, rounds]
   );
 
@@ -141,8 +148,22 @@ export default function StatsPage() {
           <TabsTrigger value="h2h" className="text-xs">対決</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overall" className="mt-6">
-          <OverallStatsPanel memberMap={memberMap} stats={overallStats} />
+        <TabsContent value="overall" className="mt-6 space-y-6">
+          <section>
+            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              出場と休憩
+            </h2>
+            <ParticipationBalancePanel
+              memberMap={memberMap}
+              balance={participation}
+            />
+          </section>
+          <section>
+            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              勝率
+            </h2>
+            <OverallStatsPanel memberMap={memberMap} stats={overallStats} />
+          </section>
         </TabsContent>
 
         <TabsContent value="trend" className="mt-6">

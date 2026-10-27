@@ -6,6 +6,7 @@ import {
   calculateSessionWinRates,
   calculatePairWinRates,
   calculateHeadToHead,
+  calculateParticipationBalance,
   filterSessions,
   filterSessionsByTag,
   getUniqueTags,
@@ -412,5 +413,192 @@ describe('getUniqueTags', () => {
 
   test('空配列に対しても正常動作', () => {
     expect(getUniqueTags([])).toEqual([]);
+  });
+});
+
+describe('calculateParticipationBalance', () => {
+  test('出場と休憩の最大差を出す', () => {
+    const rounds: Round[] = [
+      {
+        roundNo: 1,
+        courts: [
+          { courtNo: 1, pairA: [1, 2], pairB: [3, 4], result: null },
+        ],
+        rests: [5],
+      },
+      {
+        roundNo: 2,
+        courts: [
+          { courtNo: 1, pairA: [1, 5], pairB: [2, 3], result: null },
+        ],
+        rests: [4],
+      },
+    ];
+    const balance = calculateParticipationBalance(
+      [makeSession(rounds, [1, 2, 3, 4, 5])],
+      []
+    );
+
+    const played = Object.fromEntries(
+      balance.records.map((record) => [record.playerId, record.played])
+    );
+    expect(played[1]).toBe(2);
+    expect(played[4]).toBe(1);
+    expect(balance.records.find((record) => record.playerId === 5)?.rested).toBe(1);
+    expect(balance.records.find((record) => record.playerId === 1)?.playRate).toBe(1);
+    expect(balance.records.find((record) => record.playerId === 4)?.playRate).toBe(0.5);
+    expect(balance.rateSpreadPoints).toBe(50);
+  });
+
+  test('来た回数が少なくても、入ったラウンドで出ていれば出場率は下がらない', () => {
+    const many: Round[] = Array.from({ length: 10 }, (_, index) => ({
+      roundNo: index + 1,
+      courts: [{ courtNo: 1, pairA: [1, 2], pairB: [3, 4], result: null }],
+      rests: [] as number[],
+    }));
+    const once: Round = {
+      roundNo: 1,
+      courts: [{ courtNo: 1, pairA: [5, 6], pairB: [7, 8], result: null }],
+      rests: [],
+    };
+    const balance = calculateParticipationBalance(
+      [makeSession(many, [1, 2, 3, 4]), makeSession([once], [5, 6, 7, 8])],
+      []
+    );
+    expect(balance.rateSpreadPoints).toBe(0);
+    expect(balance.records.find((record) => record.playerId === 5)?.playRate).toBe(1);
+  });
+
+  test('データが無いときは差0', () => {
+    const balance = calculateParticipationBalance([], []);
+    expect(balance.records).toEqual([]);
+    expect(balance.rateSpreadPoints).toBe(0);
+    expect(balance.theoreticalSpreadPoints).toBe(0);
+  });
+
+  test('10人2面で余りとして出る差は理論値を超えない', () => {
+    const everyone = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    const restPairs = [
+      [1, 2],
+      [3, 4],
+      [5, 6],
+      [7, 8],
+    ];
+    const rounds: Round[] = restPairs.map((rests, index) => {
+      const playing = everyone.filter((id) => !rests.includes(id));
+      return {
+        roundNo: index + 1,
+        courts: [
+          {
+            courtNo: 1,
+            pairA: [playing[0]!, playing[1]!],
+            pairB: [playing[2]!, playing[3]!],
+            result: null,
+          },
+          {
+            courtNo: 2,
+            pairA: [playing[4]!, playing[5]!],
+            pairB: [playing[6]!, playing[7]!],
+            result: null,
+          },
+        ],
+        rests,
+      };
+    });
+    const balance = calculateParticipationBalance(
+      [makeSession(rounds, everyone)],
+      []
+    );
+    expect(balance.rateSpreadPoints).toBe(25);
+    expect(balance.theoreticalSpreadPoints).toBe(25);
+    expect(balance.rateSpreadPoints - balance.theoreticalSpreadPoints).toBeLessThan(5);
+    expect(balance.warningExcessPoints).toBe(0);
+    expect(balance.participationJudged).toBe(false);
+  });
+
+  test('ラウンドが少ない練習や途中参加・早退では警告しない', () => {
+    const shortRounds: Round[] = [1, 2, 3].map((roundNo) => ({
+      roundNo,
+      courts: [{ courtNo: 1, pairA: [1, 2], pairB: [3, 4], result: null }],
+      rests: [5],
+    }));
+    const short = calculateParticipationBalance([makeSession(shortRounds, [1, 2, 3, 4, 5])], []);
+    expect(short.rateSpreadPoints).toBeGreaterThan(5);
+    expect(short.warningExcessPoints).toBe(0);
+    expect(short.participationJudged).toBe(false);
+
+    const fullRounds: Round[] = Array.from({ length: 6 }, (_, index) => ({
+      roundNo: index + 1,
+      courts: [{ courtNo: 1, pairA: [1, 2], pairB: [3, 4], result: null }],
+      rests: [] as number[],
+    }));
+    fullRounds.push({
+      roundNo: 7,
+      courts: [{ courtNo: 1, pairA: [1, 2], pairB: [5, 6], result: null }],
+      rests: [3, 4],
+    });
+    const joined = calculateParticipationBalance(
+      [makeSession(fullRounds, [1, 2, 3, 4, 5, 6])],
+      []
+    );
+    expect(joined.warningExcessPoints).toBe(0);
+
+    const leftEarly: Round[] = [
+      {
+        roundNo: 1,
+        courts: [{ courtNo: 1, pairA: [1, 2], pairB: [3, 4], result: null }],
+        rests: [5],
+      },
+      {
+        roundNo: 2,
+        courts: [{ courtNo: 1, pairA: [1, 2], pairB: [3, 4], result: null }],
+        rests: [5],
+      },
+      ...Array.from({ length: 4 }, (_, index) => ({
+        roundNo: index + 3,
+        courts: [
+          {
+            courtNo: 1,
+            pairA: [1, 2] as [number, number],
+            pairB: [3, 4] as [number, number],
+            result: null,
+          },
+        ],
+        rests: [] as number[],
+      })),
+    ];
+    const early = calculateParticipationBalance(
+      [makeSession(leftEarly, [1, 2, 3, 4, 5])],
+      []
+    );
+    expect(early.warningExcessPoints).toBe(0);
+
+    const unfair: Round[] = Array.from({ length: 6 }, (_, index) => ({
+      roundNo: index + 1,
+      courts: [{ courtNo: 1, pairA: [2, 3], pairB: [4, 5], result: null }],
+      rests: [1],
+    }));
+    const skewed = calculateParticipationBalance(
+      [makeSession(unfair, [1, 2, 3, 4, 5])],
+      []
+    );
+    expect(skewed.warningExcessPoints).toBeGreaterThanOrEqual(5);
+    expect(skewed.participationJudged).toBe(true);
+  });
+
+  test('全期間の警告は練習ごとの差を合計しない', () => {
+    const uneven = (roundNo: number): Round => ({
+      roundNo,
+      courts: [{ courtNo: 1, pairA: [1, 2], pairB: [3, 4], result: null }],
+      rests: [5],
+    });
+    const first = [1, 2, 3].map(uneven);
+    const second = [1, 2, 3].map(uneven);
+    const balance = calculateParticipationBalance(
+      [makeSession(first, [1, 2, 3, 4, 5]), makeSession(second, [1, 2, 3, 4, 5], '2026-02-01T00:00:00Z')],
+      []
+    );
+    expect(balance.warningExcessPoints).toBe(0);
+    expect(balance.participationJudged).toBe(false);
   });
 });

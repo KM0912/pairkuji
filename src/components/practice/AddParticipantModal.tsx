@@ -1,12 +1,15 @@
 import { useState } from 'react';
+import { useMemberStore } from '@/lib/stores/memberStore';
 import { type Member } from '@/types/member';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 
 interface AddParticipantModalProps {
   isOpen: boolean;
   availableMembers: Member[];
   onAddParticipants: (memberIds: number[]) => Promise<void>;
+  onCreateMember: (name: string) => Promise<number | null>;
   onClose: () => void;
 }
 
@@ -14,9 +17,13 @@ export function AddParticipantModal({
   isOpen,
   availableMembers,
   onAddParticipants,
+  onCreateMember,
   onClose,
 }: AddParticipantModalProps) {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [newName, setNewName] = useState('');
+  const [adding, setAdding] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   const toggle = (id: number) => {
     setSelectedIds((prev) =>
@@ -30,14 +37,54 @@ export function AddParticipantModal({
     setSelectedIds([]);
   };
 
+  const handleCreate = async () => {
+    const name = newName.trim();
+    if (!name || adding) return;
+    setAdding(true);
+    setCreateError(null);
+    useMemberStore.getState().clearError();
+    const id = await onCreateMember(name);
+    setAdding(false);
+    if (id == null) {
+      setCreateError(
+        useMemberStore.getState().error ?? '選手を追加できませんでした'
+      );
+      return;
+    }
+    setNewName('');
+    setSelectedIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-sm rounded-2xl border-2 border-border/50 p-6">
         <DialogTitle className="text-lg font-semibold mb-2">参加者を追加</DialogTitle>
         <DialogDescription className="sr-only">練習に参加する選手を選択してください</DialogDescription>
+          <form
+            className="mb-3 flex gap-2"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void handleCreate();
+            }}
+          >
+            <Input
+              value={newName}
+              onChange={(event) => setNewName(event.target.value)}
+              placeholder="名前を追加"
+              aria-label="名前を追加"
+            />
+            <Button type="submit" variant="outline" disabled={adding || !newName.trim()}>
+              追加
+            </Button>
+          </form>
+          {createError && (
+            <p className="mb-3 text-sm text-destructive" role="alert">
+              {createError}
+            </p>
+          )}
           {availableMembers.length === 0 ? (
             <div className="text-center text-muted-foreground py-4">
-              追加できる選手がいません
+              追加できる選手がいません。上の欄から名前を追加できます。
             </div>
           ) : (
             <div className="space-y-2 max-h-64 overflow-auto">
@@ -86,11 +133,7 @@ export function AddParticipantModal({
           </div>
           <div className="mt-4">
             <p className="text-small text-muted-foreground mb-4">
-              途中参加者は、
-              <span className="font-bold">
-                最も試合数が少ない選手(出場可)の 試合数 - 1
-              </span>
-              として追加されます。 組み合わせを公平にするためです。
+              途中参加した人は、いま出場できる人のなかで一番試合数が少ない人と同じ試合数からスタートします。次の組み合わせで極端に多く入らないようにするためです。
             </p>
           </div>
           <div className="flex gap-3 pt-4 mt-4 border-t">
