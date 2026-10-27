@@ -444,14 +444,34 @@ describe('calculateParticipationBalance', () => {
     );
     expect(played[1]).toBe(2);
     expect(played[4]).toBe(1);
-    expect(balance.playedSpread).toBe(1);
-    expect(balance.restSpread).toBe(1);
     expect(balance.records.find((record) => record.playerId === 5)?.rested).toBe(1);
+    expect(balance.records.find((record) => record.playerId === 1)?.playRate).toBe(1);
+    expect(balance.records.find((record) => record.playerId === 4)?.playRate).toBe(0.5);
+    expect(balance.rateSpreadPoints).toBe(50);
+  });
+
+  test('来た回数が少なくても、入ったラウンドで出ていれば出場率は下がらない', () => {
+    const many: Round[] = Array.from({ length: 10 }, (_, index) => ({
+      roundNo: index + 1,
+      courts: [{ courtNo: 1, pairA: [1, 2], pairB: [3, 4], result: null }],
+      rests: [] as number[],
+    }));
+    const once: Round = {
+      roundNo: 1,
+      courts: [{ courtNo: 1, pairA: [5, 6], pairB: [7, 8], result: null }],
+      rests: [],
+    };
+    const balance = calculateParticipationBalance(
+      [makeSession(many, [1, 2, 3, 4]), makeSession([once], [5, 6, 7, 8])],
+      []
+    );
+    expect(balance.rateSpreadPoints).toBe(0);
+    expect(balance.records.find((record) => record.playerId === 5)?.playRate).toBe(1);
   });
 
   test('データが無いときは差0', () => {
     const balance = calculateParticipationBalance([], []);
     expect(balance.records).toEqual([]);
-    expect(balance.playedSpread).toBe(0);
+    expect(balance.rateSpreadPoints).toBe(0);
   });
 });

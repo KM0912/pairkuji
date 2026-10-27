@@ -7,6 +7,11 @@ interface ParticipationBalancePanelProps {
   balance: ParticipationBalance;
 }
 
+function percent(rate: number | null): number {
+  if (rate == null) return 0;
+  return Math.round(rate * 100);
+}
+
 export function ParticipationBalancePanel({
   memberMap,
   balance,
@@ -19,7 +24,7 @@ export function ParticipationBalancePanel({
     );
   }
 
-  const even = balance.playedSpread === 0 && balance.restSpread === 0;
+  const even = balance.rateSpreadPoints < 5;
 
   return (
     <div className="space-y-3">
@@ -31,14 +36,12 @@ export function ParticipationBalancePanel({
         }`}
       >
         {even
-          ? '出場回数と休憩回数は揃っています。'
-          : `出場の差 ${balance.playedSpread}回（最多 ${balance.playedMax} / 最少 ${balance.playedMin}）、休憩の差 ${balance.restSpread}回（最多 ${balance.restMax} / 最少 ${balance.restMin}）`}
+          ? '参加したラウンドの中での出場率は揃っています。来た回数の合計では比べていません。'
+          : `出場率の差は${balance.rateSpreadPoints}ポイントです（高い人 ${percent(balance.rateMax)}% / 低い人 ${percent(balance.rateMin)}%）。来た回数ではなく、その人が入ったラウンドの中での割合です。`}
       </div>
       <div className="space-y-2">
         {balance.records.map((record) => {
-          const total = record.played + record.rested;
-          const playedPercent = total > 0 ? Math.round((record.played / total) * 100) : 0;
-          const underPlayed = record.played === balance.playedMin && balance.playedSpread > 0;
+          const playedPercent = percent(record.playRate);
           return (
             <div
               key={record.playerId}
@@ -49,8 +52,7 @@ export function ParticipationBalancePanel({
                   {getDisplayName(memberMap, record.playerId)}
                 </span>
                 <span className="shrink-0 text-xs text-muted-foreground">
-                  出場 {record.played} / 休憩 {record.rested}
-                  {underPlayed ? ' ・少なめ' : ''}
+                  出場率 {playedPercent}%（出場 {record.played} / 休憩 {record.rested}）
                 </span>
               </div>
               <div className="h-1.5 overflow-hidden rounded-full bg-muted">

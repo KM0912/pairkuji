@@ -70,6 +70,14 @@ export const useMemberStore = create<State & Actions>((set, get) => ({
     };
     if (!member.name) return null;
     try {
+      const rows = await db.members.toArray();
+      const duplicate = rows.some(
+        (row) => !row.isDeleted && row.name.trim() === member.name
+      );
+      if (duplicate) {
+        set({ error: '同じ名前の選手がすでにいます' });
+        return null;
+      }
       const id = await db.members.add(member as Member);
       const created: Member = { id: Number(id), ...member };
       set({ members: [created, ...get().members] });
@@ -81,7 +89,10 @@ export const useMemberStore = create<State & Actions>((set, get) => ({
   },
 
   addMany: async (names: string[]) => {
-    const existing = new Set(get().members.map((member) => member.name.trim()));
+    const stored = await db.members.toArray();
+    const existing = new Set(
+      stored.filter((member) => !member.isDeleted).map((member) => member.name.trim())
+    );
     const skipped: string[] = [];
     const toAdd: string[] = [];
     const seen = new Set<string>();
@@ -126,9 +137,14 @@ export const useMemberStore = create<State & Actions>((set, get) => ({
     try {
       const existing = await db.members.get(id);
       if (!existing) return;
+      const nextName = updates.name?.trim();
+      const renamed =
+        nextName != null && nextName.length > 0 && nextName !== existing.name.trim();
       const updated: Member = {
         ...existing,
         ...updates,
+        ...(nextName ? { name: nextName } : {}),
+        ...(renamed ? { isSample: false } : {}),
         updatedAt: new Date().toISOString(),
       };
       await db.members.put(updated);

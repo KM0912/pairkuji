@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { saveSafetySnapshot } from '@/lib/safetyBackup';
 import type { Member } from '@/types/member';
 import type { PracticePlayer, PracticeSettings } from '@/types/practice';
 import type { PracticeSession, SessionParticipant } from '@/types/practiceSession';
@@ -249,7 +250,7 @@ function parseSession(value: unknown, index: number, errors: string[]): Practice
     rounds.push(round);
   }
   if (value.clubTags !== undefined && !isStringArray(value.clubTags)) {
-    pushError(errors, `${label}のタグが不正です`);
+    pushError(errors, `${label}のクラブが不正です`);
     return null;
   }
   let participants: SessionParticipant[] | undefined;
@@ -291,7 +292,7 @@ function parseSettings(value: unknown, errors: string[]): PracticeSettings | nul
     return null;
   }
   if (value.clubTags !== undefined && !isStringArray(value.clubTags)) {
-    pushError(errors, '練習設定のタグが不正です');
+    pushError(errors, '練習設定のクラブが不正です');
     return null;
   }
   return {
@@ -310,10 +311,10 @@ export function validateBackup(input: unknown): BackupValidation {
     return { ok: false, errors: ['ファイルの中身がJSONオブジェクトではありません'] };
   }
   if (input.app !== BACKUP_APP) {
-    pushError(errors, 'ペアくじのバックアップファイルではありません');
+    return { ok: false, errors: ['ペアくじのバックアップファイルではありません'] };
   }
   if (input.version !== BACKUP_VERSION) {
-    pushError(errors, '対応していないバックアップのバージョンです');
+    return { ok: false, errors: ['対応していないバックアップのバージョンです'] };
   }
   if (!Array.isArray(input.members) || input.members.length > MAX_MEMBERS) {
     pushError(errors, '選手一覧が不正です');
@@ -367,6 +368,74 @@ export function validateBackup(input: unknown): BackupValidation {
   if (input.practiceSettings != null && !practiceSettings) {
     return { ok: false, errors };
   }
+
+  const memberIds = new Set<number>();
+  let duplicateMemberId = false;
+  for (const member of members) {
+    if (member.id == null) continue;
+    if (memberIds.has(member.id)) duplicateMemberId = true;
+    memberIds.add(member.id);
+  }
+  if (duplicateMemberId) pushError(errors, '同じ選手IDが重複しています');
+
+  const sessionIds = new Set<number>();
+  let duplicateSessionId = false;
+  for (const session of practiceSessions) {
+    if (session.id == null) continue;
+    if (sessionIds.has(session.id)) duplicateSessionId = true;
+    sessionIds.add(session.id);
+  }
+  if (duplicateSessionId) pushError(errors, '同じ履歴IDが重複しています');
+
+  const playerIds = new Set<number>();
+  const playerNumbers = new Set<number>();
+  let duplicatePlayerId = false;
+  let duplicatePlayerNumber = false;
+  for (const player of practicePlayers) {
+    if (playerIds.has(player.memberId)) duplicatePlayerId = true;
+    playerIds.add(player.memberId);
+    if (playerNumbers.has(player.playerNumber)) duplicatePlayerNumber = true;
+    playerNumbers.add(player.playerNumber);
+  }
+  if (duplicatePlayerId) pushError(errors, '参加選手のIDが重複しています');
+
+  for (const session of practiceSessions) {
+    const numbers = new Set<number>();
+    const participantIds = new Set<number>();
+    for (const participant of session.participants ?? []) {
+      if (numbers.has(participant.playerNumber)) duplicatePlayerNumber = true;
+      if (participantIds.has(participant.memberId)) duplicatePlayerNumber = true;
+      numbers.add(participant.playerNumber);
+      participantIds.add(participant.memberId);
+    }
+  }
+  if (duplicatePlayerNumber) pushError(errors, '出場番号が重複しています');
+
+  const referenced = new Set<number>();
+  const addRoundIds = (round: Round) => {
+    for (const id of round.rests) referenced.add(id);
+    for (const court of round.courts) {
+      referenced.add(court.pairA[0]);
+      referenced.add(court.pairA[1]);
+      referenced.add(court.pairB[0]);
+      referenced.add(court.pairB[1]);
+    }
+  };
+  for (const player of practicePlayers) referenced.add(player.memberId);
+  for (const round of rounds) addRoundIds(round);
+  for (const session of practiceSessions) {
+    for (const id of session.playerIds) referenced.add(id);
+    for (const participant of session.participants ?? []) referenced.add(participant.memberId);
+    for (const round of session.rounds) addRoundIds(round);
+  }
+  for (const id of Array.from(referenced)) {
+    if (!memberIds.has(id)) {
+      pushError(errors, '名簿にない選手IDを参照しています');
+      break;
+    }
+  }
+
+  if (errors.length > 0) return { ok: false, errors };
 
   return {
     ok: true,
@@ -434,7 +503,11 @@ export function buildMemberIdMap(
 }
 
 function mapId(id: number, idMap: Map<number, number>): number {
-  return idMap.get(id) ?? id;
+  const mapped = idMap.get(id);
+  if (mapped == null) {
+    throw new Error(`名簿にない選手IDです: ${id}`);
+  }
+  return mapped;
 }
 
 function remapPair(
@@ -519,6 +592,8 @@ export async function applyBackup(
   mode: ImportMode
 ): Promise<ImportSummary> {
   if (mode === 'replace') {
+    const current = await collectBackup();
+    await saveSafetySnapshot(current);
     await db.transaction(
       'rw',
       [
@@ -552,61 +627,63 @@ export async function applyBackup(
     };
   }
 
-  const existingMembers = await db.members.toArray();
-  const existingSessions = await db.practiceSessions.toArray();
-  const existingSettings = await db.practiceSettings.get(1);
-  const plan = planMemberMerge(existingMembers, data.members);
-  const createdIds = new Map<number, number>();
-
-  await db.transaction('rw', db.members, async () => {
-    for (const member of plan.creates) {
-      const newId = await db.members.add(withoutId(member) as Member);
-      createdIds.set(member.id, Number(newId));
-    }
-  });
-
-  const idMap = buildMemberIdMap(plan, createdIds);
-  const knownSessions = new Set(existingSessions.map((session) => sessionIdentity(session)));
-  const sessionsToAdd: PracticeSession[] = [];
-  for (const session of data.practiceSessions) {
-    const remapped = remapSession(session, idMap);
-    const identity = sessionIdentity(remapped);
-    if (knownSessions.has(identity)) continue;
-    knownSessions.add(identity);
-    sessionsToAdd.push(remapped);
-  }
-
-  const practiceImported = existingSettings == null && data.practiceSettings != null;
-  await db.transaction(
+  return db.transaction(
     'rw',
-    db.practiceSessions,
-    db.practiceSettings,
-    db.practicePlayers,
-    db.rounds,
+    [
+      db.members,
+      db.practiceSessions,
+      db.practiceSettings,
+      db.practicePlayers,
+      db.rounds,
+    ],
     async () => {
+      const existingMembers = await db.members.toArray();
+      const existingSessions = await db.practiceSessions.toArray();
+      const existingSettings = await db.practiceSettings.get(1);
+      const plan = planMemberMerge(existingMembers, data.members);
+      const createdIds = new Map<number, number>();
+
+      for (const member of plan.creates) {
+        const newId = await db.members.add(withoutId(member) as Member);
+        createdIds.set(member.id, Number(newId));
+      }
+
+      const idMap = buildMemberIdMap(plan, createdIds);
+      const knownSessions = new Set(existingSessions.map((session) => sessionIdentity(session)));
+      const sessionsToAdd: PracticeSession[] = [];
+      for (const session of data.practiceSessions) {
+        const remapped = remapSession(session, idMap);
+        const identity = sessionIdentity(remapped);
+        if (knownSessions.has(identity)) continue;
+        knownSessions.add(identity);
+        sessionsToAdd.push(remapped);
+      }
+
       if (sessionsToAdd.length > 0) {
         await db.practiceSessions.bulkAdd(sessionsToAdd.map((session) => withoutId(session)));
       }
-      if (!practiceImported || !data.practiceSettings) return;
 
-      const players: PracticePlayer[] = [];
-      const seen = new Set<number>();
-      for (const player of data.practicePlayers) {
-        const memberId = mapId(player.memberId, idMap);
-        if (seen.has(memberId)) continue;
-        seen.add(memberId);
-        players.push({ ...player, memberId });
+      const practiceImported = existingSettings == null && data.practiceSettings != null;
+      if (practiceImported && data.practiceSettings) {
+        const players: PracticePlayer[] = [];
+        const seen = new Set<number>();
+        for (const player of data.practicePlayers) {
+          const memberId = mapId(player.memberId, idMap);
+          if (seen.has(memberId)) continue;
+          seen.add(memberId);
+          players.push({ ...player, memberId });
+        }
+        await db.practiceSettings.put(data.practiceSettings);
+        if (players.length > 0) await db.practicePlayers.bulkPut(players);
+        const rounds = data.rounds.map((round) => remapRound(round, idMap));
+        if (rounds.length > 0) await db.rounds.bulkPut(rounds);
       }
-      await db.practiceSettings.put(data.practiceSettings);
-      if (players.length > 0) await db.practicePlayers.bulkPut(players);
-      const rounds = data.rounds.map((round) => remapRound(round, idMap));
-      if (rounds.length > 0) await db.rounds.bulkPut(rounds);
+
+      return {
+        addedMembers: plan.creates.length,
+        addedSessions: sessionsToAdd.length,
+        practiceImported,
+      };
     }
   );
-
-  return {
-    addedMembers: plan.creates.length,
-    addedSessions: sessionsToAdd.length,
-    practiceImported,
-  };
 }

@@ -70,7 +70,7 @@ export function ParticipantSelection({
     () =>
       members
         .filter((m) => m.isActive)
-        .sort((a, b) => a.name.localeCompare(b.name)),
+        .sort((a, b) => a.name.localeCompare(b.name, 'ja')),
     [members]
   );
   const selectedSet = useMemo(() => new Set(selected), [selected]);
@@ -324,7 +324,7 @@ export function ParticipantSelection({
             </CardContent>
           </Card>
 
-          {/* タグ */}
+          {/* クラブ */}
           {onClubTagsChange && (
             <TagSelector value={clubTags ?? []} onChange={onClubTagsChange} />
           )}

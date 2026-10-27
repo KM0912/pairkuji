@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Database } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,6 +17,8 @@ import {
   type ImportMode,
   type PairkujiBackup,
 } from '@/lib/backup';
+import { downloadJson, formatBackupStamp } from '@/lib/downloadJson';
+import { loadSafetySnapshot } from '@/lib/safetyBackup';
 import { useMemberStore } from '@/lib/stores/memberStore';
 import { usePracticeStore } from '@/lib/stores/practiceStore';
 
@@ -33,10 +35,16 @@ export function DataBackupDialog() {
   const [step, setStep] = useState<Step>({ kind: 'idle' });
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [safety, setSafety] = useState<PairkujiBackup | null>(null);
   const loadMembers = useMemberStore((state) => state.load);
   const loadAllMembers = useMemberStore((state) => state.loadAll);
   const loadPractice = usePracticeStore((state) => state.load);
   const loadSessions = usePracticeStore((state) => state.loadSessions);
+
+  useEffect(() => {
+    if (!open) return;
+    void loadSafetySnapshot().then(setSafety);
+  }, [open]);
 
   const reset = () => {
     setStep({ kind: 'idle' });
@@ -54,16 +62,7 @@ export function DataBackupDialog() {
     setMessage(null);
     try {
       const backup = await collectBackup();
-      const blob = new Blob([JSON.stringify(backup, null, 2)], {
-        type: 'application/json',
-      });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      const date = new Date().toISOString().slice(0, 10);
-      link.href = url;
-      link.download = `pairkuji-backup-${date}.json`;
-      link.click();
-      URL.revokeObjectURL(url);
+      downloadJson(`pairkuji-backup-${formatBackupStamp()}.json`, backup);
       setMessage('バックアップを書き出しました');
     } catch (error: unknown) {
       setMessage(error instanceof Error ? error.message : '書き出せませんでした');
@@ -96,7 +95,15 @@ export function DataBackupDialog() {
     if (step.kind !== 'confirm') return;
     setBusy(true);
     try {
+      if (step.mode === 'replace') {
+        const current = await collectBackup();
+        downloadJson(
+          `pairkuji-backup-before-replace-${formatBackupStamp()}.json`,
+          current
+        );
+      }
       const summary = await applyBackup(step.data, step.mode);
+      setSafety(await loadSafetySnapshot());
       await Promise.all([
         loadMembers(),
         loadAllMembers(),
@@ -108,9 +115,13 @@ export function DataBackupDialog() {
         : step.mode === 'merge'
           ? '進行中の練習がある場合は、そちらを残しています。'
           : '進行中の練習はありません。';
+      const replaceNote =
+        step.mode === 'replace'
+          ? '置き換える前のデータをファイルに書き出し、この端末にも退避しました。'
+          : '';
       setStep({
         kind: 'done',
-        message: `選手${summary.addedMembers}名、履歴${summary.addedSessions}件を読み込みました。${practiceNote}`,
+        message: `選手${summary.addedMembers}名、履歴${summary.addedSessions}件を読み込みました。${practiceNote}${replaceNote}`,
       });
     } catch (error: unknown) {
       setMessage(error instanceof Error ? error.message : '読み込めませんでした');
@@ -212,7 +223,7 @@ export function DataBackupDialog() {
             <div className="rounded-lg border border-border p-3 text-sm space-y-3">
               <p>
                 {step.mode === 'replace'
-                  ? 'この端末の名簿・履歴・進行中の練習を、ファイルの内容に置き換えます。'
+                  ? 'この端末の名簿・履歴・進行中の練習を、ファイルの内容に置き換えます。実行前に、今のデータを自動で書き出します。'
                   : '同じ名前の選手は今の名簿を使い、新しい選手と履歴を足します。進行中の練習がすでにある場合は、ファイル側の練習では置き換えません。'}
               </p>
               <div className="flex gap-2">
@@ -248,6 +259,24 @@ export function DataBackupDialog() {
             <p className="rounded-lg bg-primary/10 p-3 text-sm text-foreground">
               {step.message}
             </p>
+          )}
+
+          {safety && step.kind === 'idle' && (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              disabled={busy}
+              onClick={() =>
+                setStep({
+                  kind: 'confirm',
+                  data: safety,
+                  mode: 'replace',
+                })
+              }
+            >
+              前回の上書き前に戻す
+            </Button>
           )}
 
           {message && (

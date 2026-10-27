@@ -64,6 +64,7 @@ interface CourtManagementProps {
     courtNo: number,
     result: MatchResult
   ) => Promise<void>;
+  onToggleStatus?: (memberId: number) => Promise<void>;
   /** 番号を大きく表示し名前を隠す（投影・遠視用） */
   courtDisplayMode?: CourtDisplayMode;
 }
@@ -78,6 +79,7 @@ export function CourtManagement({
   substituting,
   onPlayerClick,
   onRecordResult,
+  onToggleStatus,
   courtDisplayMode = 'normal',
 }: CourtManagementProps) {
   const numberEmphasis = courtDisplayMode === 'numberEmphasis';
@@ -203,12 +205,12 @@ export function CourtManagement({
                         }
                         aria-label={
                           cm.result === 'pairA'
-                            ? '左ペアの勝ちを取り消す'
+                            ? '左ペアの勝ち。もう一度押すと記録を消せます'
                             : '左ペアを勝ちにする'
                         }
                       >
                         <Trophy className="w-3.5 h-3.5 inline-block mr-1" />
-                        {cm.result === 'pairA' ? '取消' : '勝ち'}
+                        {cm.result === 'pairA' ? '勝ち✓' : '勝ち'}
                       </button>
                     )}
                   </div>
@@ -292,12 +294,12 @@ export function CourtManagement({
                         }
                         aria-label={
                           cm.result === 'pairB'
-                            ? '右ペアの勝ちを取り消す'
+                            ? '右ペアの勝ち。もう一度押すと記録を消せます'
                             : '右ペアを勝ちにする'
                         }
                       >
                         <Trophy className="w-3.5 h-3.5 inline-block mr-1" />
-                        {cm.result === 'pairB' ? '取消' : '勝ち'}
+                        {cm.result === 'pairB' ? '勝ち✓' : '勝ち'}
                       </button>
                     )}
                   </div>
@@ -387,12 +389,12 @@ export function CourtManagement({
                 [...court.pairA, ...court.pairB].includes(player.memberId)
               )
           ) && (
-            <div className="rounded-xl border border-dashed border-border bg-muted/30 p-3 opacity-70">
+            <div className="rounded-xl border border-dashed border-border bg-muted/30 p-3">
               <div className="mb-1 font-heading font-semibold text-foreground text-caption">
-                お休み中
+                早退
               </div>
               <p className="mb-2 text-xs text-muted-foreground">
-                次の組み合わせには入りません。戻すときは参加者メニューで「出場可」にしてください。
+                次のラウンドから組み合わせに入りません。タップすると出場に戻せます。
               </p>
               <div className="flex flex-wrap gap-2">
                 {players
@@ -407,9 +409,12 @@ export function CourtManagement({
                     const member = memberMap.get(player.memberId);
                     const name = member?.name ?? '???';
                     return (
-                      <span
+                      <button
                         key={player.memberId}
-                        className="inline-flex items-center gap-2 rounded-full border border-border bg-background/80 px-3 py-1.5 text-caption text-muted-foreground"
+                        type="button"
+                        className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-background/80 px-3 py-1.5 text-caption text-muted-foreground"
+                        onClick={() => void onToggleStatus?.(player.memberId)}
+                        aria-label={`${name}を出場に戻す`}
                       >
                         <PlayerNumber
                           number={player.playerNumber}
@@ -417,7 +422,7 @@ export function CourtManagement({
                           size="xs"
                         />
                         <span className="max-w-[120px] truncate">{name}</span>
-                      </span>
+                      </button>
                     );
                   })}
               </div>

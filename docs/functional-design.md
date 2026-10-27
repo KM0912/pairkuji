@@ -174,7 +174,7 @@ erDiagram
     MEMBER ||--o| PRACTICE_PLAYER : "参加"
     PRACTICE_SETTINGS ||--o{ ROUND : "管理"
     ROUND ||--|{ COURT_MATCH : "含む"
-    CLUB ||--o{ PRACTICE_SETTINGS : "タグ付け"
+    CLUB ||--o{ PRACTICE_SETTINGS : "クラブ付け"
 
     MEMBER {
         number id PK

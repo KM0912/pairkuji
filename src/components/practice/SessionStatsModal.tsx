@@ -214,7 +214,7 @@ export function SessionStatsModal({
                                     }
                                   >
                                     {court.result === 'pairA'
-                                      ? '左ペアの勝ち'
+                                      ? '勝ち✓'
                                       : '左を勝ちに'}
                                   </button>
                                   <button
@@ -234,7 +234,7 @@ export function SessionStatsModal({
                                     }
                                   >
                                     {court.result === 'pairB'
-                                      ? '右ペアの勝ち'
+                                      ? '勝ち✓'
                                       : '右を勝ちに'}
                                   </button>
                                 </div>

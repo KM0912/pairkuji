@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Search, X, Trash2, Users, Edit3, Plus, UserMinus, UserPlus } from 'lucide-react';
+import { Search, X, Trash2, Users, Edit3, Plus } from 'lucide-react';
 import { useMemberStore } from '@/lib/stores/memberStore';
 import { usePracticeStore } from '@/lib/stores/practiceStore';
 import { Button } from '@/components/ui/button';
@@ -118,7 +118,11 @@ export default function MembersPage() {
 
   const handleToggleActive = async (id: number, isActive: boolean) => {
     await update(id, { isActive: !isActive });
-    setToast(isActive ? '休止にしました。練習の参加者選択から外れます' : '出場対象に戻しました');
+    setToast(
+      isActive
+        ? '今は来ないにしました。練習の参加者選択から外れます'
+        : '参加者選択に戻しました'
+    );
   };
 
   const openEditModal = (member: EditingMember) => {
@@ -248,30 +252,11 @@ export default function MembersPage() {
                       )}
                       {!member.isActive && (
                         <span className="text-small font-medium text-muted-foreground">
-                          休止中
+                          今は来ない
                         </span>
                       )}
                     </div>
                     <div className="ml-2 flex items-center">
-                      <button
-                        type="button"
-                        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted"
-                        onClick={() =>
-                          void handleToggleActive(member.id!, member.isActive)
-                        }
-                        title={member.isActive ? '休止にする' : '復帰する'}
-                        aria-label={
-                          member.isActive
-                            ? `${member.name}を休止にする`
-                            : `${member.name}を復帰する`
-                        }
-                      >
-                        {member.isActive ? (
-                          <UserMinus className="h-5 w-5" />
-                        ) : (
-                          <UserPlus className="h-5 w-5" />
-                        )}
-                      </button>
                       <button
                         type="button"
                         className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-primary transition-colors hover:bg-primary/10"
@@ -300,6 +285,27 @@ export default function MembersPage() {
                         <Trash2 className="h-5 w-5" />
                       </button>
                     </div>
+                  </div>
+                  <div className="mt-2 flex items-center justify-between gap-3 border-t border-border/60 pt-2">
+                    <span className="text-xs text-muted-foreground" id={`away-${member.id}`}>
+                      今は来ない
+                    </span>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={!member.isActive}
+                      aria-labelledby={`away-${member.id}`}
+                      onClick={() => void handleToggleActive(member.id!, member.isActive)}
+                      className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${
+                        member.isActive ? 'bg-muted' : 'bg-primary'
+                      }`}
+                    >
+                      <span
+                        className={`absolute top-0.5 h-6 w-6 rounded-full bg-background shadow ${
+                          member.isActive ? 'left-0.5' : 'left-5'
+                        }`}
+                      />
+                    </button>
                   </div>
                 </div>
               </div>

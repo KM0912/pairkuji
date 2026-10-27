@@ -15,5 +15,5 @@ export interface PracticeSession {
   /** 当日の番号。古い履歴には無く、その場合は名前順で表示する。 */
   participants?: SessionParticipant[];
   rounds: Round[];
-  clubTags?: string[]; // タグ（自由入力、複数可）
+  clubTags?: string[]; // クラブ（自由入力、複数可）
 }

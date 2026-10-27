@@ -458,7 +458,7 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
         ),
       });
     } catch (e: unknown) {
-      set({ error: e instanceof Error ? e.message : 'タグを更新できませんでした' });
+      set({ error: e instanceof Error ? e.message : 'クラブを更新できませんでした' });
     }
   },
 

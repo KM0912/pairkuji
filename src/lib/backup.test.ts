@@ -61,7 +61,14 @@ describe('validateBackup', () => {
   });
 
   test('別アプリや壊れた選手は拒否する', () => {
-    expect(validateBackup({ app: 'other' }).ok).toBe(false);
+    const other = validateBackup({ app: 'other' });
+    expect(other.ok).toBe(false);
+    if (!other.ok) expect(other.errors).toEqual(['ペアくじのバックアップファイルではありません']);
+    const wrongVersion = validateBackup(validBackup({ version: 99 }));
+    expect(wrongVersion.ok).toBe(false);
+    if (!wrongVersion.ok) {
+      expect(wrongVersion.errors).toEqual(['対応していないバックアップのバージョンです']);
+    }
     const broken = validateBackup(
       validBackup({
         members: [{ id: 1, name: '', isActive: true, isDeleted: false }],
@@ -94,6 +101,35 @@ describe('validateBackup', () => {
       })
     );
     expect(result.ok).toBe(false);
+  });
+
+  test('名簿にない選手IDと、IDや番号の重複を拒否する', () => {
+    const missing = validateBackup(
+      validBackup({
+        practicePlayers: [
+          {
+            memberId: 99,
+            playerNumber: 1,
+            status: 'active',
+            createdAt: '2026-01-01T00:00:00Z',
+          },
+        ],
+      })
+    );
+    expect(missing.ok).toBe(false);
+    if (!missing.ok) {
+      expect(missing.errors).toContain('名簿にない選手IDを参照しています');
+    }
+
+    const duplicated = validateBackup(
+      validBackup({
+        members: [member(1, '山田'), member(1, '佐藤')],
+      })
+    );
+    expect(duplicated.ok).toBe(false);
+    if (!duplicated.ok) {
+      expect(duplicated.errors).toContain('同じ選手IDが重複しています');
+    }
   });
 });
 

@@ -24,6 +24,8 @@ import { Users, AlertTriangle, Shuffle, MoreVertical, Monitor } from 'lucide-rea
 import { PiCourtBasketball } from 'react-icons/pi';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
+const HIDE_RESULT_REMINDER_KEY = 'pairkuji-hide-result-reminder';
+
 export default function PracticePage() {
   const {
     members,
@@ -67,6 +69,8 @@ export default function PracticePage() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showPracticeMenu, setShowPracticeMenu] = useState(false);
   const [showBoard, setShowBoard] = useState(false);
+  const [hideResultReminder, setHideResultReminder] = useState(false);
+  const [dismissResultReminder, setDismissResultReminder] = useState(false);
   const [toast, setToast] = useState<{ message: string; canUndo: boolean } | null>(
     null
   );
@@ -95,6 +99,10 @@ export default function PracticePage() {
     const id = setTimeout(() => setToast(null), 8000);
     return () => clearTimeout(id);
   }, [toast]);
+
+  useEffect(() => {
+    setHideResultReminder(window.localStorage.getItem(HIDE_RESULT_REMINDER_KEY) === '1');
+  }, []);
 
   useEffect(() => {
     if (
@@ -258,7 +266,7 @@ export default function PracticePage() {
     setToast(null);
     const undone = await undoLastRound();
     if (undone) {
-      setToast({ message: '直前のラウンドを取り消しました', canUndo: false });
+      setToast({ message: '直前のラウンドを元に戻しました', canUndo: false });
     }
   };
 
@@ -304,7 +312,7 @@ export default function PracticePage() {
       {(error || memberError) && (
         <div
           role="alert"
-          className="mb-4 flex items-center justify-between gap-3 rounded-lg bg-destructive/10 p-3 text-sm text-destructive"
+          className="fixed top-16 left-4 right-4 z-toast mx-auto flex max-w-2xl items-center justify-between gap-3 rounded-lg bg-destructive p-3 text-sm text-destructive-foreground shadow-level-3"
         >
           <span>{error || memberError}</span>
           <button
@@ -387,14 +395,35 @@ export default function PracticePage() {
             </p>
           )}
 
-          {missedResultCount > 0 && (
-            <button
-              type="button"
-              onClick={() => setShowRoundSummary(true)}
-              className="mb-3 w-full rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-left text-xs text-amber-800"
-            >
-              前のラウンドに勝敗未記録の試合が{missedResultCount}件あります。ここから付けられます。
-            </button>
+          {missedResultCount > 0 && !hideResultReminder && !dismissResultReminder && (
+            <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+              <button
+                type="button"
+                onClick={() => setShowRoundSummary(true)}
+                className="w-full text-left"
+              >
+                前のラウンドに勝敗未記録の試合が{missedResultCount}件あります。ここから付けられます。
+              </button>
+              <div className="mt-2 flex gap-3">
+                <button
+                  type="button"
+                  className="underline"
+                  onClick={() => setDismissResultReminder(true)}
+                >
+                  閉じる
+                </button>
+                <button
+                  type="button"
+                  className="underline"
+                  onClick={() => {
+                    window.localStorage.setItem(HIDE_RESULT_REMINDER_KEY, '1');
+                    setHideResultReminder(true);
+                  }}
+                >
+                  勝敗を記録しない
+                </button>
+              </div>
+            </div>
           )}
 
           <div
@@ -460,6 +489,7 @@ export default function PracticePage() {
                 substituting={substituting}
                 onPlayerClick={onPlayerClick}
                 onRecordResult={recordResult}
+                onToggleStatus={toggleStatus}
                 courtDisplayMode={courtDisplayMode}
               />
             </div>
@@ -539,6 +569,7 @@ export default function PracticePage() {
         isOpen={showAddParticipant}
         availableMembers={availableMembers}
         onAddParticipants={onAddParticipants}
+        onCreateMember={addMember}
         onClose={() => setShowAddParticipant(false)}
       />
 
@@ -635,9 +666,20 @@ export default function PracticePage() {
         <DialogContent className="max-w-sm rounded-2xl border-2 border-border/50 p-6">
           <DialogTitle className="text-base font-semibold">メニュー</DialogTitle>
           <DialogDescription className="sr-only">
-            掲示と練習終了
+            掲示、元に戻す、練習終了
           </DialogDescription>
           <div className="mt-4 flex flex-col gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={rounds.length === 0}
+              onClick={() => {
+                setShowPracticeMenu(false);
+                void handleUndoRound();
+              }}
+            >
+              直前のラウンドを元に戻す
+            </Button>
             <Button
               type="button"
               variant="outline"
@@ -671,16 +713,19 @@ export default function PracticePage() {
           memberMap={memberMap}
           playerMap={playerMap}
           roundNumber={latestRound.roundNo}
-          substituting={substituting}
           onClose={() => setShowBoard(false)}
-          onPlayerClick={onPlayerClick}
           onGenerateNextRound={executeGenerateNextRound}
-          courtDisplayMode={courtDisplayMode}
+          toast={toast}
+          onUndo={() => void handleUndoRound()}
         />
       )}
 
-      {toast && (
-        <div className="fixed bottom-56 left-4 right-4 z-toast">
+      {toast && !showBoard && (
+        <div
+          className={`fixed left-4 right-4 z-toast ${
+            error || memberError ? 'top-36' : 'top-16'
+          }`}
+        >
           <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 rounded-xl bg-foreground px-4 py-3 text-sm text-background shadow-level-3">
             <span>{toast.message}</span>
             {toast.canUndo && (

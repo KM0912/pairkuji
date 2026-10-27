@@ -402,38 +402,38 @@ export function calculateHeadToHead(
   });
 }
 
-/** 出場回数と休憩回数。偏り確認用。 */
+/** 参加したラウンドに対する出場率。来た回数の合計では比べない。 */
 export interface ParticipationRecord {
   playerId: number;
   played: number;
   rested: number;
+  /** コートか休憩に入ったラウンド数 */
+  rounds: number;
+  /** 0〜1。参加ラウンドが無い人は null */
+  playRate: number | null;
 }
 
 export interface ParticipationBalance {
   records: ParticipationRecord[];
-  playedMax: number;
-  playedMin: number;
-  playedSpread: number;
-  restMax: number;
-  restMin: number;
-  restSpread: number;
+  /** 参加ラウンドがある人の出場率（0〜1） */
+  rateMax: number;
+  rateMin: number;
+  /** 最大と最小の差。100ポイント満点 */
+  rateSpreadPoints: number;
 }
 
 function emptyParticipation(): ParticipationBalance {
   return {
     records: [],
-    playedMax: 0,
-    playedMin: 0,
-    playedSpread: 0,
-    restMax: 0,
-    restMin: 0,
-    restSpread: 0,
+    rateMax: 0,
+    rateMin: 0,
+    rateSpreadPoints: 0,
   };
 }
 
 /**
- * セッションと進行中ラウンドから、出場・休憩回数と最大差を集計する。
- * 休憩は各ラウンドの rests を数える。
+ * その人が入ったラウンドだけを分母に、出場率の差を出す。
+ * 途中から来た人の「来た回数」は比べない。
  */
 export function calculateParticipationBalance(
   sessions: PracticeSession[],
@@ -442,63 +442,62 @@ export function calculateParticipationBalance(
   const played = new Map<number, number>();
   const rested = new Map<number, number>();
 
-  const touch = (id: number) => {
-    if (!played.has(id)) played.set(id, 0);
+  const addPlayed = (id: number) => {
+    played.set(id, (played.get(id) ?? 0) + 1);
     if (!rested.has(id)) rested.set(id, 0);
   };
+  const addRested = (id: number) => {
+    rested.set(id, (rested.get(id) ?? 0) + 1);
+    if (!played.has(id)) played.set(id, 0);
+  };
 
-  const consume = (rounds: Round[], participantIds: number[] = []) => {
-    for (const id of participantIds) touch(id);
+  const consume = (rounds: Round[]) => {
     for (const round of rounds) {
       for (const court of round.courts) {
-        for (const id of [...court.pairA, ...court.pairB]) {
-          touch(id);
-          played.set(id, (played.get(id) ?? 0) + 1);
-        }
+        for (const id of [...court.pairA, ...court.pairB]) addPlayed(id);
       }
-      for (const id of round.rests) {
-        touch(id);
-        rested.set(id, (rested.get(id) ?? 0) + 1);
-      }
+      for (const id of round.rests) addRested(id);
     }
   };
 
-  for (const session of sessions) {
-    const ids =
-      session.participants && session.participants.length > 0
-        ? session.participants.map((participant) => participant.memberId)
-        : session.playerIds;
-    consume(session.rounds, ids);
-  }
+  for (const session of sessions) consume(session.rounds);
   consume(currentRounds);
 
   const records: ParticipationRecord[] = Array.from(played.keys()).map(
-    (playerId) => ({
-      playerId,
-      played: played.get(playerId) ?? 0,
-      rested: rested.get(playerId) ?? 0,
-    })
+    (playerId) => {
+      const playedCount = played.get(playerId) ?? 0;
+      const restedCount = rested.get(playerId) ?? 0;
+      const rounds = playedCount + restedCount;
+      return {
+        playerId,
+        played: playedCount,
+        rested: restedCount,
+        rounds,
+        playRate: rounds > 0 ? playedCount / rounds : null,
+      };
+    }
   );
 
-  if (records.length === 0) return emptyParticipation();
+  const rated = records.filter(
+    (record): record is ParticipationRecord & { playRate: number } =>
+      record.playRate != null
+  );
+  if (rated.length === 0) return emptyParticipation();
 
-  records.sort((a, b) => a.played - b.played || b.rested - a.rested);
+  records.sort(
+    (a, b) =>
+      (a.playRate ?? 1) - (b.playRate ?? 1) || a.playerId - b.playerId
+  );
 
-  const playedCounts = records.map((record) => record.played);
-  const restCounts = records.map((record) => record.rested);
-  const playedMax = Math.max(...playedCounts);
-  const playedMin = Math.min(...playedCounts);
-  const restMax = Math.max(...restCounts);
-  const restMin = Math.min(...restCounts);
+  const rates = rated.map((record) => record.playRate);
+  const rateMax = Math.max(...rates);
+  const rateMin = Math.min(...rates);
 
   return {
     records,
-    playedMax,
-    playedMin,
-    playedSpread: playedMax - playedMin,
-    restMax,
-    restMin,
-    restSpread: restMax - restMin,
+    rateMax,
+    rateMin,
+    rateSpreadPoints: Math.round((rateMax - rateMin) * 100),
   };
 }
 

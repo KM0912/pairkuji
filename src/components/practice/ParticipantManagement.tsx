@@ -52,15 +52,19 @@ export function ParticipantManagement({
                   <Button
                     type="button"
                     size="sm"
-                    variant={p.status === 'active' ? 'success' : 'outline'}
+                    variant={p.status === 'active' ? 'outline' : 'success'}
                     className={cn(
                       'shrink-0 min-w-[4.25rem]',
                       p.status === 'rest' && 'text-muted-foreground'
                     )}
                     onClick={() => void toggleStatus(p.memberId)}
-                    aria-label={`${m.name}のステータスを切り替え`}
+                    aria-label={
+                      p.status === 'active'
+                        ? `${m.name}を早退にする`
+                        : `${m.name}を出場に戻す`
+                    }
                   >
-                    {p.status === 'active' ? '出場可' : '休憩'}
+                    {p.status === 'active' ? '早退' : '戻す'}
                   </Button>
                 </div>
               );
