@@ -364,8 +364,22 @@ describe('memberStore', () => {
     const many = await useMemberStore.getState().addMany(['山田', '佐藤', '佐藤']);
     expect(many.added).toBe(1);
     expect(many.skipped).toEqual(['山田', '佐藤']);
+    expect(many.memberIds).toHaveLength(1);
+    expect((await db.members.get(many.memberIds[0]!))?.name).toBe('佐藤');
     const names = (await db.members.toArray()).map((item) => item.name).sort();
     expect(names).toEqual(['佐藤', '山田']);
+  });
+
+  test('一括登録した選手を入力順で参加者に選択できる', async () => {
+    await useMemberStore.getState().add('既存');
+    const result = await useMemberStore.getState().addMany(['鈴木', '既存', '田中', '鈴木', '佐藤', '山田']);
+    expect(result.added).toBe(4);
+    const registered = await Promise.all(result.memberIds.map((id) => db.members.get(id)));
+    expect(registered.map((item) => item?.name)).toEqual(['鈴木', '田中', '佐藤', '山田']);
+    await usePracticeStore.getState().startPractice(1, result.memberIds);
+    expect(usePracticeStore.getState().players.map((player) => player.memberId)).toEqual(result.memberIds);
+    const noNewMembers = await useMemberStore.getState().addMany(['既存', '鈴木']);
+    expect(noNewMembers.memberIds).toEqual([]);
   });
 
   test('名前を変えるとサンプル表示を外す', async () => {

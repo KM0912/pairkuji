@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Zap, Users, BarChart3, History } from 'lucide-react';
+import { Zap, BarChart3, History } from 'lucide-react';
 
 export const BottomNavigation: React.FC = () => {
   const pathname = usePathname();
@@ -10,17 +10,10 @@ export const BottomNavigation: React.FC = () => {
 
   const tabs = [
     {
-      id: 'members',
-      label: 'メンバー',
-      icon: <Users className="w-6 h-6" />,
-      paths: ['/members'],
-      href: '/members' as const,
-    },
-    {
       id: 'practice',
       label: 'ダブルス',
       icon: <Zap className="w-6 h-6" />,
-      paths: ['/practice', '/'],
+      paths: ['/practice', '/members', '/'],
       href: '/practice' as const,
     },
     {
@@ -66,6 +59,7 @@ export const BottomNavigation: React.FC = () => {
             <button
               key={tab.id}
               onClick={() => handleTabClick(tab)}
+              aria-current={isActive ? 'page' : undefined}
               className={`flex-1 flex flex-col items-center justify-center py-3 px-3 min-h-[72px] transition-all duration-fast relative active:scale-[0.97] ${
                 isActive
                   ? 'text-primary'

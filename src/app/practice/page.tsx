@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMemberStore } from '@/lib/stores/memberStore';
 import { usePracticeStore } from '@/lib/stores/practiceStore';
 import { ParticipantSelection } from '@/components/practice/ParticipantSelection';
+import { MemberRoster } from '@/components/members/MemberRoster';
 import { ParticipantManagement } from '@/components/practice/ParticipantManagement';
 import { CourtManagement } from '@/components/practice/CourtManagement';
 import { AddParticipantModal } from '@/components/practice/AddParticipantModal';
@@ -72,6 +73,7 @@ export default function PracticePage() {
   const [showCourtModal, setShowCourtModal] = useState(false);
   const [pendingCourts, setPendingCourts] = useState<number>(courts);
   const [showParticipantModal, setShowParticipantModal] = useState(false);
+  const [showMemberRoster, setShowMemberRoster] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showPracticeMenu, setShowPracticeMenu] = useState(false);
   const [showBoard, setShowBoard] = useState(false);
@@ -99,6 +101,7 @@ export default function PracticePage() {
       setShowRoundSummary(false);
       setShowCourtModal(false);
       setShowParticipantModal(false);
+      setShowMemberRoster(false);
       setShowBoard(false);
     }
   }, [settings]);
@@ -133,6 +136,14 @@ export default function PracticePage() {
     setSelected(players.map((p) => p.memberId));
   }, [settings, players]);
 
+  useEffect(() => {
+    if (settings || !membersInitialLoad) return;
+    const activeIds = new Set(members.filter((member) => member.isActive).map((member) => member.id!));
+    setSelected((previous) => previous.every((id) => activeIds.has(id))
+      ? previous
+      : previous.filter((id) => activeIds.has(id)));
+  }, [members, membersInitialLoad, settings]);
+
   const memberMap = useMemo(
     () => new Map(members.map((m) => [m.id!, m])),
     [members]
@@ -152,11 +163,8 @@ export default function PracticePage() {
     setSelected(orderedIds);
   };
 
-  const onCreateMember = async (name: string) => {
-    const id = await addMember(name);
-    if (id != null) {
-      setSelected((prev) => (prev.includes(id) ? prev : [...prev, id]));
-    }
+  const onMembersCreated = (ids: number[]) => {
+    setSelected((previous) => Array.from(new Set([...previous, ...ids])));
   };
 
   const onStart = async (e: React.FormEvent) => {
@@ -329,7 +337,7 @@ export default function PracticePage() {
 
   return (
     <div>
-      {(error || (memberError && !showAddParticipant)) && (
+      {(error || (memberError && settings && !showAddParticipant && !showMemberRoster)) && (
         <div
           role="alert"
           className="fixed top-16 left-4 right-4 z-toast mx-auto flex max-w-2xl items-center justify-between gap-3 rounded-lg bg-destructive p-3 text-sm text-destructive-foreground shadow-level-3"
@@ -358,7 +366,8 @@ export default function PracticePage() {
           onStart={onStart}
           clubTags={clubTags}
           onClubTagsChange={setClubTags}
-          onCreateMember={onCreateMember}
+          onMembersCreated={onMembersCreated}
+          isStarting={practiceLoading}
         />
       ) : (
         <>
@@ -653,6 +662,14 @@ export default function PracticePage() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={showMemberRoster && !!settings} onOpenChange={setShowMemberRoster}>
+        <DialogContent className="top-1/2 max-h-[85dvh] max-w-[calc(100%-2rem)] overflow-y-auto rounded-2xl border-2 border-border/50 p-5 sm:max-w-2xl">
+          <DialogTitle className="text-base font-semibold">メンバー名簿</DialogTitle>
+          <DialogDescription>選手の追加・編集・今は来ない設定・削除を行います。</DialogDescription>
+          <MemberRoster members={members} protectedMemberIds={players.map((player) => player.memberId)} />
+        </DialogContent>
+      </Dialog>
+
       {/* Reset confirmation modal */}
       <Dialog open={showResetConfirm} onOpenChange={(open) => !open && setShowResetConfirm(false)}>
         <DialogContent className="max-w-sm rounded-2xl border-2 border-border/50 p-6">
@@ -728,9 +745,21 @@ export default function PracticePage() {
         <DialogContent className="max-w-sm rounded-2xl border-2 border-border/50 p-6">
           <DialogTitle className="text-base font-semibold">メニュー</DialogTitle>
           <DialogDescription className="sr-only">
-            掲示、元に戻す、練習終了
+            名簿管理、掲示、元に戻す、練習終了
           </DialogDescription>
           <div className="mt-4 flex flex-col gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                clearMemberError();
+                setShowPracticeMenu(false);
+                setShowMemberRoster(true);
+              }}
+            >
+              <Users className="w-4 h-4" />
+              メンバー名簿を管理
+            </Button>
             <Button
               type="button"
               variant="outline"

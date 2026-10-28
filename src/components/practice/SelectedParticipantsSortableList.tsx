@@ -19,7 +19,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, X } from 'lucide-react';
+import { Edit3, GripVertical, X } from 'lucide-react';
 import { PlayerNumber } from '../ui/PlayerNumber';
 import { cn } from '@/lib/utils';
 import { SampleBadge } from '@/components/members/SampleBadge';
@@ -29,16 +29,19 @@ interface SelectedParticipantsSortableListProps {
   selected: number[];
   onReorder: (orderedIds: number[]) => void;
   onRemove: (id: number) => void;
+  onEdit?: (member: Member) => void;
 }
 
 function SortableParticipantRow({
   member,
   order,
   onRemove,
+  onEdit,
 }: {
   member: Member;
   order: number;
   onRemove: (id: number) => void;
+  onEdit?: (member: Member) => void;
 }) {
   const memberId = member.id!;
   const {
@@ -74,10 +77,22 @@ function SortableParticipantRow({
         <GripVertical className="h-5 w-5" aria-hidden />
       </button>
       <PlayerNumber number={order} variant="neutral" size="sm" />
-      <span className="flex min-w-0 flex-1 items-center gap-1 font-medium text-sm">
-        <span className="truncate">{member.name}</span>
+      <span className="flex min-w-0 flex-1 flex-col items-start gap-1 font-medium text-sm sm:flex-row sm:items-center">
+        <span className="max-w-full truncate" title={member.name}>
+          {member.name}
+        </span>
         {member.isSample && <SampleBadge />}
       </span>
+      {onEdit && (
+        <button
+          type="button"
+          className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+          aria-label={`${member.name}を編集`}
+          onClick={() => onEdit(member)}
+        >
+          <Edit3 className="h-4 w-4" aria-hidden />
+        </button>
+      )}
       <button
         type="button"
         className="flex shrink-0 items-center justify-center rounded-md p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 min-h-[44px] min-w-[44px]"
@@ -95,6 +110,7 @@ export function SelectedParticipantsSortableList({
   selected,
   onReorder,
   onRemove,
+  onEdit,
 }: SelectedParticipantsSortableListProps) {
   const memberMap = new Map(members.map((m) => [m.id!, m]));
 
@@ -156,6 +172,7 @@ export function SelectedParticipantsSortableList({
                   member={member}
                   order={index + 1}
                   onRemove={onRemove}
+                  onEdit={onEdit}
                 />
               </li>
             ))}

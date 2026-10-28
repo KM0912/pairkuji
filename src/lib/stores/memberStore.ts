@@ -14,7 +14,11 @@ type Actions = {
   load: () => Promise<void>;
   loadAll: () => Promise<void>;
   add: (name: string) => Promise<number | null>;
-  addMany: (names: string[]) => Promise<{ added: number; skipped: string[] }>;
+  addMany: (names: string[]) => Promise<{
+    added: number;
+    skipped: string[];
+    memberIds: number[];
+  }>;
   update: (
     id: number,
     updates: Partial<Pick<Member, 'name' | 'isActive'>>
@@ -107,7 +111,7 @@ export const useMemberStore = create<State & Actions>((set, get) => ({
       toAdd.push(name);
     }
 
-    if (toAdd.length === 0) return { added: 0, skipped };
+    if (toAdd.length === 0) return { added: 0, skipped, memberIds: [] };
 
     const now = new Date().toISOString();
     try {
@@ -126,10 +130,14 @@ export const useMemberStore = create<State & Actions>((set, get) => ({
         }
       });
       set({ members: [...created, ...get().members] });
-      return { added: created.length, skipped };
+      return {
+        added: created.length,
+        skipped,
+        memberIds: created.map((member) => member.id!),
+      };
     } catch (e: unknown) {
       set({ error: e instanceof Error ? e.message : '選手を追加できませんでした' });
-      return { added: 0, skipped };
+      return { added: 0, skipped, memberIds: [] };
     }
   },
 

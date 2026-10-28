@@ -106,6 +106,10 @@ function navigationCacheKey(url) {
 }
 
 async function handleNavigate(request, url) {
+  if (url.pathname === '/members' || url.pathname === '/members/') {
+    return Response.redirect(new URL('/practice', url.origin).href, 302);
+  }
+
   const detailId = historyDetailId(url.pathname);
   if (detailId) {
     try {

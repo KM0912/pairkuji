@@ -11,7 +11,7 @@ pairkuji/
 │   │   ├── globals.css           # グローバルCSS（CSS変数・デザイントークン）
 │   │   ├── robots.ts             # robots.txt 生成
 │   │   ├── sitemap.ts            # sitemap.xml 生成
-│   │   ├── members/              # メンバー管理ページ
+│   │   ├── members/              # 統合先へのリダイレクト
 │   │   │   ├── page.tsx
 │   │   │   └── layout.tsx
 │   │   ├── practice/             # 練習セッションページ
@@ -38,7 +38,8 @@ pairkuji/
 │   │   │   ├── SelectTile.tsx
 │   │   │   └── PlayerNumber.tsx
 │   │   ├── members/              # メンバー管理関連コンポーネント
-│   │   │   └── ClubManager.tsx
+│   │   │   ├── MemberRoster.tsx  # 共通名簿・参加者選択・登録・編集
+│   │   │   └── SampleBadge.tsx
 │   │   ├── practice/             # 練習セッション関連コンポーネント
 │   │   │   ├── ClubSelector.tsx
 │   │   │   ├── CourtManagement.tsx
@@ -129,8 +130,8 @@ pairkuji/
 | パス | ページ | 機能 |
 |------|--------|------|
 | `/` | ランディングページ | アプリ紹介・導線 |
-| `/members` | メンバー管理 | メンバーの追加・編集・有効/無効化 |
-| `/practice` | 練習セッション | コート設定・組み合わせ生成・進行管理 |
+| `/members` | 旧URL互換 | `/practice` へリダイレクト |
+| `/practice` | 名簿・練習セッション | 名簿登録・編集・参加者選択・コート設定・組み合わせ生成・進行管理 |
 | `/stats` | 統計表示 | 出場/休憩回数・ペア/対戦頻度 |
 
 ### src/components/ (Reactコンポーネント)
