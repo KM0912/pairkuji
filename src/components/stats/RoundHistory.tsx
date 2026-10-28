@@ -20,7 +20,7 @@ export function RoundHistory({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-4xl max-h-[85vh] rounded-2xl border-2 border-border/50 p-0 overflow-hidden">
-        <div className="flex items-center gap-2 border-b px-5 py-4">
+        <div className="flex items-center gap-2 border-b py-4 pl-5 pr-16">
           <History className="w-5 h-5 text-foreground" />
           <DialogTitle className="text-lg font-semibold text-foreground">
             ラウンド履歴
@@ -56,7 +56,7 @@ export function RoundHistory({
                       ラウンド {round.roundNo}
                     </h3>
                     <span className="text-sm text-muted-foreground">
-                      ({round.courts.length}コート, 休憩{round.rests.length}名)
+                      ({round.courts.length}コート、待機{round.rests.length}人)
                     </span>
                   </div>
 
@@ -138,7 +138,7 @@ export function RoundHistory({
                       <div className="flex items-center gap-2 mb-2">
                         <Users className="w-4 h-4 text-amber-600" />
                         <span className="text-sm font-medium text-amber-700">
-                          休憩 ({round.rests.length}名)
+                          待機{round.rests.length}人
                         </span>
                       </div>
                       <div className="flex flex-wrap gap-2">

@@ -11,7 +11,7 @@ export const BottomNavigation: React.FC = () => {
   const tabs = [
     {
       id: 'members',
-      label: 'メンバー',
+      label: '選手',
       icon: <Users className="w-6 h-6" />,
       paths: ['/members'],
       href: '/members' as const,
@@ -58,7 +58,10 @@ export const BottomNavigation: React.FC = () => {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t border-border/50 shadow-level-2 safe-area-pb w-full z-sticky">
+    <nav
+      aria-label="メインメニュー"
+      className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t border-border/50 shadow-level-2 safe-area-pb w-full z-sticky"
+    >
       <div className="flex px-2 max-w-2xl mx-auto">
         {tabs.map((tab) => {
           const isActive = activeTab?.id === tab.id;
@@ -66,7 +69,8 @@ export const BottomNavigation: React.FC = () => {
             <button
               key={tab.id}
               onClick={() => handleTabClick(tab)}
-              className={`flex-1 flex flex-col items-center justify-center py-3 px-3 min-h-[72px] transition-all duration-fast relative active:scale-[0.97] ${
+              aria-current={isActive ? 'page' : undefined}
+              className={`relative flex flex-1 flex-col items-center justify-center px-3 py-3 min-h-[72px] transition-all duration-fast active:scale-[0.97] [@media(max-height:500px)]:min-h-11 [@media(max-height:500px)]:py-1 [@media(max-height:500px)]:[&_svg]:h-5 [@media(max-height:500px)]:[&_svg]:w-5 ${
                 isActive
                   ? 'text-primary'
                   : 'text-muted-foreground active:text-foreground'
@@ -76,7 +80,7 @@ export const BottomNavigation: React.FC = () => {
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-primary rounded-full" />
               )}
               <div
-                className={`mb-1.5 transition-all duration-normal ease-out-expo ${
+                className={`mb-1.5 transition-all duration-normal ease-out-expo [@media(max-height:500px)]:mb-0 ${
                   isActive
                     ? 'scale-110 text-primary'
                     : 'scale-100 hover:scale-105'
@@ -85,7 +89,7 @@ export const BottomNavigation: React.FC = () => {
                 {tab.icon}
               </div>
               <span
-                className={`text-caption font-semibold transition-all duration-normal ${
+                className={`text-caption font-semibold transition-all duration-normal [@media(max-height:500px)]:sr-only ${
                   isActive ? 'text-primary' : ''
                 }`}
               >

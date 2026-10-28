@@ -62,7 +62,7 @@ export function ParticipantManagement({
                           onClick={() => void onSetAvailability(p.memberId, 'break')}
                           aria-label={`${m.name}を次の1ラウンドだけ休憩にする`}
                         >
-                          休憩
+                          次は休憩
                         </Button>
                         <Button
                           type="button"

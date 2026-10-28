@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
 import { type Member } from '@/types/member';
 import {
   DndContext,
@@ -35,10 +36,18 @@ function SortableParticipantRow({
   member,
   order,
   onRemove,
+  onMoveUp,
+  onMoveDown,
+  isFirst,
+  isLast,
 }: {
   member: Member;
   order: number;
   onRemove: (id: number) => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  isFirst: boolean;
+  isLast: boolean;
 }) {
   const memberId = member.id!;
   const {
@@ -78,6 +87,28 @@ function SortableParticipantRow({
         <span className="truncate">{member.name}</span>
         {member.isSample && <SampleBadge />}
       </span>
+      <div className="flex shrink-0 flex-col">
+        <button
+          type="button"
+          id={`move-up-${memberId}`}
+          className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-sm font-semibold disabled:opacity-30"
+          aria-label={`${member.name}を一つ上へ`}
+          disabled={isFirst}
+          onClick={onMoveUp}
+        >
+          ↑
+        </button>
+        <button
+          type="button"
+          id={`move-down-${memberId}`}
+          className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-sm font-semibold disabled:opacity-30"
+          aria-label={`${member.name}を一つ下へ`}
+          disabled={isLast}
+          onClick={onMoveDown}
+        >
+          ↓
+        </button>
+      </div>
       <button
         type="button"
         className="flex shrink-0 items-center justify-center rounded-md p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 min-h-[44px] min-w-[44px]"
@@ -101,6 +132,31 @@ export function SelectedParticipantsSortableList({
   const orderedMembers = selected
     .map((id) => memberMap.get(id))
     .filter((m): m is Member => m != null);
+
+  const [moveNotice, setMoveNotice] = useState('');
+  const focusTarget = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!focusTarget.current) return;
+    const id = focusTarget.current;
+    focusTarget.current = null;
+    document.getElementById(id)?.focus();
+  }, [selected]);
+
+  const moveTo = (index: number, delta: number) => {
+    const nextIndex = index + delta;
+    if (nextIndex < 0 || nextIndex >= selected.length) return;
+    const member = orderedMembers[index];
+    if (!member?.id) return;
+    onReorder(arrayMove(selected, index, nextIndex));
+    setMoveNotice(`${member.name}を${nextIndex + 1}番目に移動しました`);
+    const direction = delta < 0 ? 'up' : 'down';
+    const atEdge =
+      (direction === 'up' && nextIndex === 0) ||
+      (direction === 'down' && nextIndex === selected.length - 1);
+    const focusDirection = atEdge ? (direction === 'up' ? 'down' : 'up') : direction;
+    focusTarget.current = `move-${focusDirection}-${member.id}`;
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -135,9 +191,12 @@ export function SelectedParticipantsSortableList({
 
   return (
     <div className="space-y-2">
+      <div className="sr-only" role="status" aria-live="polite">
+        {moveNotice}
+      </div>
       {orderedMembers.length >= 2 && (
         <p className="text-xs text-muted-foreground px-1">
-          ≡ をドラッグして番号を変更できます
+          ↑↓ またはドラッグで番号を変更できます
         </p>
       )}
       <DndContext
@@ -155,6 +214,10 @@ export function SelectedParticipantsSortableList({
                 <SortableParticipantRow
                   member={member}
                   order={index + 1}
+                  isFirst={index === 0}
+                  isLast={index === orderedMembers.length - 1}
+                  onMoveUp={() => moveTo(index, -1)}
+                  onMoveDown={() => moveTo(index, 1)}
                   onRemove={onRemove}
                 />
               </li>

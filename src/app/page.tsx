@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Shuffle, UserCheck, Users, Zap, ChevronRight } from 'lucide-react';
 
-type Status = 'loading' | 'lp' | 'redirect';
+type Status = 'loading' | 'lp' | 'redirect' | 'unavailable';
 
 async function checkDatabaseExists(): Promise<boolean> {
   if (typeof indexedDB === 'undefined') return false;
@@ -44,7 +44,7 @@ const features = [
   {
     icon: <Users className="w-6 h-6" />,
     title: '柔軟な人数対応',
-    description: '途中参加・休憩も自動調整。4名から使えます',
+    description: '途中参加・休憩も自動調整。4人から使えます',
   },
   {
     icon: <Zap className="w-6 h-6" />,
@@ -63,14 +63,37 @@ export default function Home() {
   const [status, setStatus] = useState<Status>('loading');
 
   useEffect(() => {
-    checkDatabaseExists().then((exists) => {
-      if (exists) {
-        router.replace('/practice');
-      } else {
-        setStatus('lp');
-      }
-    });
+    checkDatabaseExists()
+      .then((exists) => {
+        if (exists) {
+          router.replace('/practice');
+        } else {
+          setStatus('lp');
+        }
+      })
+      .catch(() => {
+        setStatus('unavailable');
+      });
   }, [router]);
+
+  if (status === 'unavailable') {
+    return (
+      <div className="fixed inset-0 z-modal flex items-center justify-center bg-background px-6">
+        <div className="max-w-sm text-center">
+          <h1 className="mb-2 text-xl font-bold text-foreground">データを確認できませんでした</h1>
+          <p className="mb-4 text-sm text-muted-foreground">
+            この端末では保存データを調べられませんでした。練習画面から続けられます。
+          </p>
+          <a
+            href="/practice"
+            className="inline-flex min-h-11 items-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground"
+          >
+            練習画面を開く
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   if (status === 'loading') {
     return (

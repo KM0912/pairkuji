@@ -1,9 +1,16 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMemberStore } from '@/lib/stores/memberStore';
 import { type Member } from '@/types/member';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Search, X } from 'lucide-react';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from '../ui/input-group';
 
 interface AddParticipantModalProps {
   isOpen: boolean;
@@ -24,6 +31,26 @@ export function AddParticipantModal({
   const [newName, setNewName] = useState('');
   const [adding, setAdding] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    if (isOpen) return;
+    setSearchTerm('');
+    setSelectedIds([]);
+    setNewName('');
+    setCreateError(null);
+  }, [isOpen]);
+
+  const visibleMembers = useMemo(
+    () =>
+      availableMembers.filter((member) =>
+        member.name.toLowerCase().includes(searchTerm.trim().toLowerCase())
+      ),
+    [availableMembers, searchTerm]
+  );
+  const visibleIds = visibleMembers.map((member) => member.id!);
+  const allVisibleSelected =
+    visibleIds.length > 0 && visibleIds.every((id) => selectedIds.includes(id));
 
   const toggle = (id: number) => {
     setSelectedIds((prev) =>
@@ -70,8 +97,8 @@ export function AddParticipantModal({
             <Input
               value={newName}
               onChange={(event) => setNewName(event.target.value)}
-              placeholder="名前を追加"
-              aria-label="名前を追加"
+              placeholder="選手名を入力"
+              aria-label="選手名"
             />
             <Button type="submit" variant="outline" disabled={adding || !newName.trim()}>
               追加
@@ -82,13 +109,37 @@ export function AddParticipantModal({
               {createError}
             </p>
           )}
+          <InputGroup className="mb-3 h-11">
+            <InputGroupAddon>
+              <Search className="h-5 w-5 text-muted-foreground" />
+            </InputGroupAddon>
+            <InputGroupInput
+              aria-label="選手検索"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="名前で検索"
+            />
+            {searchTerm && (
+              <InputGroupAddon align="inline-end">
+                <InputGroupButton
+                  aria-label="検索をクリア"
+                  className="min-h-11 min-w-11"
+                  onClick={() => setSearchTerm('')}
+                >
+                  <X className="h-4 w-4" />
+                </InputGroupButton>
+              </InputGroupAddon>
+            )}
+          </InputGroup>
           {availableMembers.length === 0 ? (
             <div className="text-center text-muted-foreground py-4">
-              追加できる選手がいません。上の欄から名前を追加できます。
+              追加できる選手がいません。上の欄から選手を追加できます。
             </div>
           ) : (
             <div className="space-y-2 max-h-64 overflow-auto">
-              {availableMembers.map((m) => {
+              {visibleMembers.length === 0 ? (
+                <p className="py-4 text-center text-sm text-muted-foreground">該当なし</p>
+              ) : visibleMembers.map((m) => {
                 const id = m.id!;
                 const checked = selectedIds.includes(id);
                 return (
@@ -113,21 +164,20 @@ export function AddParticipantModal({
             </div>
           )}
           <div className="flex items-center justify-between text-sm text-muted-foreground mt-3">
-            <div>選択中: {selectedIds.length} 名</div>
-            {availableMembers.length > 0 && (
+            <div>選択中：{selectedIds.length}人</div>
+            {visibleMembers.length > 0 && (
               <button
-                className="underline hover:text-foreground"
+                type="button"
+                className="inline-flex min-h-11 items-center underline hover:text-foreground"
                 onClick={() =>
                   setSelectedIds(
-                    selectedIds.length === availableMembers.length
-                      ? []
-                      : availableMembers.map((m) => m.id!)
+                    allVisibleSelected
+                      ? selectedIds.filter((id) => !visibleIds.includes(id))
+                      : Array.from(new Set([...selectedIds, ...visibleIds]))
                   )
                 }
               >
-                {selectedIds.length === availableMembers.length
-                  ? '全て解除'
-                  : '全て選択'}
+                {allVisibleSelected ? '全て解除' : '全て選択'}
               </button>
             )}
           </div>

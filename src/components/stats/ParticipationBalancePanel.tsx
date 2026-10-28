@@ -40,8 +40,8 @@ export function ParticipationBalancePanel({
         {!judged
           ? 'ラウンドが少ないため判定していません'
           : even
-            ? '参加したラウンドの中での出場率は、人数とコート数から見て揃っています。'
-            : `出場率は、1回の練習で最後までいた人について、人数とコート数から見た差より${excess}ポイント開いています。`}
+            ? '出場回数の差は目安の範囲です'
+            : '出場回数の差が目安より大きいです'}
       </div>
       <div className="space-y-2">
         {balance.records.map((record) => {
@@ -56,7 +56,7 @@ export function ParticipationBalancePanel({
                   {getDisplayName(memberMap, record.playerId)}
                 </span>
                 <span className="shrink-0 text-xs text-muted-foreground">
-                  出場率 {playedPercent}%（出場 {record.played} / 休憩 {record.rested}）
+                  出場率 {playedPercent}%（出場 {record.played} / 待機 {record.rested}）
                 </span>
               </div>
               <div className="h-1.5 overflow-hidden rounded-full bg-muted">

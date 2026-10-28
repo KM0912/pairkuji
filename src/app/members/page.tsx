@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import {
   InputGroup,
   InputGroupAddon,
+  InputGroupButton,
   InputGroupInput,
 } from '@/components/ui/input-group';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -91,11 +92,11 @@ export default function MembersPage() {
       const result = await addMany(single ? [single, ...pasted] : pasted);
       const skipped =
         result.skipped.length > 0
-          ? `（${result.skipped.length}名は同じ名前があるためスキップ）`
+          ? `（${result.skipped.length}人は同じ名前があるためスキップ）`
           : '';
       setToast(
         result.added > 0
-          ? `${result.added}名追加しました${skipped}`
+          ? `${result.added}人追加しました${skipped}`
           : `新しい名前はありませんでした${skipped}`
       );
     } else {
@@ -194,7 +195,7 @@ export default function MembersPage() {
       <div className="space-y-6 pb-16">
         <div className="mb-4">
           <div className="relative">
-            <InputGroup className="bg-white dark:bg-input/30">
+            <InputGroup className="h-11 bg-white dark:bg-input/30">
               <InputGroupInput
                 aria-label="選手検索"
                 value={searchTerm}
@@ -204,19 +205,23 @@ export default function MembersPage() {
               <InputGroupAddon>
                 <Search className="w-5 h-5 text-muted-foreground" />
               </InputGroupAddon>
-              <InputGroupAddon
-                align="inline-end"
-                onClick={() => setSearchTerm('')}
-                aria-label="検索をクリア"
-              >
-                {searchTerm && <X className="w-4 h-4" />}
-              </InputGroupAddon>
+              {searchTerm && (
+                <InputGroupAddon align="inline-end">
+                  <InputGroupButton
+                    aria-label="検索をクリア"
+                    className="min-h-11 min-w-11"
+                    onClick={() => setSearchTerm('')}
+                  >
+                    <X className="h-4 w-4" />
+                  </InputGroupButton>
+                </InputGroupAddon>
+              )}
             </InputGroup>
           </div>
           <p className="mt-2 text-small text-muted-foreground">
             {isLoading
               ? '読み込み中…'
-              : `${filteredMembers.length} 名が表示されています`}
+              : `${filteredMembers.length}人が表示されています`}
           </p>
           {members.some((member) => member.isSample) && (
             <p className="mt-1 text-xs text-muted-foreground">
@@ -258,11 +263,16 @@ export default function MembersPage() {
                         {member.isSample && <SampleBadge />}
                       </h3>
                       {inPractice && (
-                        <div className="flex items-center gap-1">
-                          <div className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse"></div>
-                          <span className="text-small text-accent font-medium">
-                            練習に参加中
-                          </span>
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-1">
+                            <div className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse"></div>
+                            <span className="text-small text-accent font-medium">
+                              練習に参加中
+                            </span>
+                          </div>
+                          <p className="text-small text-muted-foreground">
+                            参加中は削除できません
+                          </p>
                         </div>
                       )}
                       {!member.isActive && (
@@ -295,7 +305,6 @@ export default function MembersPage() {
                             : '削除'
                         }
                         aria-label={`${member.name}を削除`}
-                        disabled={inPractice}
                       >
                         <Trash2 className="h-5 w-5" />
                       </button>
@@ -336,13 +345,13 @@ export default function MembersPage() {
             </div>
             <h3 className="text-lg font-medium text-muted-foreground mb-2">
               {searchTerm
-                ? '該当するメンバーがいません'
-                : 'メンバーを追加しましょう'}
+                ? '該当する選手がいません'
+                : '選手を追加しましょう'}
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
               {searchTerm
                 ? '検索条件を変更して再度お試しください'
-                : '下のボタンから最初のメンバーを追加してください'}
+                : '下のボタンから最初の選手を追加してください'}
             </p>
             {searchTerm && (
               <button
@@ -362,10 +371,11 @@ export default function MembersPage() {
             <DialogDescription className="sr-only">新しい選手を追加します</DialogDescription>
             <form onSubmit={handleAdd} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">
+                <label htmlFor="new-player-name" className="block text-sm font-medium text-foreground mb-1">
                   名前
                 </label>
                 <input
+                  id="new-player-name"
                   type="text"
                   className="w-full border rounded-lg px-3 py-2 bg-card border-border focus:outline-none focus:ring-2 focus:ring-primary"
                   value={name}
@@ -419,10 +429,11 @@ export default function MembersPage() {
             {editingMember && (
               <form onSubmit={handleEditSave} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">
+                  <label htmlFor="edit-player-name" className="block text-sm font-medium text-foreground mb-1">
                     名前
                   </label>
                   <input
+                    id="edit-player-name"
                     type="text"
                     className="w-full border rounded-lg px-3 py-2 bg-card border-border focus:outline-none focus:ring-2 focus:ring-primary"
                     value={editingMember.name}
@@ -513,16 +524,16 @@ export default function MembersPage() {
           </DialogContent>
         </Dialog>
 
-        {toast && (
-          <div className="fixed bottom-40 left-1/2 z-toast max-w-[calc(100%-2rem)] -translate-x-1/2 rounded-xl bg-foreground px-5 py-3 text-caption font-medium text-background shadow-level-3 animate-in fade-in-0 slide-in-from-bottom-4 duration-slow">
-            {toast}
-          </div>
-        )}
       </div>
 
       {/* Fixed Bottom Buttons */}
-      <div className="fixed bottom-24 left-4 right-4 z-overlay">
-        <div className="max-w-2xl mx-auto">
+      <div className="bottom-above-nav fixed left-4 right-4 z-overlay">
+        <div className="mx-auto max-w-2xl space-y-3">
+          {toast && (
+            <div role="status" aria-live="polite" className="rounded-xl bg-foreground px-5 py-3 text-center text-caption font-medium text-background shadow-level-3">
+              {toast}
+            </div>
+          )}
           <div className="flex gap-3">
             <Button onClick={openAddModal} className="flex-1 shadow-2xl">
               <span className="inline-flex items-center gap-2 font-semibold">

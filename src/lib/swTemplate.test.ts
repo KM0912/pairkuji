@@ -17,6 +17,10 @@ describe('renderServiceWorker', () => {
     expect(source).toContain("request.headers.get('RSC')");
     expect(source).toContain('_rsc');
     expect(source).toContain('status: 504');
+    expect(source).toContain('text/html; charset=utf-8');
+    expect(source).toContain('トップへ戻る');
+    expect(source).toContain('href="/practice"');
+    expect(source).not.toContain('text/plain; charset=utf-8');
     expect(source).not.toContain("caches.match('/')");
   });
 });

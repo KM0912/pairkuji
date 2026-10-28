@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import type { Member } from '@/types/member';
 import type { PracticeSession } from '@/types/practiceSession';
 import type { Round } from '@/types/round';
-import { calculateHeadToHead } from '@/lib/statsCalculator';
+import { calculateHeadToHead, pickMatchupHighlights } from '@/lib/statsCalculator';
 import { getDisplayName } from '@/lib/utils';
 import { Swords, ShieldAlert, Target } from 'lucide-react';
 
@@ -28,23 +28,7 @@ export function HeadToHead({
     return calculateHeadToHead(sessions, currentRounds, selectedPlayerId);
   }, [sessions, currentRounds, selectedPlayerId]);
 
-  // 天敵（最も勝率が低い相手、1試合以上）
-  const nemesis = useMemo(() => {
-    const withMatches = records.filter((r) => r.totalMatches >= 1 && r.winRate !== null);
-    if (withMatches.length === 0) return null;
-    return withMatches.reduce((min, r) =>
-      r.winRate! < min.winRate! ? r : min
-    );
-  }, [records]);
-
-  // カモ（最も勝率が高い相手、1試合以上）
-  const prey = useMemo(() => {
-    const withMatches = records.filter((r) => r.totalMatches >= 1 && r.winRate !== null);
-    if (withMatches.length === 0) return null;
-    return withMatches.reduce((max, r) =>
-      r.winRate! > max.winRate! ? r : max
-    );
-  }, [records]);
+  const highlights = useMemo(() => pickMatchupHighlights(records), [records]);
 
   if (playerIds.length === 0) {
     return (
@@ -57,10 +41,10 @@ export function HeadToHead({
   return (
     <div className="space-y-4">
       <div className="text-small text-muted-foreground">
-        プレイヤーを選択して対戦成績を確認
+        選手を選んで対戦成績を確認
       </div>
 
-      {/* プレイヤー選択 */}
+      {/* 選手選択 */}
       <div className="flex flex-wrap gap-1.5">
         {playerIds.map((id) => {
           const name = getDisplayName(memberMap, id);
@@ -69,8 +53,10 @@ export function HeadToHead({
           return (
             <button
               key={id}
+              type="button"
+              aria-pressed={isSelected}
               onClick={() => setSelectedPlayerId(isSelected ? null : id)}
-              className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium transition-all duration-fast ${
+              className={`inline-flex min-h-11 items-center rounded-full px-3 text-xs font-medium transition-all duration-fast ${
                 isSelected
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-muted text-muted-foreground border border-border'
@@ -85,33 +71,33 @@ export function HeadToHead({
       {selectedPlayerId !== null && (
         <>
           {/* 天敵 & カモ サマリー */}
-          {(nemesis || prey) && (
+          {(highlights.favorable || highlights.unfavorable) && (
             <div className="grid grid-cols-2 gap-2">
-              {prey && prey.winRate !== null && prey.winRate > 0 && (
+              {highlights.favorable && highlights.favorable.winRate !== null && (
                 <div className="rounded-lg border border-accent/30 bg-accent/5 px-3 py-2">
                   <div className="flex items-center gap-1 text-[10px] text-accent font-medium mb-1">
                     <Target className="w-3 h-3" />
-                    カモ
+                    相性◎
                   </div>
                   <div className="text-xs font-semibold text-foreground truncate">
-                    {getDisplayName(memberMap, prey.opponentId)}
+                    {getDisplayName(memberMap, highlights.favorable.opponentId)}
                   </div>
                   <div className="text-[10px] text-muted-foreground">
-                    {prey.wins}W {prey.losses}L ({Math.round(prey.winRate * 100)}%)
+                    {highlights.favorable.wins}勝 {highlights.favorable.losses}敗 ({Math.round(highlights.favorable.winRate * 100)}%)
                   </div>
                 </div>
               )}
-              {nemesis && nemesis.winRate !== null && nemesis.winRate < 1 && (
+              {highlights.unfavorable && highlights.unfavorable.winRate !== null && (
                 <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2">
                   <div className="flex items-center gap-1 text-[10px] text-destructive font-medium mb-1">
                     <ShieldAlert className="w-3 h-3" />
-                    天敵
+                    苦手
                   </div>
                   <div className="text-xs font-semibold text-foreground truncate">
-                    {getDisplayName(memberMap, nemesis.opponentId)}
+                    {getDisplayName(memberMap, highlights.unfavorable.opponentId)}
                   </div>
                   <div className="text-[10px] text-muted-foreground">
-                    {nemesis.wins}W {nemesis.losses}L ({Math.round(nemesis.winRate * 100)}%)
+                    {highlights.unfavorable.wins}勝 {highlights.unfavorable.losses}敗 ({Math.round(highlights.unfavorable.winRate * 100)}%)
                   </div>
                 </div>
               )}
@@ -145,9 +131,9 @@ export function HeadToHead({
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       <div className="text-xs text-muted-foreground">
-                        <span className="text-accent font-medium">{record.wins}W</span>
+                        <span className="text-accent font-medium">{record.wins}勝</span>
                         {' '}
-                        <span className="text-destructive font-medium">{record.losses}L</span>
+                        <span className="text-destructive font-medium">{record.losses}敗</span>
                       </div>
                       <span
                         className={`text-xs font-bold min-w-[32px] text-right ${

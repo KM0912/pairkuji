@@ -17,13 +17,13 @@ export function FeedbackForm() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghost">
+        <Button variant="ghost" aria-label="フィードバック">
           <MessageCircle className="w-4 h-4" />
           <span className="text-sm hidden sm:inline">フィードバック</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl p-0 bg-card rounded-2xl">
-        <div className="border-b px-5 py-4">
+        <div className="border-b py-4 pl-5 pr-16">
           <DialogHeader className="items-start text-left">
             <div className="flex items-center gap-2">
               <MessageCircle className="w-5 h-5 text-foreground" />

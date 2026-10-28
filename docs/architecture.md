@@ -384,8 +384,8 @@ Zustand Action（非同期）
 | 設定 | 値 |
 |------|-----|
 | display | standalone |
-| orientation | portrait |
-| theme_color | #1e293b |
+| orientation | any |
+| theme_color | #f8fafc |
 | background_color | #f8fafc |
 | categories | sports, utilities |
 | lang | ja |

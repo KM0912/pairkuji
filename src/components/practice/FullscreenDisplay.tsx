@@ -5,6 +5,13 @@ import { type Round } from '@/types/round';
 import { X, Shuffle } from 'lucide-react';
 import { PlayerNumber } from '../ui/PlayerNumber';
 import { Button } from '../ui/button';
+import {
+  GENERATING_LABEL,
+  NEXT_BREAK_ONCE,
+  NEXT_EARLY,
+  WAITING_THIS_ROUND,
+  courtLabel,
+} from '@/lib/practiceLabels';
 
 interface FullscreenDisplayProps {
   round: Round;
@@ -15,6 +22,7 @@ interface FullscreenDisplayProps {
   onClose: () => void;
   onGenerateNextRound: () => Promise<void>;
   generateBlockedReason?: string | null;
+  isGenerating?: boolean;
   toast?: { message: string; canUndo: boolean } | null;
   onUndo?: () => void;
 }
@@ -28,6 +36,7 @@ export function FullscreenDisplay({
   onClose,
   onGenerateNextRound,
   generateBlockedReason,
+  isGenerating = false,
   toast,
   onUndo,
 }: FullscreenDisplayProps) {
@@ -112,19 +121,19 @@ export function FullscreenDisplay({
     const nextOut =
       player?.status === 'rest'
         ? player.restKind === 'break'
-          ? '次は休憩'
-          : '次は早退'
+          ? NEXT_BREAK_ONCE
+          : NEXT_EARLY
         : null;
     return (
       <div
         key={id}
-        className="flex min-h-[72px] w-full min-w-0 items-center gap-3 rounded-md border border-primary/30 bg-card p-3"
+        className="flex min-h-11 w-full min-w-0 items-center gap-2 rounded-md border border-primary/30 bg-card p-2 landscape:min-h-[72px] landscape:gap-3 landscape:p-3"
         aria-label={`番号${number}、${name}${nextOut ? `、${nextOut}` : ''}`}
       >
-        <PlayerNumber number={number} variant="primary" size="xl" />
+        <PlayerNumber number={number} variant="primary" size="lg" className="landscape:min-h-14 landscape:min-w-14 landscape:text-2xl" />
         <div className="min-w-0 flex-1">
           <div
-            className="truncate text-left text-2xl font-bold text-foreground landscape:text-3xl"
+            className="whitespace-normal break-words text-left text-xl font-bold text-foreground landscape:truncate landscape:text-3xl"
             title={name}
           >
             {name}
@@ -138,7 +147,7 @@ export function FullscreenDisplay({
   };
 
   return (
-    <div className="fixed inset-0 z-modal overflow-auto bg-background">
+    <div className="px-safe-screen fixed inset-0 z-modal overflow-auto bg-background">
       <div className="sticky top-0 z-sticky border-b border-border bg-background/95 px-3 py-2 backdrop-blur-sm">
         <div className="flex items-center justify-between">
           <h1 className="font-heading text-title font-bold text-foreground">
@@ -146,33 +155,35 @@ export function FullscreenDisplay({
           </h1>
           <button
             onClick={onClose}
-            className="flex items-center gap-1.5 rounded-lg bg-secondary px-3 py-1.5 transition-colors hover:bg-muted"
-            aria-label="フルスクリーンを閉じる"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-lg bg-secondary px-3 transition-colors hover:bg-muted"
+            aria-label="掲示を閉じる"
           >
-            <X className="h-3 w-3" />
+            <X className="h-4 w-4" />
             <span className="text-xs">閉じる</span>
           </button>
         </div>
       </div>
 
-      <div className="p-3 pb-52">
-        <div className="grid grid-cols-1 gap-3 landscape:grid-cols-2">
+      <div className="p-2 pb-40 landscape:p-3 landscape:pb-52">
+        <div className="grid grid-cols-1 gap-2 landscape:grid-cols-2 landscape:gap-3">
           {round.courts.map((court) => (
             <div
               key={court.courtNo}
-              className="rounded-lg border border-border bg-card p-3"
+              className="rounded-lg border border-border bg-card p-2 landscape:p-3"
             >
-              <div className="mb-3 text-center">
+              <div className="mb-1 text-center landscape:mb-3">
                 <h2 className="font-heading text-title font-bold text-foreground">
-                  COURT {court.courtNo}
+                  {courtLabel(court.courtNo)}
                 </h2>
               </div>
-              <div className="flex items-stretch gap-2">
+              <div className="flex flex-col gap-2 landscape:flex-row">
                 <div className="min-w-0 flex-1 rounded-md border border-primary/40 bg-primary/5 p-2">
-                  <div className="space-y-2">{court.pairA.map(renderPlayer)}</div>
+                  <div className="mb-1 text-xs font-semibold text-muted-foreground">ペアA</div>
+                  <div className="space-y-1 landscape:space-y-2">{court.pairA.map(renderPlayer)}</div>
                 </div>
                 <div className="min-w-0 flex-1 rounded-md border border-primary/40 bg-primary/5 p-2">
-                  <div className="space-y-2">{court.pairB.map(renderPlayer)}</div>
+                  <div className="mb-1 text-xs font-semibold text-muted-foreground">ペアB</div>
+                  <div className="space-y-1 landscape:space-y-2">{court.pairB.map(renderPlayer)}</div>
                 </div>
               </div>
             </div>
@@ -181,7 +192,7 @@ export function FullscreenDisplay({
 
         {restingPlayers.length > 0 && (
           <div className="mt-3 rounded-lg border border-border bg-muted p-3">
-            <h3 className="mb-2 text-lg font-bold text-foreground">休憩中</h3>
+            <h3 className="mb-2 text-lg font-bold text-foreground">{WAITING_THIS_ROUND}</h3>
             <div className="flex flex-wrap gap-1.5">
               {restingPlayers.map((id) => {
                 const member = memberMap.get(id);
@@ -210,7 +221,7 @@ export function FullscreenDisplay({
 
         {breakPlayers.length > 0 && (
           <div className="mt-3 rounded-lg border border-border bg-muted p-3">
-            <h3 className="mb-2 text-lg font-bold text-foreground">休憩</h3>
+            <h3 className="mb-2 text-lg font-bold text-foreground">{NEXT_BREAK_ONCE}</h3>
             <div className="flex flex-wrap gap-2">
               {breakPlayers.map((player) => {
                 const member = memberMap.get(player.memberId);
@@ -259,9 +270,13 @@ export function FullscreenDisplay({
         )}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 z-sticky space-y-2 border-t border-border bg-background/95 p-2">
+      <div className="pb-safe-bar fixed bottom-0 left-0 right-0 z-sticky space-y-2 border-t border-border bg-background/95 pl-[calc(0.5rem+var(--safe-left))] pr-[calc(0.5rem+var(--safe-right))] pt-2">
         {toast && (
-          <div className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-foreground px-3 py-2 text-xs text-background shadow-level-3">
+          <div
+            role="status"
+            aria-live="polite"
+            className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-foreground px-3 py-2 text-xs text-background shadow-level-3"
+          >
             <span>{toast.message}</span>
             {toast.canUndo && onUndo && (
               <button
@@ -283,11 +298,12 @@ export function FullscreenDisplay({
           variant="default"
           onClick={onGenerateNextRound}
           className="w-full"
-          disabled={generateBlockedReason != null}
+          disabled={isGenerating || generateBlockedReason != null}
+          aria-busy={isGenerating}
         >
           <span className="inline-flex items-center gap-2">
             <Shuffle className="h-4 w-4" />
-            次の組み合わせを生成
+            {isGenerating ? GENERATING_LABEL : '次の組み合わせを生成'}
           </span>
         </Button>
       </div>

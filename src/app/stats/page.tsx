@@ -19,9 +19,10 @@ import {
   calculateParticipationBalance,
   calculateSessionWinRates,
   calculatePairWinRates,
-  filterSessions,
   filterSessionsByTag,
   getUniqueTags,
+  sessionsAlongsideCurrent,
+  shouldIncludeCurrentPractice,
 } from '@/lib/statsCalculator';
 
 export default function StatsPage() {
@@ -29,13 +30,16 @@ export default function StatsPage() {
     allMembers,
     isLoading: membersLoading,
     isInitialLoad: membersInitialLoad,
+    error: membersError,
     loadAll: loadAllMembers,
   } = useMemberStore();
   const {
     rounds,
     sessions,
+    settings,
     isLoading: practiceLoading,
     isInitialLoad: practiceInitialLoad,
+    error: practiceError,
     load,
     loadSessions,
   } = usePracticeStore();
@@ -55,7 +59,27 @@ export default function StatsPage() {
     [allMembers]
   );
 
-  const tags = useMemo(() => getUniqueTags(sessions), [sessions]);
+  const tags = useMemo(() => {
+    const merged = new Set(getUniqueTags(sessions));
+    for (const tag of settings?.clubTags ?? []) merged.add(tag);
+    return Array.from(merged).sort((a, b) => a.localeCompare(b, 'ja'));
+  }, [sessions, settings]);
+
+  const includeCurrent = useMemo(
+    () =>
+      shouldIncludeCurrentPractice({
+        period: periodFilter,
+        clubFilter,
+        currentClubTags: settings?.clubTags ?? [],
+        startedAt: settings?.startedAt,
+      }),
+    [periodFilter, clubFilter, settings]
+  );
+
+  const currentRounds = useMemo(
+    () => (includeCurrent ? rounds : []),
+    [includeCurrent, rounds]
+  );
 
   // クラブフィルタ → 期間フィルタ の順で適用
   const clubFilteredSessions = useMemo(
@@ -64,34 +88,39 @@ export default function StatsPage() {
   );
 
   const filteredSessions = useMemo(
-    () => filterSessions(clubFilteredSessions, periodFilter),
-    [clubFilteredSessions, periodFilter]
+    () =>
+      sessionsAlongsideCurrent(
+        clubFilteredSessions,
+        periodFilter,
+        includeCurrent && rounds.length > 0
+      ),
+    [clubFilteredSessions, periodFilter, includeCurrent, rounds.length]
   );
 
   // 通算統計
   const overallStats = useMemo(
-    () => calculateOverallStats(filteredSessions, rounds),
-    [filteredSessions, rounds]
+    () => calculateOverallStats(filteredSessions, currentRounds),
+    [filteredSessions, currentRounds]
   );
 
   const participation = useMemo(
-    () => calculateParticipationBalance(filteredSessions, rounds),
-    [filteredSessions, rounds]
+    () => calculateParticipationBalance(filteredSessions, currentRounds),
+    [filteredSessions, currentRounds]
   );
 
   // セッション別勝率（推移グラフ用）
   const sessionWinRates = useMemo(
-    () => calculateSessionWinRates(filteredSessions, rounds),
-    [filteredSessions, rounds]
+    () => calculateSessionWinRates(filteredSessions, currentRounds),
+    [filteredSessions, currentRounds]
   );
 
   // ペア相性
   const pairWinRates = useMemo(
-    () => calculatePairWinRates(filteredSessions, rounds),
-    [filteredSessions, rounds]
+    () => calculatePairWinRates(filteredSessions, currentRounds),
+    [filteredSessions, currentRounds]
   );
 
-  // 全プレイヤーID（直接対決用）
+  // 全選手ID（直接対決用）
   const allPlayerIds = useMemo(() => {
     const ids = new Set<number>();
     for (const stat of overallStats) {
@@ -102,6 +131,29 @@ export default function StatsPage() {
 
   const isLoading = membersLoading || practiceLoading;
   const isInitialLoading = !membersInitialLoad || !practiceInitialLoad;
+
+  const loadError = membersError || practiceError;
+  if (!isLoading && !isInitialLoading && loadError) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center px-4">
+        <div className="max-w-sm text-center">
+          <h1 className="mb-2 text-xl font-bold text-foreground">統計を読み込めませんでした</h1>
+          <p className="mb-4 text-sm text-muted-foreground">{loadError}</p>
+          <button
+            type="button"
+            className="inline-flex min-h-11 items-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground"
+            onClick={() => {
+              loadAllMembers();
+              load();
+              loadSessions();
+            }}
+          >
+            再読み込み
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading || isInitialLoading) {
     return (
@@ -151,7 +203,7 @@ export default function StatsPage() {
         <TabsContent value="overall" className="mt-6 space-y-6">
           <section>
             <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              出場と休憩
+              出場と待機
             </h2>
             <ParticipationBalancePanel
               memberMap={memberMap}
@@ -184,7 +236,7 @@ export default function StatsPage() {
           <HeadToHead
             memberMap={memberMap}
             sessions={filteredSessions}
-            currentRounds={rounds}
+            currentRounds={currentRounds}
             playerIds={allPlayerIds}
           />
         </TabsContent>

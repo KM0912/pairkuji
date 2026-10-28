@@ -100,6 +100,15 @@ function historyDetailId(pathname) {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
+function offlinePage() {
+  const html =
+    '<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>オフライン</title></head><body style="font-family:sans-serif;padding:24px"><p>オフラインではこの画面を開けません。</p><p><a href="/practice">練習画面を開く</a></p><p><a href="/">トップへ戻る</a></p></body></html>';
+  return new Response(html, {
+    status: 503,
+    headers: { 'Content-Type': 'text/html; charset=utf-8' },
+  });
+}
+
 function navigationCacheKey(url) {
   if (url.pathname === '/history') return new URL('/history', url.origin).href;
   return url.origin + url.pathname;
@@ -123,10 +132,7 @@ async function handleNavigate(request, url) {
         302
       );
     }
-    return new Response('オフラインではこの画面を開けません', {
-      status: 503,
-      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
-    });
+    return offlinePage();
   }
 
   const cacheKey = navigationCacheKey(url);
@@ -143,10 +149,7 @@ async function handleNavigate(request, url) {
   const cached =
     (await caches.match(cacheKey)) || (await caches.match(url.pathname));
   if (cached) return cached;
-  return new Response('オフラインではこの画面を開けません', {
-    status: 503,
-    headers: { 'Content-Type': 'text/plain; charset=utf-8' },
-  });
+  return offlinePage();
 }
 
 async function handleStatic(request) {
