@@ -8,12 +8,25 @@
   }
 
   .safe-area-pb {
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: var(--safe-bottom);
+  }
+
+  .pb-safe-nav {
+    padding-bottom: calc(5rem + var(--safe-bottom));
+  }
+
+  .bottom-above-nav {
+    bottom: calc(6rem + var(--safe-bottom));
+  }
+
+  .pb-safe-bar {
+    padding-bottom: calc(0.5rem + var(--safe-bottom));
   }
 }
 
 @layer base {
   :root {
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
     --background: 210 40% 98%;
     --foreground: 222 47.4% 11.2%;
     --card: 0 0% 100%;

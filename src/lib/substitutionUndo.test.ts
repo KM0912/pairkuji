@@ -1,5 +1,9 @@
 import { describe, expect, test } from 'vitest';
-import { canUndoSubstitution, type SubstitutionUndoState } from './substitutionUndo';
+import {
+  canUndoSubstitution,
+  courtsWithRecordedResult,
+  type SubstitutionUndoState,
+} from './substitutionUndo';
 
 const snapshot: SubstitutionUndoState = {
   fromId: 1,
@@ -11,6 +15,24 @@ const snapshot: SubstitutionUndoState = {
     { memberId: 2, status: 'active' },
   ],
 };
+
+describe('courtsWithRecordedResult', () => {
+  test('入れ替えに関わるコートの勝敗だけを返す', () => {
+    const cleared = courtsWithRecordedResult(
+      [
+        { courtNo: 1, pairA: [1, 2], pairB: [3, 4], result: 'pairA' },
+        { courtNo: 2, pairA: [5, 6], pairB: [7, 8], result: 'pairB' },
+        { courtNo: 3, pairA: [1, 5], pairB: [2, 6], result: null },
+      ],
+      1,
+      8
+    );
+    expect(cleared).toEqual([
+      { courtNo: 1, result: 'pairA' },
+      { courtNo: 2, result: 'pairB' },
+    ]);
+  });
+});
 
 describe('canUndoSubstitution', () => {
   test('勝敗も出場も変わっていなければ戻せる', () => {

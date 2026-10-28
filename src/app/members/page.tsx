@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import {
   InputGroup,
   InputGroupAddon,
+  InputGroupButton,
   InputGroupInput,
 } from '@/components/ui/input-group';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -194,7 +195,7 @@ export default function MembersPage() {
       <div className="space-y-6 pb-16">
         <div className="mb-4">
           <div className="relative">
-            <InputGroup className="bg-white dark:bg-input/30">
+            <InputGroup className="h-11 bg-white dark:bg-input/30">
               <InputGroupInput
                 aria-label="選手検索"
                 value={searchTerm}
@@ -204,13 +205,17 @@ export default function MembersPage() {
               <InputGroupAddon>
                 <Search className="w-5 h-5 text-muted-foreground" />
               </InputGroupAddon>
-              <InputGroupAddon
-                align="inline-end"
-                onClick={() => setSearchTerm('')}
-                aria-label="検索をクリア"
-              >
-                {searchTerm && <X className="w-4 h-4" />}
-              </InputGroupAddon>
+              {searchTerm && (
+                <InputGroupAddon align="inline-end">
+                  <InputGroupButton
+                    aria-label="検索をクリア"
+                    className="min-h-11 min-w-11"
+                    onClick={() => setSearchTerm('')}
+                  >
+                    <X className="h-4 w-4" />
+                  </InputGroupButton>
+                </InputGroupAddon>
+              )}
             </InputGroup>
           </div>
           <p className="mt-2 text-small text-muted-foreground">
@@ -258,11 +263,16 @@ export default function MembersPage() {
                         {member.isSample && <SampleBadge />}
                       </h3>
                       {inPractice && (
-                        <div className="flex items-center gap-1">
-                          <div className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse"></div>
-                          <span className="text-small text-accent font-medium">
-                            練習に参加中
-                          </span>
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-1">
+                            <div className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse"></div>
+                            <span className="text-small text-accent font-medium">
+                              練習に参加中
+                            </span>
+                          </div>
+                          <p className="text-small text-muted-foreground">
+                            参加中は削除できません
+                          </p>
                         </div>
                       )}
                       {!member.isActive && (
@@ -295,7 +305,6 @@ export default function MembersPage() {
                             : '削除'
                         }
                         aria-label={`${member.name}を削除`}
-                        disabled={inPractice}
                       >
                         <Trash2 className="h-5 w-5" />
                       </button>
@@ -523,7 +532,7 @@ export default function MembersPage() {
       </div>
 
       {/* Fixed Bottom Buttons */}
-      <div className="fixed bottom-24 left-4 right-4 z-overlay">
+      <div className="bottom-above-nav fixed left-4 right-4 z-overlay">
         <div className="max-w-2xl mx-auto">
           <div className="flex gap-3">
             <Button onClick={openAddModal} className="flex-1 shadow-2xl">

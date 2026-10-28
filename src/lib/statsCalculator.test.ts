@@ -12,6 +12,7 @@ import {
   getUniqueTags,
   MIN_RANKED_MATCHES,
   pickMatchupHighlights,
+  sessionsAlongsideCurrent,
   shouldIncludeCurrentPractice,
 } from './statsCalculator';
 
@@ -66,7 +67,7 @@ describe('calculateOverallStats', () => {
 
     const stats = calculateOverallStats([session], currentRounds);
 
-    // プレイヤー1: 1勝1敗 = 50%
+    // 選手1: 1勝1敗 = 50%
     const p1 = stats.find((s) => s.playerId === 1)!;
     expect(p1.wins).toBe(1);
     expect(p1.losses).toBe(1);
@@ -74,7 +75,7 @@ describe('calculateOverallStats', () => {
     expect(p1.sessionCount).toBe(2);
     expect(p1.totalMatches).toBe(2);
 
-    // プレイヤー3: 1敗1勝 = 50%
+    // 選手3: 1敗1勝 = 50%
     const p3 = stats.find((s) => s.playerId === 3)!;
     expect(p3.wins).toBe(1);
     expect(p3.losses).toBe(1);
@@ -86,7 +87,7 @@ describe('calculateOverallStats', () => {
     expect(stats).toEqual([]);
   });
 
-  test('未記録の試合はwinRateに影響しない', () => {
+  test('結果未入力の試合は勝率に影響しない', () => {
     const rounds = [
       makeRound(1, [
         { pairA: [1, 2], pairB: [3, 4], result: null },
@@ -113,7 +114,7 @@ describe('calculateOverallStats', () => {
     const session = makeSession(rounds, [1, 2, 3, 4]);
     const stats = calculateOverallStats([session], []);
 
-    // プレイヤー1,2が勝率100%で先に来る
+    // 選手1,2が勝率100%で先に来る
     expect(stats[0]!.winRate).toBe(1);
     expect(stats[1]!.winRate).toBe(1);
     expect(stats[2]!.winRate).toBe(0);
@@ -182,9 +183,9 @@ describe('calculateSessionWinRates', () => {
     const results = calculateSessionWinRates(sessions, []);
     expect(results).toHaveLength(2);
 
-    // セッション1: プレイヤー1は勝率100%
+    // セッション1: 選手1は勝率100%
     expect(results[0]!.playerRates.get(1)).toBe(1);
-    // セッション2: プレイヤー1は勝率0%
+    // セッション2: 選手1は勝率0%
     expect(results[1]!.playerRates.get(1)).toBe(0);
   });
 
@@ -249,7 +250,7 @@ describe('calculatePairWinRates', () => {
     expect(results2.length).toBeGreaterThan(0);
   });
 
-  test('未記録の試合はスキップされる', () => {
+  test('結果未入力の試合はスキップされる', () => {
     const rounds = [
       makeRound(1, [
         { pairA: [1, 2], pairB: [3, 4], result: null },
@@ -263,7 +264,7 @@ describe('calculatePairWinRates', () => {
 });
 
 describe('calculateHeadToHead', () => {
-  test('特定プレイヤーの直接対決成績を計算', () => {
+  test('特定の選手の直接対決成績を計算', () => {
     const rounds = [
       makeRound(1, [
         { pairA: [1, 2], pairB: [3, 4], result: 'pairA' },
@@ -276,23 +277,23 @@ describe('calculateHeadToHead', () => {
 
     const results = calculateHeadToHead([session], [], 1);
 
-    // プレイヤー1 vs プレイヤー3: ラウンド1で勝ち = 1W0L
+    // 選手1 vs 選手3: ラウンド1で勝ち = 1勝0敗
     const vs3 = results.find((r) => r.opponentId === 3)!;
     expect(vs3.wins).toBe(1);
     expect(vs3.losses).toBe(0);
 
-    // プレイヤー1 vs プレイヤー4: ラウンド1で勝ち、ラウンド2で負け = 1W1L
+    // 選手1 vs 選手4: ラウンド1で勝ち、ラウンド2で負け = 1勝1敗
     const vs4 = results.find((r) => r.opponentId === 4)!;
     expect(vs4.wins).toBe(1);
     expect(vs4.losses).toBe(1);
 
-    // プレイヤー1 vs プレイヤー2: ラウンド2で負け（対戦相手として） = 0W1L
+    // 選手1 vs 選手2: ラウンド2で負け（対戦相手として） = 0勝1敗
     const vs2 = results.find((r) => r.opponentId === 2)!;
     expect(vs2.wins).toBe(0);
     expect(vs2.losses).toBe(1);
   });
 
-  test('該当プレイヤーが参加していない試合は無視される', () => {
+  test('該当の選手が参加していない試合は無視される', () => {
     const rounds = [
       makeRound(1, [
         { pairA: [3, 4], pairB: [5, 6], result: 'pairA' },
@@ -460,7 +461,7 @@ describe('getUniqueTags', () => {
 });
 
 describe('calculateParticipationBalance', () => {
-  test('出場と休憩の最大差を出す', () => {
+  test('出場と待機の最大差を出す', () => {
     const rounds: Round[] = [
       {
         roundNo: 1,
@@ -647,33 +648,28 @@ describe('calculateParticipationBalance', () => {
 });
 
 describe('shouldIncludeCurrentPractice', () => {
-  test('今回と全期間だけ進行中の練習を足す', () => {
+  test('今日が入る期間では、クラブが合う進行中の練習を足す', () => {
+    for (const period of ['current', 'all', 'last3', 'thisMonth'] as const) {
+      expect(
+        shouldIncludeCurrentPractice({
+          period,
+          clubFilter: [],
+          currentClubTags: ['クラブB'],
+        })
+      ).toBe(true);
+    }
     expect(
       shouldIncludeCurrentPractice({
-        period: 'current',
-        clubFilter: [],
-        currentClubTags: ['クラブB'],
-      })
-    ).toBe(true);
-    expect(
-      shouldIncludeCurrentPractice({
-        period: 'all',
-        clubFilter: [],
-        currentClubTags: [],
+        period: 'thisMonth',
+        clubFilter: ['クラブA'],
+        currentClubTags: ['クラブA'],
       })
     ).toBe(true);
     expect(
       shouldIncludeCurrentPractice({
         period: 'last3',
-        clubFilter: [],
-        currentClubTags: [],
-      })
-    ).toBe(false);
-    expect(
-      shouldIncludeCurrentPractice({
-        period: 'thisMonth',
-        clubFilter: [],
-        currentClubTags: ['クラブA'],
+        clubFilter: ['クラブA'],
+        currentClubTags: ['クラブB'],
       })
     ).toBe(false);
   });
@@ -693,6 +689,25 @@ describe('shouldIncludeCurrentPractice', () => {
         currentClubTags: ['クラブB'],
       })
     ).toBe(true);
+  });
+});
+
+describe('sessionsAlongsideCurrent', () => {
+  test('直近3回に進行中を足すときは過去を2回にして4回分にしない', () => {
+    const sessions = [
+      makeSession([], [1], '2026-03-01T00:00:00Z'),
+      makeSession([], [1], '2026-03-05T00:00:00Z'),
+      makeSession([], [1], '2026-03-10T00:00:00Z'),
+    ];
+    const withCurrent = sessionsAlongsideCurrent(sessions, 'last3', true);
+    expect(withCurrent.map((session) => session.startedAt)).toEqual([
+      '2026-03-10T00:00:00Z',
+      '2026-03-05T00:00:00Z',
+    ]);
+    expect(sessionsAlongsideCurrent(sessions, 'last3', false)).toHaveLength(3);
+    expect(sessionsAlongsideCurrent(sessions, 'thisMonth', true)).toHaveLength(
+      filterSessions(sessions, 'thisMonth').length
+    );
   });
 });
 

@@ -133,7 +133,7 @@ export function FullscreenDisplay({
         <PlayerNumber number={number} variant="primary" size="xl" />
         <div className="min-w-0 flex-1">
           <div
-            className="truncate text-left text-2xl font-bold text-foreground landscape:text-3xl"
+            className="whitespace-normal break-words text-left text-2xl font-bold text-foreground landscape:truncate landscape:text-3xl"
             title={name}
           >
             {name}
@@ -176,11 +176,13 @@ export function FullscreenDisplay({
                   {courtLabel(court.courtNo)}
                 </h2>
               </div>
-              <div className="flex items-stretch gap-2">
+              <div className="flex flex-col gap-2 landscape:flex-row">
                 <div className="min-w-0 flex-1 rounded-md border border-primary/40 bg-primary/5 p-2">
+                  <div className="mb-1 text-sm font-semibold text-muted-foreground">ペアA</div>
                   <div className="space-y-2">{court.pairA.map(renderPlayer)}</div>
                 </div>
                 <div className="min-w-0 flex-1 rounded-md border border-primary/40 bg-primary/5 p-2">
+                  <div className="mb-1 text-sm font-semibold text-muted-foreground">ペアB</div>
                   <div className="space-y-2">{court.pairB.map(renderPlayer)}</div>
                 </div>
               </div>
@@ -268,7 +270,7 @@ export function FullscreenDisplay({
         )}
       </div>
 
-      <div className="safe-area-pb fixed bottom-0 left-0 right-0 z-sticky space-y-2 border-t border-border bg-background/95 p-2">
+      <div className="pb-safe-bar fixed bottom-0 left-0 right-0 z-sticky space-y-2 border-t border-border bg-background/95 px-2 pt-2">
         {toast && (
           <div
             role="status"

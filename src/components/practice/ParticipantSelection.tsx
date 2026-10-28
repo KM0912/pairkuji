@@ -4,6 +4,7 @@ import { Search, X, Users, Play, Plus } from 'lucide-react';
 import {
   InputGroup,
   InputGroupAddon,
+  InputGroupButton,
   InputGroupInput,
 } from '../ui/input-group';
 import { PiCourtBasketball } from 'react-icons/pi';
@@ -197,7 +198,7 @@ export function ParticipantSelection({
               </div>
 
               {/* 検索 */}
-              <InputGroup>
+              <InputGroup className="h-11">
                 <InputGroupInput
                   aria-label="選手検索"
                   value={searchTerm}
@@ -207,13 +208,17 @@ export function ParticipantSelection({
                 <InputGroupAddon>
                   <Search className="w-5 h-5 text-muted-foreground" />
                 </InputGroupAddon>
-                <InputGroupAddon
-                  align="inline-end"
-                  onClick={() => setSearchTerm('')}
-                  aria-label="検索をクリア"
-                >
-                  {searchTerm && <X className="w-4 h-4" />}
-                </InputGroupAddon>
+                {searchTerm && (
+                  <InputGroupAddon align="inline-end">
+                    <InputGroupButton
+                      aria-label="検索をクリア"
+                      className="min-h-11 min-w-11"
+                      onClick={() => setSearchTerm('')}
+                    >
+                      <X className="h-4 w-4" />
+                    </InputGroupButton>
+                  </InputGroupAddon>
+                )}
               </InputGroup>
 
               <Button
@@ -331,8 +336,8 @@ export function ParticipantSelection({
             <TagSelector value={clubTags ?? []} onChange={onClubTagsChange} />
           )}
 
-          <div className="fixed bottom-24 left-4 right-4 z-overlay">
-            <div className="mx-auto max-w-2xl">
+          <div className="bottom-above-nav fixed left-4 right-4 z-overlay">
+            <div className="mx-auto max-w-2xl rounded-xl bg-background/95 p-2 shadow-level-2 backdrop-blur-sm">
               {selected.length < minToStart && (
                 <p className="mb-2 text-center text-sm font-semibold text-foreground">
                   あと {needMore} 名選択してください

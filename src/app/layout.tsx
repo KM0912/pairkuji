@@ -177,7 +177,7 @@ export default function RootLayout({
         <ServiceWorkerRegister />
         <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20">
           <Header />
-          <main className="pb-20">
+          <main className="pb-safe-nav">
             <div className="max-w-2xl mx-auto px-4 py-6">{children}</div>
           </main>
         </div>

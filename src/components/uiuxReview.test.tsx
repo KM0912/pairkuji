@@ -90,9 +90,11 @@ describe('練習画面の文言', () => {
         substituting={1}
         memberMap={new Map([[1, member(1, '山田')]])}
         playerMap={new Map([[1, player(1, 1)]])}
+        onCancel={() => undefined}
       />
     );
     expect(hint).toContain('山田を選択中。入れ替える相手をタップ。もう一度タップで解除');
+    expect(hint).toContain('解除');
 
     const court = renderToStaticMarkup(
       <CourtManagement
@@ -157,7 +159,8 @@ describe('練習画面の文言', () => {
         onCreateMember={async () => undefined}
       />
     );
-    expect(html).toContain('bottom-24');
+    expect(html).toContain('bottom-above-nav');
+    expect(html).toContain('bg-background/95');
     expect(html).toContain('z-overlay');
     expect(html).not.toContain('sticky');
     expect(html).toContain('選手を追加');
@@ -227,7 +230,10 @@ describe('練習画面の文言', () => {
     const css = readFileSync('src/app/globals.css', 'utf8');
     const layout = readFileSync('src/app/layout.tsx', 'utf8');
     expect(css).toContain('.safe-area-pb');
-    expect(css).toContain('env(safe-area-inset-bottom)');
+    expect(css).toContain('.bottom-above-nav');
+    expect(css).toContain('.pb-safe-nav');
+    expect(css).toContain('env(safe-area-inset-bottom, 0px)');
+    expect(layout).toContain('pb-safe-nav');
     expect(layout).toContain("viewportFit: 'cover'");
   });
 

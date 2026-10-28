@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import type { Member } from '@/types/member';
 import type { SessionWinRate } from '@/lib/statsCalculator';
 import { getDisplayName } from '@/lib/utils';
@@ -36,6 +36,19 @@ const CHART_HEIGHT = SVG_HEIGHT - PADDING.top - PADDING.bottom;
 
 function shortName(name: string): string {
   return name.length > 6 ? `${name.slice(0, 5)}…` : name;
+}
+
+function spreadEndLabels<T extends { x: number; y: number }>(labels: T[]): T[] {
+  const sorted = [...labels].sort((a, b) => a.y - b.y);
+  let previous = -999;
+  let stack = 0;
+  return sorted.map((label) => {
+    const y = Math.min(Math.max(label.y, previous + 11), SVG_HEIGHT - 12);
+    if (y - previous < 10) stack += 1;
+    else stack = 0;
+    previous = y;
+    return { ...label, y, x: label.x + stack * 28 };
+  });
 }
 
 function Marker({
@@ -81,6 +94,19 @@ export function WinRateTrendChart({
   const [selectedIds, setSelectedIds] = useState<Set<number>>(
     () => new Set(allPlayerIds.slice(0, MAX_TREND_PLAYERS))
   );
+  const playerKey = allPlayerIds.join(',');
+
+  useEffect(() => {
+    const ids = playerKey ? playerKey.split(',').map((id) => Number(id)) : [];
+    setSelectedIds((prev) => {
+      const previous = Array.from(prev);
+      const stale = previous.some((id) => !ids.includes(id));
+      if (!stale) return prev;
+      const valid = previous.filter((id) => ids.includes(id));
+      if (valid.length === 0) return new Set(ids.slice(0, MAX_TREND_PLAYERS));
+      return new Set(valid);
+    });
+  }, [playerKey]);
 
   if (sessionWinRates.length === 0) {
     return (
@@ -171,7 +197,15 @@ export function WinRateTrendChart({
             );
           })}
 
-          {selectedIdsInOrder.map((playerId, colorIdx) => {
+          {(() => {
+            const endLabels: Array<{
+              playerId: number;
+              x: number;
+              y: number;
+              name: string;
+              color: string;
+            }> = [];
+            const lines = selectedIdsInOrder.map((playerId, colorIdx) => {
             const color = CHART_COLORS[colorIdx % CHART_COLORS.length]!;
             const style = LINE_STYLES[colorIdx % LINE_STYLES.length]!;
             const points: Array<{ x: number; y: number }> = [];
@@ -192,7 +226,13 @@ export function WinRateTrendChart({
 
             const last = points[points.length - 1]!;
             const polylinePoints = points.map((p) => `${p.x},${p.y}`).join(' ');
-            const name = shortName(getDisplayName(memberMap, playerId));
+            endLabels.push({
+              playerId,
+              x: last.x + 4,
+              y: last.y,
+              name: shortName(getDisplayName(memberMap, playerId)),
+              color,
+            });
 
             return (
               <g key={playerId}>
@@ -208,21 +248,35 @@ export function WinRateTrendChart({
                 {points.map((p, j) => (
                   <Marker key={j} kind={style.marker} x={p.x} y={p.y} color={color} />
                 ))}
-                <text
-                  x={last.x + 4}
-                  y={last.y}
-                  fill={color}
-                  fontSize={8}
-                  dominantBaseline="middle"
-                >
-                  {name}
-                </text>
               </g>
             );
-          })}
+          });
+            return (
+              <>
+                {lines}
+                {spreadEndLabels(endLabels).map((label) => (
+                  <text
+                    key={label.playerId}
+                    x={label.x}
+                    y={label.y}
+                    fill={label.color}
+                    fontSize={8}
+                    dominantBaseline="middle"
+                  >
+                    {label.name}
+                  </text>
+                ))}
+              </>
+            );
+          })()}
         </svg>
       </div>
 
+      {selectedIds.size >= MAX_TREND_PLAYERS && (
+        <p className="text-xs text-muted-foreground">
+          同時に{MAX_TREND_PLAYERS}人までです。表示中の選手を外すと追加できます。
+        </p>
+      )}
       <div className="flex flex-wrap gap-1.5">
         {allPlayerIds.map((id) => {
           const name = getDisplayName(memberMap, id);

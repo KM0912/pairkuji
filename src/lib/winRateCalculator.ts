@@ -9,9 +9,9 @@ export interface WinRateRecord {
 }
 
 /**
- * 全ラウンドから各プレイヤーの勝率を計算する
+ * 全ラウンドから各選手の勝率を計算する
  * @param rounds - 集計対象のラウンド配列
- * @returns プレイヤーID → WinRateRecord のマップ
+ * @returns 選手ID → WinRateRecord のマップ
  */
 export function calculateWinRates(
   rounds: Round[]

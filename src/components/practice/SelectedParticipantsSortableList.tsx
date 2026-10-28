@@ -35,10 +35,18 @@ function SortableParticipantRow({
   member,
   order,
   onRemove,
+  onMoveUp,
+  onMoveDown,
+  isFirst,
+  isLast,
 }: {
   member: Member;
   order: number;
   onRemove: (id: number) => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  isFirst: boolean;
+  isLast: boolean;
 }) {
   const memberId = member.id!;
   const {
@@ -78,6 +86,24 @@ function SortableParticipantRow({
         <span className="truncate">{member.name}</span>
         {member.isSample && <SampleBadge />}
       </span>
+      <button
+        type="button"
+        className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-md text-sm font-semibold disabled:opacity-30"
+        aria-label={`${member.name}を一つ上へ`}
+        disabled={isFirst}
+        onClick={onMoveUp}
+      >
+        ↑
+      </button>
+      <button
+        type="button"
+        className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-md text-sm font-semibold disabled:opacity-30"
+        aria-label={`${member.name}を一つ下へ`}
+        disabled={isLast}
+        onClick={onMoveDown}
+      >
+        ↓
+      </button>
       <button
         type="button"
         className="flex shrink-0 items-center justify-center rounded-md p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 min-h-[44px] min-w-[44px]"
@@ -137,7 +163,7 @@ export function SelectedParticipantsSortableList({
     <div className="space-y-2">
       {orderedMembers.length >= 2 && (
         <p className="text-xs text-muted-foreground px-1">
-          ≡ をドラッグして番号を変更できます
+          ↑↓ またはドラッグで番号を変更できます
         </p>
       )}
       <DndContext
@@ -155,6 +181,14 @@ export function SelectedParticipantsSortableList({
                 <SortableParticipantRow
                   member={member}
                   order={index + 1}
+                  isFirst={index === 0}
+                  isLast={index === orderedMembers.length - 1}
+                  onMoveUp={() =>
+                    onReorder(arrayMove(selected, index, index - 1))
+                  }
+                  onMoveDown={() =>
+                    onReorder(arrayMove(selected, index, index + 1))
+                  }
                   onRemove={onRemove}
                 />
               </li>

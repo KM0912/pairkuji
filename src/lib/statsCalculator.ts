@@ -42,16 +42,34 @@ export function getUniqueTags(sessions: PracticeSession[]): string[] {
 
 /**
  * 進行中の練習を統計に足すか。
- * 「今回」と「全期間」だけが対象で、クラブを選んでいるときはタグが重なるときだけ足す。
+ * 今日はこの期間のどれにも入る。クラブを選んでいるときはタグが重なるときだけ足す。
  */
 export function shouldIncludeCurrentPractice(input: {
   period: PeriodFilterType;
   clubFilter: string[];
   currentClubTags: string[];
 }): boolean {
-  if (input.period !== 'current' && input.period !== 'all') return false;
   if (input.clubFilter.length === 0) return true;
   return input.currentClubTags.some((tag) => input.clubFilter.includes(tag));
+}
+
+/**
+ * 過去セッションを期間で絞る。
+ * 直近3回で進行中を1回分に数えるときは、過去は2回までにして4回分にしない。
+ */
+export function sessionsAlongsideCurrent(
+  sessions: PracticeSession[],
+  period: PeriodFilterType,
+  currentCountsAsSession: boolean
+): PracticeSession[] {
+  const filtered = filterSessions(sessions, period);
+  if (period !== 'last3' || !currentCountsAsSession) return filtered;
+  return [...filtered]
+    .sort(
+      (a, b) =>
+        new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime()
+    )
+    .slice(0, 2);
 }
 
 /** 通算の順位に入れる最低試合数。これ未満は順位もトロフィーも付けない。 */
@@ -378,7 +396,7 @@ export function calculatePairWinRates(
 }
 
 /**
- * 特定プレイヤーの直接対決成績を計算
+ * 特定の選手の直接対決成績を計算
  */
 export function calculateHeadToHead(
   sessions: PracticeSession[],

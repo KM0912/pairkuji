@@ -117,7 +117,7 @@ export function CourtManagement({
     side: 'pairA' | 'pairB'
   ) => {
     if (!onRecordResult) return;
-    // タップで切り替え: 同じ側を再タップ → 未登録に戻す
+    // タップで切り替え: 同じ側を再タップ → 結果未入力に戻す
     const newResult: MatchResult = currentResult === side ? null : side;
     onRecordResult(roundNo, courtNo, newResult);
   };
@@ -176,11 +176,11 @@ export function CourtManagement({
                         const matchCount = matchCounts.get(id) ?? 0;
                         const nextOut = nextOutLabel(player);
                         return (
-                          <div key={id} className="flex items-stretch gap-1">
+                          <div key={id} className="flex flex-col gap-1">
                           <button
                             type="button"
                             className={cn(
-                              'relative rounded-lg transition-all duration-fast min-w-0 flex-1 active:scale-[0.97] border-2',
+                              'relative w-full min-w-0 rounded-lg transition-all duration-fast active:scale-[0.97] border-2',
                               numberEmphasis
                                 ? 'flex items-center justify-center px-2 pb-2 pt-5 min-h-[64px]'
                                 : 'flex items-center gap-1.5 px-2 py-1.5 min-h-[48px] sm:gap-2.5 sm:px-3 sm:py-2.5',
@@ -230,7 +230,8 @@ export function CourtManagement({
                           {onSetAvailability && (
                             <AvailabilityMenu
                               name={name}
-                              className="shrink-0 rounded-lg"
+                              caption="休憩・早退"
+                              className="w-full rounded-lg"
                               onBreak={() => {
                                 void onSetAvailability(id, 'break');
                               }}
@@ -293,11 +294,11 @@ export function CourtManagement({
                         const matchCount = matchCounts.get(id) ?? 0;
                         const nextOut = nextOutLabel(player);
                         return (
-                          <div key={id} className="flex items-stretch gap-1">
+                          <div key={id} className="flex flex-col gap-1">
                           <button
                             type="button"
                             className={cn(
-                              'relative rounded-lg transition-all duration-fast min-w-0 flex-1 active:scale-[0.97] border-2',
+                              'relative w-full min-w-0 rounded-lg transition-all duration-fast active:scale-[0.97] border-2',
                               numberEmphasis
                                 ? 'flex items-center justify-center px-2 pb-2 pt-5 min-h-[64px]'
                                 : 'flex items-center gap-1.5 px-2 py-1.5 min-h-[48px] sm:gap-2.5 sm:px-3 sm:py-2.5',
@@ -347,7 +348,8 @@ export function CourtManagement({
                           {onSetAvailability && (
                             <AvailabilityMenu
                               name={name}
-                              className="shrink-0 rounded-lg"
+                              caption="休憩・早退"
+                              className="w-full rounded-lg"
                               onBreak={() => {
                                 void onSetAvailability(id, 'break');
                               }}

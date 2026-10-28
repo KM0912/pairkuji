@@ -14,7 +14,31 @@ export type SubstitutionUndoState = {
   roundNo: number;
   results: Array<{ courtNo: number; result: MatchResult }>;
   players: SubstitutionPlayerSnapshot[];
+  /** 入れ替えの前に付いていて、顔ぶれが変わったので消した勝敗。元に戻すときに戻す。 */
+  clearedResults?: Array<{ courtNo: number; result: 'pairA' | 'pairB' }>;
 };
+
+export function courtsWithRecordedResult(
+  courts: Array<{
+    courtNo: number;
+    pairA: readonly number[];
+    pairB: readonly number[];
+    result?: MatchResult | null;
+  }>,
+  fromId: number,
+  toId: number
+): Array<{ courtNo: number; result: 'pairA' | 'pairB' }> {
+  const cleared: Array<{ courtNo: number; result: 'pairA' | 'pairB' }> = [];
+  for (const court of courts) {
+    if (court.result !== 'pairA' && court.result !== 'pairB') continue;
+    const involved = [...court.pairA, ...court.pairB].some(
+      (id) => id === fromId || id === toId
+    );
+    if (!involved) continue;
+    cleared.push({ courtNo: court.courtNo, result: court.result });
+  }
+  return cleared;
+}
 
 type LatestRound = {
   roundNo: number;

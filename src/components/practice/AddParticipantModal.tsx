@@ -4,6 +4,13 @@ import { type Member } from '@/types/member';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Search, X } from 'lucide-react';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from '../ui/input-group';
 
 interface AddParticipantModalProps {
   isOpen: boolean;
@@ -24,6 +31,7 @@ export function AddParticipantModal({
   const [newName, setNewName] = useState('');
   const [adding, setAdding] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const toggle = (id: number) => {
     setSelectedIds((prev) =>
@@ -82,13 +90,39 @@ export function AddParticipantModal({
               {createError}
             </p>
           )}
+          <InputGroup className="mb-3 h-11">
+            <InputGroupAddon>
+              <Search className="h-5 w-5 text-muted-foreground" />
+            </InputGroupAddon>
+            <InputGroupInput
+              aria-label="選手検索"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="名前で検索"
+            />
+            {searchTerm && (
+              <InputGroupAddon align="inline-end">
+                <InputGroupButton
+                  aria-label="検索をクリア"
+                  className="min-h-11 min-w-11"
+                  onClick={() => setSearchTerm('')}
+                >
+                  <X className="h-4 w-4" />
+                </InputGroupButton>
+              </InputGroupAddon>
+            )}
+          </InputGroup>
           {availableMembers.length === 0 ? (
             <div className="text-center text-muted-foreground py-4">
               追加できる選手がいません。上の欄から選手を追加できます。
             </div>
           ) : (
             <div className="space-y-2 max-h-64 overflow-auto">
-              {availableMembers.map((m) => {
+              {availableMembers
+                .filter((member) =>
+                  member.name.toLowerCase().includes(searchTerm.trim().toLowerCase())
+                )
+                .map((m) => {
                 const id = m.id!;
                 const checked = selectedIds.includes(id);
                 return (

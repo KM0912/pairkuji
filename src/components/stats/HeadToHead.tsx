@@ -44,7 +44,7 @@ export function HeadToHead({
         選手を選んで対戦成績を確認
       </div>
 
-      {/* プレイヤー選択 */}
+      {/* 選手選択 */}
       <div className="flex flex-wrap gap-1.5">
         {playerIds.map((id) => {
           const name = getDisplayName(memberMap, id);

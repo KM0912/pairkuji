@@ -14,11 +14,13 @@ export function AvailabilityMenu({
   onBreak,
   onEarly,
   className,
+  caption,
 }: {
   name: string;
   onBreak: () => void;
   onEarly: () => void;
   className?: string;
+  caption?: string;
 }) {
   const [confirmEarly, setConfirmEarly] = useState(false);
 
@@ -38,6 +40,7 @@ export function AvailabilityMenu({
           aria-label={`${name}の休憩か早退を選ぶ`}
         >
           <MoreVertical className="h-4 w-4" />
+          {caption && <span className="text-xs font-semibold">{caption}</span>}
         </button>
       </DropdownMenu.Trigger>
       <DropdownMenu.Portal>
@@ -66,7 +69,9 @@ export function AvailabilityMenu({
             </>
           ) : (
             <>
-              <p className="px-3 py-2 text-sm text-foreground">早退にしますか</p>
+              <p role="alert" aria-live="assertive" className="px-3 py-2 text-sm text-foreground">
+                早退にしますか？
+              </p>
               <DropdownMenu.Item
                 className={cn(itemClass, 'text-destructive')}
                 onSelect={() => onEarly()}

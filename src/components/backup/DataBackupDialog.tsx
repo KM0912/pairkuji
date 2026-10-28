@@ -177,7 +177,7 @@ export function DataBackupDialog() {
       <DialogTrigger asChild>
         <Button variant="ghost" aria-label="データの書き出しと読み込み">
           <Database className="w-4 h-4" />
-          <span className="text-sm hidden sm:inline">データ</span>
+          <span className="text-sm">データ</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md rounded-2xl border-2 border-border/50 p-6">

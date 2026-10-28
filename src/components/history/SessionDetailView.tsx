@@ -156,7 +156,7 @@ export function SessionDetailView({ sessionId }: { sessionId: number }) {
 
     await updateSessionResult(session.id, roundNo, courtNo, nextResult);
     setResultToast({
-      message: '勝敗を記録しました',
+      message: nextResult == null ? '勝敗の記録を消しました' : '勝敗を記録しました',
       roundNo,
       courtNo,
       previous,
@@ -567,7 +567,7 @@ export function SessionDetailView({ sessionId }: { sessionId: number }) {
         <div
           role="status"
           aria-live="polite"
-          className="fixed bottom-24 left-4 right-4 z-toast"
+          className="bottom-above-nav fixed left-4 right-4 z-toast"
         >
           <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 rounded-xl bg-foreground px-4 py-3 text-sm text-background shadow-level-3">
             <span>{resultToast.message}</span>

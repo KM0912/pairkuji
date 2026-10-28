@@ -6,12 +6,14 @@ interface SubstitutionHintProps {
   substituting: number | null;
   memberMap: Map<number, Member>;
   playerMap: Map<number, PracticePlayer>;
+  onCancel: () => void;
 }
 
 export function SubstitutionHint({
   substituting,
   memberMap,
   playerMap,
+  onCancel,
 }: SubstitutionHintProps) {
   if (!substituting) return null;
 
@@ -22,6 +24,13 @@ export function SubstitutionHint({
           {playerMap.get(substituting)?.playerNumber}
         </span>
         <span>{substitutionHint(memberMap.get(substituting)?.name ?? '選手')}</span>
+        <button
+          type="button"
+          className="inline-flex min-h-11 shrink-0 items-center px-2 font-semibold underline"
+          onClick={onCancel}
+        >
+          解除
+        </button>
       </div>
     </div>
   );

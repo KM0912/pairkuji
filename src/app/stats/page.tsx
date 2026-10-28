@@ -19,9 +19,9 @@ import {
   calculateParticipationBalance,
   calculateSessionWinRates,
   calculatePairWinRates,
-  filterSessions,
   filterSessionsByTag,
   getUniqueTags,
+  sessionsAlongsideCurrent,
   shouldIncludeCurrentPractice,
 } from '@/lib/statsCalculator';
 
@@ -63,14 +63,20 @@ export default function StatsPage() {
     return Array.from(merged).sort((a, b) => a.localeCompare(b, 'ja'));
   }, [sessions, settings]);
 
-  const currentRounds = useMemo(() => {
-    const include = shouldIncludeCurrentPractice({
-      period: periodFilter,
-      clubFilter,
-      currentClubTags: settings?.clubTags ?? [],
-    });
-    return include ? rounds : [];
-  }, [periodFilter, clubFilter, settings, rounds]);
+  const includeCurrent = useMemo(
+    () =>
+      shouldIncludeCurrentPractice({
+        period: periodFilter,
+        clubFilter,
+        currentClubTags: settings?.clubTags ?? [],
+      }),
+    [periodFilter, clubFilter, settings]
+  );
+
+  const currentRounds = useMemo(
+    () => (includeCurrent ? rounds : []),
+    [includeCurrent, rounds]
+  );
 
   // クラブフィルタ → 期間フィルタ の順で適用
   const clubFilteredSessions = useMemo(
@@ -79,8 +85,13 @@ export default function StatsPage() {
   );
 
   const filteredSessions = useMemo(
-    () => filterSessions(clubFilteredSessions, periodFilter),
-    [clubFilteredSessions, periodFilter]
+    () =>
+      sessionsAlongsideCurrent(
+        clubFilteredSessions,
+        periodFilter,
+        includeCurrent && rounds.length > 0
+      ),
+    [clubFilteredSessions, periodFilter, includeCurrent, rounds.length]
   );
 
   // 通算統計
@@ -106,7 +117,7 @@ export default function StatsPage() {
     [filteredSessions, currentRounds]
   );
 
-  // 全プレイヤーID（直接対決用）
+  // 全選手ID（直接対決用）
   const allPlayerIds = useMemo(() => {
     const ids = new Set<number>();
     for (const stat of overallStats) {
