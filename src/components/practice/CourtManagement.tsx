@@ -198,14 +198,21 @@ export function CourtManagement({
                               size={numberEmphasis ? 'lg' : 'xs'}
                             />
                             {!numberEmphasis && (
-                              <div className="flex flex-1 min-w-0 flex-col items-start gap-0.5 sm:flex-row sm:items-center sm:gap-1.5">
-                                <div
-                                  className="w-full min-w-0 flex-1 truncate text-left text-caption font-semibold text-foreground"
-                                  title={name}
-                                >
-                                  {name}
+                              <div className="flex min-w-0 flex-1 flex-col items-start gap-0.5">
+                                <div className="flex w-full min-w-0 items-center gap-1.5">
+                                  <div
+                                    className="w-full min-w-0 flex-1 truncate text-left text-caption font-semibold text-foreground"
+                                    title={name}
+                                  >
+                                    {name}
+                                  </div>
+                                  <MatchCountIndicator count={matchCount} />
                                 </div>
-                                <MatchCountIndicator count={matchCount} />
+                                {nextOut && (
+                                  <span className="max-w-full truncate rounded bg-amber-100 px-1 py-0.5 text-[10px] font-semibold leading-none text-amber-900">
+                                    {nextOut}
+                                  </span>
+                                )}
                               </div>
                             )}
                             {numberEmphasis && (
@@ -214,27 +221,12 @@ export function CourtManagement({
                                 className="absolute bottom-1.5 right-1.5 shrink-0 whitespace-nowrap rounded bg-muted/90 px-1 py-0.5 text-small font-semibold leading-none tabular-nums text-muted-foreground shadow-level-1"
                               />
                             )}
+                            {numberEmphasis && nextOut && (
+                              <span className="absolute left-1 right-8 top-1 truncate rounded bg-amber-100 px-1 py-0.5 text-left text-[10px] font-semibold leading-none text-amber-900">
+                                {nextOut}
+                              </span>
+                            )}
                           </button>
-                          {onSetAvailability && (substituting === id || nextOut) && (
-                            <div className="flex items-center gap-1">
-                              {nextOut && (
-                                <span className="shrink-0 rounded bg-amber-100 px-1.5 py-1 text-[10px] font-semibold leading-none text-amber-900">
-                                  {nextOut}
-                                </span>
-                              )}
-                              <AvailabilityMenu
-                                name={name}
-                                caption="休憩・早退"
-                                className="min-w-0 flex-1 rounded-lg"
-                                onBreak={() => {
-                                  void onSetAvailability(id, 'break');
-                                }}
-                                onEarly={() => {
-                                  void onSetAvailability(id, 'early');
-                                }}
-                              />
-                            </div>
-                          )}
                           </div>
                         );
                       })}
@@ -311,14 +303,21 @@ export function CourtManagement({
                               size={numberEmphasis ? 'lg' : 'xs'}
                             />
                             {!numberEmphasis && (
-                              <div className="flex flex-1 min-w-0 flex-col items-start gap-0.5 sm:flex-row sm:items-center sm:gap-1.5">
-                                <div
-                                  className="w-full min-w-0 flex-1 truncate text-left text-caption font-semibold text-foreground"
-                                  title={name}
-                                >
-                                  {name}
+                              <div className="flex min-w-0 flex-1 flex-col items-start gap-0.5">
+                                <div className="flex w-full min-w-0 items-center gap-1.5">
+                                  <div
+                                    className="w-full min-w-0 flex-1 truncate text-left text-caption font-semibold text-foreground"
+                                    title={name}
+                                  >
+                                    {name}
+                                  </div>
+                                  <MatchCountIndicator count={matchCount} />
                                 </div>
-                                <MatchCountIndicator count={matchCount} />
+                                {nextOut && (
+                                  <span className="max-w-full truncate rounded bg-amber-100 px-1 py-0.5 text-[10px] font-semibold leading-none text-amber-900">
+                                    {nextOut}
+                                  </span>
+                                )}
                               </div>
                             )}
                             {numberEmphasis && (
@@ -327,27 +326,12 @@ export function CourtManagement({
                                 className="absolute bottom-1.5 right-1.5 shrink-0 whitespace-nowrap rounded bg-muted/90 px-1 py-0.5 text-small font-semibold leading-none tabular-nums text-muted-foreground shadow-level-1"
                               />
                             )}
+                            {numberEmphasis && nextOut && (
+                              <span className="absolute left-1 right-8 top-1 truncate rounded bg-amber-100 px-1 py-0.5 text-left text-[10px] font-semibold leading-none text-amber-900">
+                                {nextOut}
+                              </span>
+                            )}
                           </button>
-                          {onSetAvailability && (substituting === id || nextOut) && (
-                            <div className="flex items-center gap-1">
-                              {nextOut && (
-                                <span className="shrink-0 rounded bg-amber-100 px-1.5 py-1 text-[10px] font-semibold leading-none text-amber-900">
-                                  {nextOut}
-                                </span>
-                              )}
-                              <AvailabilityMenu
-                                name={name}
-                                caption="休憩・早退"
-                                className="min-w-0 flex-1 rounded-lg"
-                                onBreak={() => {
-                                  void onSetAvailability(id, 'break');
-                                }}
-                                onEarly={() => {
-                                  void onSetAvailability(id, 'early');
-                                }}
-                              />
-                            </div>
-                          )}
                           </div>
                         );
                       })}

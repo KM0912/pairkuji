@@ -92,11 +92,11 @@ export default function MembersPage() {
       const result = await addMany(single ? [single, ...pasted] : pasted);
       const skipped =
         result.skipped.length > 0
-          ? `（${result.skipped.length}名は同じ名前があるためスキップ）`
+          ? `（${result.skipped.length}人は同じ名前があるためスキップ）`
           : '';
       setToast(
         result.added > 0
-          ? `${result.added}名追加しました${skipped}`
+          ? `${result.added}人追加しました${skipped}`
           : `新しい名前はありませんでした${skipped}`
       );
     } else {
@@ -221,7 +221,7 @@ export default function MembersPage() {
           <p className="mt-2 text-small text-muted-foreground">
             {isLoading
               ? '読み込み中…'
-              : `${filteredMembers.length} 名が表示されています`}
+              : `${filteredMembers.length}人が表示されています`}
           </p>
           {members.some((member) => member.isSample) && (
             <p className="mt-1 text-xs text-muted-foreground">

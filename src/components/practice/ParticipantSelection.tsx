@@ -43,6 +43,7 @@ interface ParticipantSelectionProps {
   clubTags?: string[];
   onClubTagsChange?: (tags: string[]) => void;
   onCreateMember: (name: string) => Promise<void>;
+  notice?: string | null;
 }
 
 export function ParticipantSelection({
@@ -57,6 +58,7 @@ export function ParticipantSelection({
   clubTags,
   onClubTagsChange,
   onCreateMember,
+  notice,
 }: ParticipantSelectionProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAdd, setShowAdd] = useState(false);
@@ -166,6 +168,11 @@ export function ParticipantSelection({
               <CardDescription>
                 {selected.length}人選択中 • 最低4人必要
               </CardDescription>
+              {notice && (
+                <p role="status" className="text-sm font-semibold text-foreground">
+                  {notice}
+                </p>
+              )}
             </CardHeader>
 
             <CardContent className="space-y-3">

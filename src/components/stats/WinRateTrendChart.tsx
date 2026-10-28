@@ -38,7 +38,6 @@ function shortName(name: string): string {
   return name.length > 6 ? `${name.slice(0, 5)}…` : name;
 }
 
-const LABEL_X = PADDING.left + CHART_WIDTH + 4;
 const LABEL_MIN_Y = PADDING.top + 6;
 const LABEL_MAX_Y = PADDING.top + CHART_HEIGHT - 6;
 
@@ -60,7 +59,7 @@ function spreadEndLabels<T extends { x: number; y: number }>(labels: T[]): T[] {
   }
   return sorted.map((label, index) => ({
     ...label,
-    x: LABEL_X,
+    x: Math.min(Math.max(label.x, PADDING.left), SVG_WIDTH - 52),
     y: placed[index] ?? label.y,
   }));
 }

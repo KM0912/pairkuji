@@ -330,7 +330,7 @@ export function SessionDetailView({ sessionId }: { sessionId: number }) {
                   }
                 }}
                 placeholder="クラブ名を入力"
-                className="border rounded-lg px-2.5 py-1 bg-card border-border text-xs focus:outline-none focus:ring-2 focus:ring-primary min-h-[28px] w-32"
+                className="min-h-11 w-40 rounded-lg border border-border bg-card px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-primary"
                 aria-label="新しいクラブ"
                 autoFocus
               />

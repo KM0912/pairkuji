@@ -70,7 +70,7 @@ export const BottomNavigation: React.FC = () => {
               key={tab.id}
               onClick={() => handleTabClick(tab)}
               aria-current={isActive ? 'page' : undefined}
-              className={`flex-1 flex flex-col items-center justify-center py-3 px-3 min-h-[72px] transition-all duration-fast relative active:scale-[0.97] ${
+              className={`relative flex flex-1 flex-col items-center justify-center px-3 py-3 min-h-[72px] transition-all duration-fast active:scale-[0.97] [@media(max-height:500px)]:min-h-11 [@media(max-height:500px)]:py-1 [@media(max-height:500px)]:[&_svg]:h-5 [@media(max-height:500px)]:[&_svg]:w-5 ${
                 isActive
                   ? 'text-primary'
                   : 'text-muted-foreground active:text-foreground'
@@ -80,7 +80,7 @@ export const BottomNavigation: React.FC = () => {
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-primary rounded-full" />
               )}
               <div
-                className={`mb-1.5 transition-all duration-normal ease-out-expo ${
+                className={`mb-1.5 transition-all duration-normal ease-out-expo [@media(max-height:500px)]:mb-0 ${
                   isActive
                     ? 'scale-110 text-primary'
                     : 'scale-100 hover:scale-105'
@@ -89,7 +89,7 @@ export const BottomNavigation: React.FC = () => {
                 {tab.icon}
               </div>
               <span
-                className={`text-caption font-semibold transition-all duration-normal ${
+                className={`text-caption font-semibold transition-all duration-normal [@media(max-height:500px)]:sr-only ${
                   isActive ? 'text-primary' : ''
                 }`}
               >

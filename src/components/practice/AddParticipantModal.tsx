@@ -164,7 +164,7 @@ export function AddParticipantModal({
             </div>
           )}
           <div className="flex items-center justify-between text-sm text-muted-foreground mt-3">
-            <div>選択中:{selectedIds.length}人</div>
+            <div>選択中：{selectedIds.length}人</div>
             {visibleMembers.length > 0 && (
               <button
                 type="button"

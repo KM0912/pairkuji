@@ -147,7 +147,7 @@ export default function HistoryBrowser() {
               </div>
               <div className="mt-2 text-xs text-muted-foreground truncate">
                 {playerNames.join('、')}
-                {remainingCount > 0 && ` 他${remainingCount}名`}
+                {remainingCount > 0 && `、他${remainingCount}人`}
               </div>
             </button>
           );

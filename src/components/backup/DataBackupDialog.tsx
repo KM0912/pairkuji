@@ -163,7 +163,7 @@ export function DataBackupDialog() {
           : '';
       setStep({
         kind: 'done',
-        message: `選手${summary.addedMembers}名、履歴${summary.addedSessions}件を読み込みました。${practiceNote}${replaceNote}`,
+        message: `選手${summary.addedMembers}人、履歴${summary.addedSessions}件を読み込みました。${practiceNote}${replaceNote}`,
       });
     } catch (error: unknown) {
       setMessage(error instanceof Error ? error.message : '読み込めませんでした');
@@ -233,10 +233,7 @@ export function DataBackupDialog() {
           {step.kind === 'preview' && (
             <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm space-y-3">
               <p>
-                {step.fileName}：選手
-                {countRosterMembers(step.data.members)}
-                名、履歴
-                {step.data.practiceSessions.length}件
+                {step.fileName}：選手{countRosterMembers(step.data.members)}人、履歴{step.data.practiceSessions.length}件
                 {step.data.practiceSettings ? '、進行中の練習あり' : ''}
               </p>
               <div className="grid grid-cols-2 gap-2">

@@ -334,10 +334,10 @@ export default function PracticePage() {
     const saved = rounds.length > 0;
     setSubstituting(null);
     try {
-      await resetPractice();
+      const result = await resetPractice();
       setShowResetConfirm(false);
       setClubTags([]);
-      if (saved && !usePracticeStore.getState().error) {
+      if (saved && result === 'saved') {
         setEndedNotice(memberIds);
         setSelectionNote(null);
       }
@@ -515,11 +515,6 @@ export default function PracticePage() {
             </div>
           </div>
         )}
-        {selectionNote && (
-          <p role="status" className="mb-3 text-sm font-semibold text-foreground">
-            {selectionNote}
-          </p>
-        )}
         <ParticipantSelection
           members={members}
           courts={courts}
@@ -532,6 +527,7 @@ export default function PracticePage() {
           clubTags={clubTags}
           onClubTagsChange={setClubTags}
           onCreateMember={onCreateMember}
+          notice={selectionNote}
         />
         </>
       ) : (
@@ -685,7 +681,16 @@ export default function PracticePage() {
           </div>
 
           {/* コート管理 */}
-          <div ref={combosRef} className="space-y-6 pb-32">
+          <div
+            ref={combosRef}
+            className={`space-y-6 ${
+              substituting && generateBlockedReason
+                ? 'pb-52'
+                : substituting
+                  ? 'pb-40'
+                  : 'pb-32'
+            }`}
+          >
             <div>
               <CourtManagement
                 players={players}
@@ -754,12 +759,22 @@ export default function PracticePage() {
       {/* Fixed Bottom Buttons */}
       {settings && (
         <div className="bottom-above-nav fixed left-4 right-4 z-overlay">
-          <div className="mx-auto max-w-2xl space-y-3">
+          <div className="mx-auto max-w-2xl space-y-3 [@media(max-height:500px)]:space-y-1">
             <SubstitutionHint
               substituting={substituting}
               memberMap={memberMap}
               playerMap={playerMap}
               onCancel={() => setSubstituting(null)}
+              onBreak={
+                substituting
+                  ? () => void changeAvailability(substituting, 'break')
+                  : undefined
+              }
+              onEarly={
+                substituting
+                  ? () => void changeAvailability(substituting, 'early')
+                  : undefined
+              }
             />
             {generateBlockedReason && (
               <p

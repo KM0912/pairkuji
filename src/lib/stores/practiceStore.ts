@@ -36,7 +36,7 @@ type Actions = {
   ) => Promise<void>;
   generateNextRound: () => Promise<void>;
   undoLastRound: () => Promise<boolean>;
-  resetPractice: () => Promise<void>;
+  resetPractice: () => Promise<'saved' | 'ended' | 'failed'>;
   addParticipant: (memberId: number) => Promise<void>;
   substitutePlayer: (fromMemberId: number, toMemberId: number) => Promise<boolean>;
   updateCourts: (courts: number) => Promise<void>;
@@ -299,9 +299,10 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
   },
 
   resetPractice: async () => {
-    if (get().isResetting) return;
+    if (get().isResetting) return 'failed';
     set({ isResetting: true });
     const state = get();
+    let archived = false;
     try {
       await db.transaction(
         'rw',
@@ -325,6 +326,7 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
               clubTags: state.settings.clubTags,
             };
             await db.practiceSessions.add(session);
+            archived = true;
           }
 
           await db.practiceSettings.clear();
@@ -332,12 +334,20 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
           await db.rounds.clear();
         }
       );
-      set({ settings: null, players: [], rounds: [], isResetting: false });
+      set({
+        settings: null,
+        players: [],
+        rounds: [],
+        error: null,
+        isResetting: false,
+      });
+      return archived ? 'saved' : 'ended';
     } catch (e: unknown) {
       set({
         error: e instanceof Error ? e.message : '練習を終了できませんでした',
         isResetting: false,
       });
+      return 'failed';
     }
   },
 

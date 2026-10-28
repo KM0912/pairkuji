@@ -102,7 +102,7 @@ function historyDetailId(pathname) {
 
 function offlinePage() {
   const html =
-    '<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>オフライン</title></head><body style="font-family:sans-serif;padding:24px"><p>オフラインではこの画面を開けません。</p><p><a href="/">トップへ戻る</a></p></body></html>';
+    '<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>オフライン</title></head><body style="font-family:sans-serif;padding:24px"><p>オフラインではこの画面を開けません。</p><p><a href="/practice">練習画面を開く</a></p><p><a href="/">トップへ戻る</a></p></body></html>';
   return new Response(html, {
     status: 503,
     headers: { 'Content-Type': 'text/html; charset=utf-8' },

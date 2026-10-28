@@ -19,6 +19,16 @@
     bottom: calc(6rem + var(--safe-bottom));
   }
 
+  @media (max-height: 500px) {
+    .pb-safe-nav {
+      padding-bottom: calc(3.5rem + var(--safe-bottom));
+    }
+
+    .bottom-above-nav {
+      bottom: calc(3.5rem + var(--safe-bottom));
+    }
+  }
+
   .pb-safe-bar {
     padding-bottom: calc(0.5rem + var(--safe-bottom));
   }
