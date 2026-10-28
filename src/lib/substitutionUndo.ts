@@ -31,6 +31,10 @@ export function courtsWithRecordedResult(
   const cleared: Array<{ courtNo: number; result: 'pairA' | 'pairB' }> = [];
   for (const court of courts) {
     if (court.result !== 'pairA' && court.result !== 'pairB') continue;
+    const samePair =
+      (court.pairA.includes(fromId) && court.pairA.includes(toId)) ||
+      (court.pairB.includes(fromId) && court.pairB.includes(toId));
+    if (samePair) continue;
     const involved = [...court.pairA, ...court.pairB].some(
       (id) => id === fromId || id === toId
     );

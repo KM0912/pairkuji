@@ -127,13 +127,13 @@ export function FullscreenDisplay({
     return (
       <div
         key={id}
-        className="flex min-h-[72px] w-full min-w-0 items-center gap-3 rounded-md border border-primary/30 bg-card p-3"
+        className="flex min-h-11 w-full min-w-0 items-center gap-2 rounded-md border border-primary/30 bg-card p-2 landscape:min-h-[72px] landscape:gap-3 landscape:p-3"
         aria-label={`番号${number}、${name}${nextOut ? `、${nextOut}` : ''}`}
       >
-        <PlayerNumber number={number} variant="primary" size="xl" />
+        <PlayerNumber number={number} variant="primary" size="lg" className="landscape:min-h-14 landscape:min-w-14 landscape:text-2xl" />
         <div className="min-w-0 flex-1">
           <div
-            className="whitespace-normal break-words text-left text-2xl font-bold text-foreground landscape:truncate landscape:text-3xl"
+            className="whitespace-normal break-words text-left text-xl font-bold text-foreground landscape:truncate landscape:text-3xl"
             title={name}
           >
             {name}
@@ -147,7 +147,7 @@ export function FullscreenDisplay({
   };
 
   return (
-    <div className="fixed inset-0 z-modal overflow-auto bg-background">
+    <div className="px-safe-screen fixed inset-0 z-modal overflow-auto bg-background">
       <div className="sticky top-0 z-sticky border-b border-border bg-background/95 px-3 py-2 backdrop-blur-sm">
         <div className="flex items-center justify-between">
           <h1 className="font-heading text-title font-bold text-foreground">
@@ -164,26 +164,26 @@ export function FullscreenDisplay({
         </div>
       </div>
 
-      <div className="p-3 pb-52">
-        <div className="grid grid-cols-1 gap-3 landscape:grid-cols-2">
+      <div className="p-2 pb-40 landscape:p-3 landscape:pb-52">
+        <div className="grid grid-cols-1 gap-2 landscape:grid-cols-2 landscape:gap-3">
           {round.courts.map((court) => (
             <div
               key={court.courtNo}
-              className="rounded-lg border border-border bg-card p-3"
+              className="rounded-lg border border-border bg-card p-2 landscape:p-3"
             >
-              <div className="mb-3 text-center">
+              <div className="mb-1 text-center landscape:mb-3">
                 <h2 className="font-heading text-title font-bold text-foreground">
                   {courtLabel(court.courtNo)}
                 </h2>
               </div>
               <div className="flex flex-col gap-2 landscape:flex-row">
                 <div className="min-w-0 flex-1 rounded-md border border-primary/40 bg-primary/5 p-2">
-                  <div className="mb-1 text-sm font-semibold text-muted-foreground">ペアA</div>
-                  <div className="space-y-2">{court.pairA.map(renderPlayer)}</div>
+                  <div className="mb-1 text-xs font-semibold text-muted-foreground">ペアA</div>
+                  <div className="space-y-1 landscape:space-y-2">{court.pairA.map(renderPlayer)}</div>
                 </div>
                 <div className="min-w-0 flex-1 rounded-md border border-primary/40 bg-primary/5 p-2">
-                  <div className="mb-1 text-sm font-semibold text-muted-foreground">ペアB</div>
-                  <div className="space-y-2">{court.pairB.map(renderPlayer)}</div>
+                  <div className="mb-1 text-xs font-semibold text-muted-foreground">ペアB</div>
+                  <div className="space-y-1 landscape:space-y-2">{court.pairB.map(renderPlayer)}</div>
                 </div>
               </div>
             </div>
@@ -270,7 +270,7 @@ export function FullscreenDisplay({
         )}
       </div>
 
-      <div className="pb-safe-bar fixed bottom-0 left-0 right-0 z-sticky space-y-2 border-t border-border bg-background/95 px-2 pt-2">
+      <div className="pb-safe-bar fixed bottom-0 left-0 right-0 z-sticky space-y-2 border-t border-border bg-background/95 pl-[calc(0.5rem+var(--safe-left))] pr-[calc(0.5rem+var(--safe-right))] pt-2">
         {toast && (
           <div
             role="status"

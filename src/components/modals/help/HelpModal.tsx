@@ -69,7 +69,7 @@ export function HelpBody() {
                   </div>
                   <p className="text-sm text-muted-foreground">
                     「ダブルス」タブでコート数を設定し、その日の参加者を選択します。
-                    最低4名から練習を開始できます。
+                    最低4人から練習を開始できます。
                   </p>
                 </div>
               </div>
@@ -87,7 +87,7 @@ export function HelpBody() {
                   </div>
                   <p className="text-sm text-muted-foreground">
                     「次の組み合わせを生成」ボタンで、公平性を考慮した組み合わせが自動作成されます。
-                    選手を1回タップしてから、入れ替える相手をタップします。同じ選手をもう一度タップすると解除します。入れ替えたあとは「元に戻す」が出ます。
+                    選手を1回タップしてから、入れ替える相手をタップします。ヒントの「解除」か、同じ選手をもう一度タップすると選択をやめます。入れ替えたあとは「元に戻す」が出ます。勝敗が付いたコートで別の人に入れ替えると、その勝敗は消えます。同じペアの2人を入れ替えたときは残します。
                   </p>
                 </div>
               </div>
@@ -104,8 +104,32 @@ export function HelpBody() {
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    狭い画面では「回」、広い画面では「ラウンド」ボタンで、この練習の履歴とペアの回数を確認できます。
+                    狭い画面では数字のあとに「回」「面」「人」が付きます。たとえば「3回」「2面」「8/10人」です。広い画面では「ラウンド」ボタン、「コート」「参加者」と出ます。「回」または「ラウンド」ボタンで、この練習の履歴とペアの回数を確認できます。
                     各コートの「勝ち」をタップすると勝敗を記録できます。同じ側をもう一度タップすると記録を消せます。
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-8 h-8 bg-muted rounded-full flex items-center justify-center text-sm font-semibold text-muted-foreground">
+                  5
+                </div>
+                <div>
+                  <div className="mb-1 font-medium text-foreground">練習を終える</div>
+                  <p className="text-sm text-muted-foreground">
+                    右上のメニューから「練習終了」を選び、確認して終了します。ラウンドがある練習は履歴に保存されます。
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-8 h-8 bg-muted rounded-full flex items-center justify-center text-sm font-semibold text-muted-foreground">
+                  6
+                </div>
+                <div>
+                  <div className="mb-1 font-medium text-foreground">記録を見る</div>
+                  <p className="text-sm text-muted-foreground">
+                    下の「履歴」タブで過去の練習を開けます。下の「統計」タブでは勝率などを見られます。
                   </p>
                 </div>
               </div>
@@ -117,17 +141,17 @@ export function HelpBody() {
               💡 ポイント
             </h3>
             <ul className="text-sm text-amber-800 space-y-1">
-              <li>• 連続して待機が続かないようにし、全員が平等に試合できます</li>
-              <li>• 同じペアの重複を最小限に抑えます</li>
-              <li>• 途中で参加者を追加・変更することも可能です</li>
+              <li>• 連続して待機が続かないようにし、全員が平等に試合できます。</li>
+              <li>• 同じペアの重複を最小限に抑えます。</li>
+              <li>• 途中で参加者を追加・変更することも可能です。</li>
               <li>
-                • コートの選手と、待機（このラウンドに出ていない人）の選手から、次の1ラウンドだけ休憩するか、早退するかを選べます。早退は確認してから実行します。参加者の管理からも同じ操作ができます
+                • 選手を選ぶと、その下に休憩・早退が出ます。待機の人からも選べます。早退は確認してから実行します。参加者の管理からも同じ操作ができます。
               </li>
               <li>
-                • 組み合わせを生成した直後は「元に戻す」が出ます。メニューの「直前のラウンドを元に戻す」でも取り消せます。勝敗が付いているときは確認してから取り消します
+                • 組み合わせを生成した直後は「元に戻す」が出ます。メニューの「直前のラウンドを元に戻す」でも取り消せます。勝敗が付いているときは確認してから取り消します。
               </li>
-              <li>• 「掲示」で番号と名前を大きく表示できます。待機の人も出ます</li>
-              <li>• ヘッダーの「データ」ボタンから名簿と履歴を書き出せます</li>
+              <li>• 「掲示」で番号と名前を大きく表示できます。待機の人も出ます。</li>
+              <li>• ヘッダーの「データ」ボタンから名簿と履歴を書き出せます。</li>
             </ul>
           </div>
         </div>

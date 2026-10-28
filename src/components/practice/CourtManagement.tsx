@@ -197,18 +197,6 @@ export function CourtManagement({
                               variant="primary"
                               size={numberEmphasis ? 'lg' : 'xs'}
                             />
-                            {nextOut && (
-                              <span
-                                className={cn(
-                                  'rounded bg-amber-100 px-1 py-0.5 text-[10px] font-semibold leading-none text-amber-900',
-                                  numberEmphasis
-                                    ? 'absolute top-0.5 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap'
-                                    : 'shrink-0'
-                                )}
-                              >
-                                {nextOut}
-                              </span>
-                            )}
                             {!numberEmphasis && (
                               <div className="flex flex-1 min-w-0 flex-col items-start gap-0.5 sm:flex-row sm:items-center sm:gap-1.5">
                                 <div
@@ -227,18 +215,25 @@ export function CourtManagement({
                               />
                             )}
                           </button>
-                          {onSetAvailability && (
-                            <AvailabilityMenu
-                              name={name}
-                              caption="休憩・早退"
-                              className="w-full rounded-lg"
-                              onBreak={() => {
-                                void onSetAvailability(id, 'break');
-                              }}
-                              onEarly={() => {
-                                void onSetAvailability(id, 'early');
-                              }}
-                            />
+                          {onSetAvailability && (substituting === id || nextOut) && (
+                            <div className="flex items-center gap-1">
+                              {nextOut && (
+                                <span className="shrink-0 rounded bg-amber-100 px-1.5 py-1 text-[10px] font-semibold leading-none text-amber-900">
+                                  {nextOut}
+                                </span>
+                              )}
+                              <AvailabilityMenu
+                                name={name}
+                                caption="休憩・早退"
+                                className="min-w-0 flex-1 rounded-lg"
+                                onBreak={() => {
+                                  void onSetAvailability(id, 'break');
+                                }}
+                                onEarly={() => {
+                                  void onSetAvailability(id, 'early');
+                                }}
+                              />
+                            </div>
                           )}
                           </div>
                         );
@@ -315,18 +310,6 @@ export function CourtManagement({
                               variant="primary"
                               size={numberEmphasis ? 'lg' : 'xs'}
                             />
-                            {nextOut && (
-                              <span
-                                className={cn(
-                                  'rounded bg-amber-100 px-1 py-0.5 text-[10px] font-semibold leading-none text-amber-900',
-                                  numberEmphasis
-                                    ? 'absolute top-0.5 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap'
-                                    : 'shrink-0'
-                                )}
-                              >
-                                {nextOut}
-                              </span>
-                            )}
                             {!numberEmphasis && (
                               <div className="flex flex-1 min-w-0 flex-col items-start gap-0.5 sm:flex-row sm:items-center sm:gap-1.5">
                                 <div
@@ -345,18 +328,25 @@ export function CourtManagement({
                               />
                             )}
                           </button>
-                          {onSetAvailability && (
-                            <AvailabilityMenu
-                              name={name}
-                              caption="休憩・早退"
-                              className="w-full rounded-lg"
-                              onBreak={() => {
-                                void onSetAvailability(id, 'break');
-                              }}
-                              onEarly={() => {
-                                void onSetAvailability(id, 'early');
-                              }}
-                            />
+                          {onSetAvailability && (substituting === id || nextOut) && (
+                            <div className="flex items-center gap-1">
+                              {nextOut && (
+                                <span className="shrink-0 rounded bg-amber-100 px-1.5 py-1 text-[10px] font-semibold leading-none text-amber-900">
+                                  {nextOut}
+                                </span>
+                              )}
+                              <AvailabilityMenu
+                                name={name}
+                                caption="休憩・早退"
+                                className="min-w-0 flex-1 rounded-lg"
+                                onBreak={() => {
+                                  void onSetAvailability(id, 'break');
+                                }}
+                                onEarly={() => {
+                                  void onSetAvailability(id, 'early');
+                                }}
+                              />
+                            </div>
                           )}
                           </div>
                         );

@@ -22,11 +22,18 @@
   .pb-safe-bar {
     padding-bottom: calc(0.5rem + var(--safe-bottom));
   }
+
+  .px-safe-screen {
+    padding-left: var(--safe-left);
+    padding-right: var(--safe-right);
+  }
 }
 
 @layer base {
   :root {
     --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
     --background: 210 40% 98%;
     --foreground: 222 47.4% 11.2%;
     --card: 0 0% 100%;

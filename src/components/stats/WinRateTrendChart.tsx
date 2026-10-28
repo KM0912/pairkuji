@@ -38,17 +38,31 @@ function shortName(name: string): string {
   return name.length > 6 ? `${name.slice(0, 5)}…` : name;
 }
 
+const LABEL_X = PADDING.left + CHART_WIDTH + 4;
+const LABEL_MIN_Y = PADDING.top + 6;
+const LABEL_MAX_Y = PADDING.top + CHART_HEIGHT - 6;
+
 function spreadEndLabels<T extends { x: number; y: number }>(labels: T[]): T[] {
   const sorted = [...labels].sort((a, b) => a.y - b.y);
-  let previous = -999;
-  let stack = 0;
-  return sorted.map((label) => {
-    const y = Math.min(Math.max(label.y, previous + 11), SVG_HEIGHT - 12);
-    if (y - previous < 10) stack += 1;
-    else stack = 0;
-    previous = y;
-    return { ...label, y, x: label.x + stack * 28 };
-  });
+  const placed: number[] = [];
+  for (const label of sorted) {
+    let y = Math.min(Math.max(label.y, LABEL_MIN_Y), LABEL_MAX_Y);
+    const previous = placed[placed.length - 1];
+    if (previous != null && y < previous + 11) y = previous + 11;
+    if (y > LABEL_MAX_Y) {
+      const overflow = y - LABEL_MAX_Y;
+      for (let index = 0; index < placed.length; index += 1) {
+        placed[index] = Math.max(LABEL_MIN_Y, placed[index]! - overflow);
+      }
+      y = LABEL_MAX_Y;
+    }
+    placed.push(y);
+  }
+  return sorted.map((label, index) => ({
+    ...label,
+    x: LABEL_X,
+    y: placed[index] ?? label.y,
+  }));
 }
 
 function Marker({

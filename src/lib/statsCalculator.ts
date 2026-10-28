@@ -41,14 +41,35 @@ export function getUniqueTags(sessions: PracticeSession[]): string[] {
 }
 
 /**
+ * 進行中の練習の開始日が、その期間に入るか。
+ * 「今月」は startedAt の月で見る。日付が無いときは今日として扱う。
+ */
+export function currentPracticeInPeriod(
+  period: PeriodFilterType,
+  startedAt: string | null | undefined,
+  now = new Date()
+): boolean {
+  if (period !== 'thisMonth') return true;
+  const started = startedAt ? new Date(startedAt) : now;
+  if (Number.isNaN(started.getTime())) return false;
+  return (
+    started.getFullYear() === now.getFullYear() &&
+    started.getMonth() === now.getMonth()
+  );
+}
+
+/**
  * 進行中の練習を統計に足すか。
- * 今日はこの期間のどれにも入る。クラブを選んでいるときはタグが重なるときだけ足す。
+ * 期間は練習の開始日で判定する。クラブを選んでいるときはタグが重なるときだけ足す。
  */
 export function shouldIncludeCurrentPractice(input: {
   period: PeriodFilterType;
   clubFilter: string[];
   currentClubTags: string[];
+  startedAt?: string | null;
+  now?: Date;
 }): boolean {
+  if (!currentPracticeInPeriod(input.period, input.startedAt, input.now)) return false;
   if (input.clubFilter.length === 0) return true;
   return input.currentClubTags.some((tag) => input.clubFilter.includes(tag));
 }

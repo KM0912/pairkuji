@@ -20,6 +20,8 @@ type State = {
   isInitialLoad: boolean;
   /** 組み合わせ生成中。画面全体の読み込みとは分ける。 */
   isGenerating: boolean;
+  /** 練習の終了処理中。二重に履歴へ保存しない。 */
+  isResetting: boolean;
   error: string | null;
 };
 
@@ -54,6 +56,7 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
   isLoading: false,
   isInitialLoad: false,
   isGenerating: false,
+  isResetting: false,
   error: null,
 
   load: async () => {
@@ -296,6 +299,8 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
   },
 
   resetPractice: async () => {
+    if (get().isResetting) return;
+    set({ isResetting: true });
     const state = get();
     try {
       await db.transaction(
@@ -327,9 +332,12 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
           await db.rounds.clear();
         }
       );
-      set({ settings: null, players: [], rounds: [] });
+      set({ settings: null, players: [], rounds: [], isResetting: false });
     } catch (e: unknown) {
-      set({ error: e instanceof Error ? e.message : '練習を終了できませんでした' });
+      set({
+        error: e instanceof Error ? e.message : '練習を終了できませんでした',
+        isResetting: false,
+      });
     }
   },
 

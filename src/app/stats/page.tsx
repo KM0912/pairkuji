@@ -30,6 +30,7 @@ export default function StatsPage() {
     allMembers,
     isLoading: membersLoading,
     isInitialLoad: membersInitialLoad,
+    error: membersError,
     loadAll: loadAllMembers,
   } = useMemberStore();
   const {
@@ -38,6 +39,7 @@ export default function StatsPage() {
     settings,
     isLoading: practiceLoading,
     isInitialLoad: practiceInitialLoad,
+    error: practiceError,
     load,
     loadSessions,
   } = usePracticeStore();
@@ -69,6 +71,7 @@ export default function StatsPage() {
         period: periodFilter,
         clubFilter,
         currentClubTags: settings?.clubTags ?? [],
+        startedAt: settings?.startedAt,
       }),
     [periodFilter, clubFilter, settings]
   );
@@ -128,6 +131,29 @@ export default function StatsPage() {
 
   const isLoading = membersLoading || practiceLoading;
   const isInitialLoading = !membersInitialLoad || !practiceInitialLoad;
+
+  const loadError = membersError || practiceError;
+  if (!isLoading && !isInitialLoading && loadError) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center px-4">
+        <div className="max-w-sm text-center">
+          <h1 className="mb-2 text-xl font-bold text-foreground">統計を読み込めませんでした</h1>
+          <p className="mb-4 text-sm text-muted-foreground">{loadError}</p>
+          <button
+            type="button"
+            className="inline-flex min-h-11 items-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground"
+            onClick={() => {
+              loadAllMembers();
+              load();
+              loadSessions();
+            }}
+          >
+            再読み込み
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading || isInitialLoading) {
     return (

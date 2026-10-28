@@ -32,6 +32,23 @@ describe('courtsWithRecordedResult', () => {
       { courtNo: 2, result: 'pairB' },
     ]);
   });
+
+  test('同じペアの入れ替えでは勝敗を消さない', () => {
+    expect(
+      courtsWithRecordedResult(
+        [{ courtNo: 1, pairA: [1, 2], pairB: [3, 4], result: 'pairA' }],
+        1,
+        2
+      )
+    ).toEqual([]);
+    expect(
+      courtsWithRecordedResult(
+        [{ courtNo: 1, pairA: [1, 2], pairB: [3, 4], result: 'pairA' }],
+        1,
+        3
+      )
+    ).toEqual([{ courtNo: 1, result: 'pairA' }]);
+  });
 });
 
 describe('canUndoSubstitution', () => {

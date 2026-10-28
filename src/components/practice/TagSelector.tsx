@@ -56,6 +56,7 @@ export function TagSelector({ value, onChange }: TagSelectorProps) {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.nativeEvent.isComposing || e.keyCode === 229) return;
     if (e.key === 'Enter') {
       e.preventDefault();
       if (inputValue.trim()) {
@@ -144,7 +145,7 @@ export function TagSelector({ value, onChange }: TagSelectorProps) {
                 }
               }}
               placeholder="クラブ名を入力してEnter"
-              className="w-full border rounded-lg px-3 py-2 bg-card border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[40px]"
+              className="min-h-11 w-full rounded-lg border border-border bg-card px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-primary"
               aria-label="新しいクラブ"
             />
             {suggestions.length > 0 && inputValue.trim() && (

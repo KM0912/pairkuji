@@ -17,6 +17,7 @@ beforeEach(async () => {
     error: null,
     isLoading: false,
     isGenerating: false,
+    isResetting: false,
     isInitialLoad: true,
   });
 });
@@ -51,6 +52,23 @@ describe('generateNextRound の読み込み表示', () => {
     expect(state.isGenerating).toBe(false);
     expect(state.rounds).toHaveLength(0);
     expect(state.error).toMatch(/4人必要/);
+  });
+});
+
+describe('resetPractice', () => {
+  test('終了を同時に2回呼んでも履歴は1件', async () => {
+    await usePracticeStore.getState().startPractice(1, [1, 2, 3, 4]);
+    await usePracticeStore.getState().generateNextRound();
+
+    await Promise.all([
+      usePracticeStore.getState().resetPractice(),
+      usePracticeStore.getState().resetPractice(),
+    ]);
+
+    const sessions = await db.practiceSessions.toArray();
+    expect(sessions).toHaveLength(1);
+    expect(usePracticeStore.getState().settings).toBeNull();
+    expect(usePracticeStore.getState().isResetting).toBe(false);
   });
 });
 

@@ -214,7 +214,7 @@ describe('練習画面の文言', () => {
         onCreateMember={async () => undefined}
       />
     );
-    expect(html).toContain('あと 4 名選択してください');
+    expect(html).toContain('あと4人選択してください');
     const start = html.match(/<button[^>]*type="submit"[\s\S]*?<\/button>/);
     expect(start?.[0]).toContain('disabled');
     expect(start?.[0]).not.toContain('あと');

@@ -524,16 +524,16 @@ export default function MembersPage() {
           </DialogContent>
         </Dialog>
 
-        {toast && (
-          <div role="status" aria-live="polite" className="fixed bottom-40 left-1/2 z-toast max-w-[calc(100%-2rem)] -translate-x-1/2 rounded-xl bg-foreground px-5 py-3 text-caption font-medium text-background shadow-level-3 animate-in fade-in-0 slide-in-from-bottom-4 duration-slow">
-            {toast}
-          </div>
-        )}
       </div>
 
       {/* Fixed Bottom Buttons */}
       <div className="bottom-above-nav fixed left-4 right-4 z-overlay">
-        <div className="max-w-2xl mx-auto">
+        <div className="mx-auto max-w-2xl space-y-3">
+          {toast && (
+            <div role="status" aria-live="polite" className="rounded-xl bg-foreground px-5 py-3 text-center text-caption font-medium text-background shadow-level-3">
+              {toast}
+            </div>
+          )}
           <div className="flex gap-3">
             <Button onClick={openAddModal} className="flex-1 shadow-2xl">
               <span className="inline-flex items-center gap-2 font-semibold">

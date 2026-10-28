@@ -96,6 +96,9 @@ export default function PracticePage() {
   const [dismissResultReminder, setDismissResultReminder] = useState(false);
   const [toast, setToast] = useState<PracticeToast | null>(null);
   const [endedNotice, setEndedNotice] = useState<number[] | null>(null);
+  const [isEnding, setIsEnding] = useState(false);
+  const [selectionNote, setSelectionNote] = useState<string | null>(null);
+  const endingRef = useRef(false);
   const [courtNotice, setCourtNotice] = useState<string | null>(null);
   const roundCountAtCourtChange = useRef<number | null>(null);
   const { mode: courtDisplayMode, setMode: setCourtDisplayMode } =
@@ -193,7 +196,10 @@ export default function PracticePage() {
   }, [latestRound?.roundNo]);
 
   useEffect(() => {
-    if (settings) setEndedNotice(null);
+    if (settings) {
+      setEndedNotice(null);
+      setSelectionNote(null);
+    }
   }, [settings]);
   const toastCanUndo =
     toast?.undo?.kind === 'round'
@@ -321,13 +327,23 @@ export default function PracticePage() {
   };
 
   const handleReset = async () => {
+    if (endingRef.current) return;
+    endingRef.current = true;
+    setIsEnding(true);
     const memberIds = players.map((player) => player.memberId);
     const saved = rounds.length > 0;
     setSubstituting(null);
-    await resetPractice();
-    setShowResetConfirm(false);
-    if (saved && !usePracticeStore.getState().error) {
-      setEndedNotice(memberIds);
+    try {
+      await resetPractice();
+      setShowResetConfirm(false);
+      setClubTags([]);
+      if (saved && !usePracticeStore.getState().error) {
+        setEndedNotice(memberIds);
+        setSelectionNote(null);
+      }
+    } finally {
+      endingRef.current = false;
+      setIsEnding(false);
     }
   };
 
@@ -469,6 +485,9 @@ export default function PracticePage() {
         {endedNotice && (
           <div className="mb-4 rounded-xl border border-border bg-card p-4 shadow-level-1">
             <p className="text-sm font-semibold text-foreground">履歴に保存しました</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              クラブは空に戻しています。コート数は、この画面の設定のままです。
+            </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <Link
                 href="/history"
@@ -482,12 +501,24 @@ export default function PracticePage() {
                 onClick={() => {
                   setSelected(endedNotice);
                   setEndedNotice(null);
+                  setSelectionNote('同じメンバーを選びました。内容を確認してから開始してください。');
+                  requestAnimationFrame(() => {
+                    document.getElementById('doubles-participants')?.scrollIntoView({
+                      behavior: 'smooth',
+                      block: 'start',
+                    });
+                  });
                 }}
               >
-                同じメンバーで開始
+                同じメンバーを選ぶ
               </button>
             </div>
           </div>
+        )}
+        {selectionNote && (
+          <p role="status" className="mb-3 text-sm font-semibold text-foreground">
+            {selectionNote}
+          </p>
         )}
         <ParticipantSelection
           members={members}
@@ -516,9 +547,9 @@ export default function PracticePage() {
               className="min-w-0 flex-1 px-1.5 text-base shadow-level-1 hover:shadow-level-2 sm:px-3.5 sm:text-sm"
             >
               <Shuffle className="w-4 h-4" />
+              <span className="rounded bg-primary/10 px-1.5 py-0.5 text-small font-bold text-primary">{rounds.length}</span>
               <span className="text-small font-semibold sm:hidden">回</span>
               <span className="hidden text-small font-semibold sm:inline">ラウンド</span>
-              <span className="rounded bg-primary/10 px-1.5 py-0.5 text-small font-bold text-primary">{rounds.length}</span>
             </Button>
             <Button
               type="button"
@@ -529,9 +560,9 @@ export default function PracticePage() {
               className="min-w-0 flex-1 px-1.5 text-base shadow-level-1 hover:shadow-level-2 sm:px-3.5 sm:text-sm"
             >
               <PiCourtBasketball className="w-4 h-4" />
+              <span className="rounded bg-primary/10 px-1.5 py-0.5 text-small font-bold text-primary">{settings.courts}</span>
               <span className="text-small font-semibold sm:hidden">面</span>
               <span className="hidden text-small font-semibold sm:inline">コート</span>
-              <span className="rounded bg-primary/10 px-1.5 py-0.5 text-small font-bold text-primary">{settings.courts}</span>
             </Button>
             <Button
               type="button"
@@ -542,14 +573,14 @@ export default function PracticePage() {
               className="min-w-0 flex-1 px-1.5 text-base shadow-level-1 hover:shadow-level-2 sm:px-3.5 sm:text-sm"
             >
               <Users className="w-4 h-4" />
-              <span className="text-small font-semibold sm:hidden">人</span>
-              <span className="hidden text-small font-semibold sm:inline">参加者</span>
               <span
                 className="rounded bg-primary/10 px-1.5 py-0.5 text-small font-bold text-primary"
-                title={`出場できる人 ${activeCount}人、全体 ${players.length}人`}
+                title={`出場できる人${activeCount}人、全体${players.length}人`}
               >
                 {activeCount}/{players.length}
               </span>
+              <span className="text-small font-semibold sm:hidden">人</span>
+              <span className="hidden text-small font-semibold sm:inline">参加者</span>
             </Button>
             <Button
               type="button"
@@ -723,7 +754,13 @@ export default function PracticePage() {
       {/* Fixed Bottom Buttons */}
       {settings && (
         <div className="bottom-above-nav fixed left-4 right-4 z-overlay">
-          <div className="max-w-2xl mx-auto space-y-2">
+          <div className="mx-auto max-w-2xl space-y-3">
+            <SubstitutionHint
+              substituting={substituting}
+              memberMap={memberMap}
+              playerMap={playerMap}
+              onCancel={() => setSubstituting(null)}
+            />
             {generateBlockedReason && (
               <p
                 role="status"
@@ -760,13 +797,6 @@ export default function PracticePage() {
         }}
       />
 
-      <SubstitutionHint
-        substituting={substituting}
-        memberMap={memberMap}
-        playerMap={playerMap}
-        onCancel={() => setSubstituting(null)}
-      />
-
       {/* Round summary & session stats modal */}
       <SessionStatsModal
         open={showRoundSummary}
@@ -788,7 +818,7 @@ export default function PracticePage() {
               参加者の管理
             </DialogTitle>
             <p className="text-xs text-muted-foreground">
-              出場できる人 {activeCount}人 / 全体 {players.length}人
+              出場できる人{activeCount}人 / 全体{players.length}人
             </p>
           </div>
           <DialogDescription className="sr-only">参加者のステータスを管理します</DialogDescription>
@@ -837,10 +867,11 @@ export default function PracticePage() {
             </Button>
             <Button
               variant="destructive"
-              onClick={handleReset}
+              onClick={() => void handleReset()}
               className="flex-1"
+              disabled={isEnding}
             >
-              終了する
+              {isEnding ? '終了しています' : '終了する'}
             </Button>
           </div>
         </DialogContent>

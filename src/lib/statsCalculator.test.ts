@@ -11,6 +11,7 @@ import {
   filterSessionsByTag,
   getUniqueTags,
   MIN_RANKED_MATCHES,
+  currentPracticeInPeriod,
   pickMatchupHighlights,
   sessionsAlongsideCurrent,
   shouldIncludeCurrentPractice,
@@ -672,6 +673,40 @@ describe('shouldIncludeCurrentPractice', () => {
         currentClubTags: ['クラブB'],
       })
     ).toBe(false);
+  });
+
+  test('前月から続く練習は今月に入れない', () => {
+    const now = new Date('2026-10-28T00:00:00');
+    expect(
+      currentPracticeInPeriod('thisMonth', '2026-09-30T15:00:00', now)
+    ).toBe(false);
+    expect(
+      shouldIncludeCurrentPractice({
+        period: 'thisMonth',
+        clubFilter: [],
+        currentClubTags: [],
+        startedAt: '2026-09-30T15:00:00',
+        now,
+      })
+    ).toBe(false);
+    expect(
+      shouldIncludeCurrentPractice({
+        period: 'all',
+        clubFilter: [],
+        currentClubTags: [],
+        startedAt: '2026-09-30T15:00:00',
+        now,
+      })
+    ).toBe(true);
+    expect(
+      shouldIncludeCurrentPractice({
+        period: 'thisMonth',
+        clubFilter: [],
+        currentClubTags: [],
+        startedAt: '2026-10-01T00:00:00',
+        now,
+      })
+    ).toBe(true);
   });
 
   test('クラブが一致しない進行中の練習は足さない', () => {

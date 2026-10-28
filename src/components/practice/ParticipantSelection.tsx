@@ -155,7 +155,7 @@ export function ParticipantSelection({
           </Card>
 
           {/* 参加者選択 */}
-          <Card>
+          <Card id="doubles-participants">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <IconBadge icon={Users} size="md" className="text-primary" />
@@ -164,7 +164,7 @@ export function ParticipantSelection({
                 </h3>
               </CardTitle>
               <CardDescription>
-                {selected.length}名選択中 • 最低4名必要
+                {selected.length}人選択中 • 最低4人必要
               </CardDescription>
             </CardHeader>
 
@@ -185,7 +185,7 @@ export function ParticipantSelection({
                   onClick={() => setViewFilter('selected')}
                   className="text-xs"
                 >
-                  選択中 {counts.selected}
+                  選択中{counts.selected}人
                 </SelectTile>
                 <SelectTile
                   size="sm"
@@ -340,7 +340,7 @@ export function ParticipantSelection({
             <div className="mx-auto max-w-2xl rounded-xl bg-background/95 p-2 shadow-level-2 backdrop-blur-sm">
               {selected.length < minToStart && (
                 <p className="mb-2 text-center text-sm font-semibold text-foreground">
-                  あと {needMore} 名選択してください
+                  あと{needMore}人選択してください
                 </p>
               )}
               <Button
@@ -354,7 +354,7 @@ export function ParticipantSelection({
                   <Play className="w-6 h-6" />
                   {selected.length < minToStart
                     ? 'ダブルス練習開始'
-                    : `ダブルス練習開始 (${selected.length}名)`}
+                    : `ダブルス練習開始（${selected.length}人）`}
                 </span>
               </Button>
             </div>
@@ -380,6 +380,7 @@ export function ParticipantSelection({
                 value={newName}
                 onChange={(event) => setNewName(event.target.value)}
                 onKeyDown={(event) => {
+                  if (event.nativeEvent.isComposing || event.keyCode === 229) return;
                   if (event.key === 'Enter') {
                     event.preventDefault();
                     void submitNewMember();
