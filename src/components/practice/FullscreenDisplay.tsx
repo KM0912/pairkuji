@@ -91,30 +91,21 @@ export function FullscreenDisplay({
     return players
       .filter(
         (player) =>
-          player.status === 'active' && !playersInCourts.includes(player.memberId)
+          player.status === 'active' &&
+          !playersInCourts.includes(player.memberId)
       )
       .map((player) => player.memberId);
   };
 
   const restingPlayers = getRestingPlayers();
-  const breakPlayers = players.filter(
-    (player) => player.status === 'rest' && player.restKind === 'break'
-  );
-  const earlyPlayers = players.filter(
-    (player) => player.status === 'rest' && player.restKind !== 'break'
-  );
+  const pausedPlayers = players.filter((player) => player.status === 'rest');
 
   const renderPlayer = (id: number) => {
     const member = memberMap.get(id);
     const player = playerMap.get(id);
     const name = member?.name ?? '???';
     const number = player?.playerNumber ?? '?';
-    const nextOut =
-      player?.status === 'rest'
-        ? player.restKind === 'break'
-          ? '次は休憩'
-          : '次は早退'
-        : null;
+    const nextOut = player?.status === 'rest' ? '次は休憩' : null;
     return (
       <div
         key={id}
@@ -130,7 +121,9 @@ export function FullscreenDisplay({
             {name}
           </div>
           {nextOut && (
-            <div className="text-sm font-semibold text-amber-800">{nextOut}</div>
+            <div className="text-sm font-semibold text-amber-800">
+              {nextOut}
+            </div>
           )}
         </div>
       </div>
@@ -169,10 +162,14 @@ export function FullscreenDisplay({
               </div>
               <div className="flex items-stretch gap-2">
                 <div className="min-w-0 flex-1 rounded-md border border-primary/40 bg-primary/5 p-2">
-                  <div className="space-y-2">{court.pairA.map(renderPlayer)}</div>
+                  <div className="space-y-2">
+                    {court.pairA.map(renderPlayer)}
+                  </div>
                 </div>
                 <div className="min-w-0 flex-1 rounded-md border border-primary/40 bg-primary/5 p-2">
-                  <div className="space-y-2">{court.pairB.map(renderPlayer)}</div>
+                  <div className="space-y-2">
+                    {court.pairB.map(renderPlayer)}
+                  </div>
                 </div>
               </div>
             </div>
@@ -181,7 +178,9 @@ export function FullscreenDisplay({
 
         {restingPlayers.length > 0 && (
           <div className="mt-3 rounded-lg border border-border bg-muted p-3">
-            <h3 className="mb-2 text-lg font-bold text-foreground">休憩中</h3>
+            <h3 className="mb-2 text-lg font-bold text-foreground">
+              今回の休憩
+            </h3>
             <div className="flex flex-wrap gap-1.5">
               {restingPlayers.map((id) => {
                 const member = memberMap.get(id);
@@ -208,52 +207,30 @@ export function FullscreenDisplay({
           </div>
         )}
 
-        {breakPlayers.length > 0 && (
-          <div className="mt-3 rounded-lg border border-border bg-muted p-3">
-            <h3 className="mb-2 text-lg font-bold text-foreground">休憩</h3>
-            <div className="flex flex-wrap gap-2">
-              {breakPlayers.map((player) => {
-                const member = memberMap.get(player.memberId);
-                const name = member?.name ?? '???';
-                return (
-                  <span
-                    key={player.memberId}
-                    className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-2"
-                  >
-                    <PlayerNumber number={player.playerNumber} variant="neutral" size="lg" />
-                    <span className="max-w-[180px] truncate text-xl font-bold text-foreground">
-                      {name}
-                    </span>
-                  </span>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {earlyPlayers.length > 0 && (
+        {pausedPlayers.length > 0 && (
           <div className="mt-3 rounded-lg border border-dashed border-border bg-muted/40 p-3">
-            <h3 className="mb-2 text-lg font-bold text-foreground">早退</h3>
+            <h3 className="mb-2 text-lg font-bold text-foreground">
+              休憩に設定中
+            </h3>
+            <p className="mb-2 text-sm text-muted-foreground">
+              再開するまで次の組み合わせから外れます。
+            </p>
             <div className="flex flex-wrap gap-2">
-              {earlyPlayers.map((player) => {
-                const member = memberMap.get(player.memberId);
-                const name = member?.name ?? '???';
-                return (
-                  <span
-                    key={player.memberId}
-                    className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-2"
-                  >
-                    <PlayerNumber
-                      number={player.playerNumber}
-                      variant="neutral"
-                      size="lg"
-                    />
-                    <span className="max-w-[180px] truncate text-xl font-bold text-muted-foreground">
-                      {name}
-                    </span>
+              {pausedPlayers.map((player) => (
+                <span
+                  key={player.memberId}
+                  className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-2"
+                >
+                  <PlayerNumber
+                    number={player.playerNumber}
+                    variant="neutral"
+                    size="lg"
+                  />
+                  <span className="max-w-[180px] truncate text-xl font-bold text-muted-foreground">
+                    {memberMap.get(player.memberId)?.name ?? '???'}
                   </span>
-                );
-              })}
+                </span>
+              ))}
             </div>
           </div>
         )}

@@ -11,7 +11,7 @@ export type NewPracticeSettings = Pick<PracticeSettings, 'courts'>;
 
 export type PlayerStatus = 'active' | 'rest';
 
-/** break は次の1ラウンドだけ外し、その後は戻る。early は戻すまで外れたまま。 */
+/** 旧データの読み込み用。現在は区別せず、statusで休憩・再開を管理する。 */
 export type RestKind = 'break' | 'early';
 
 export interface PracticePlayer {
@@ -19,6 +19,7 @@ export interface PracticePlayer {
   playerNumber: number; // 選択順に振られる番号（1から開始）
   status: PlayerStatus;
   createdAt: string;
+  /** @deprecated 旧バックアップとの互換性のため保持する。 */
   restKind?: RestKind;
   // 途中参加時に公平性を担保するための初期試合数補正
   playedOffset?: number; // デフォルト 0（DBには任意フィールドとして保存）

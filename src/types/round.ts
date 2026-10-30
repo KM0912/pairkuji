@@ -11,7 +11,7 @@ export interface Round {
   roundNo: number;
   courts: CourtMatch[];
   rests: number[]; // memberIds
-  /** このラウンドを生成したとき「休憩」から戻した選手。取り消しで戻す。 */
+  /** 旧形式の自動復帰情報。互換性のため保持し、現在の出場状態には適用しない。 */
   breakMemberIds?: number[];
 }
 

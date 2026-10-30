@@ -318,39 +318,80 @@ describe('undoLastRound', () => {
     expect(usePracticeStore.getState().settings?.currentRound).toBe(1);
   });
 
-  test('休憩にして生成したラウンドを取り消すと休憩指定が戻る', async () => {
+  test('休憩はラウンド生成・読み込み・取り消しを経ても続き、再開で戻る', async () => {
     await usePracticeStore.getState().startPractice(1, [1, 2, 3, 4, 5]);
-    await usePracticeStore.getState().setPlayerAvailability(5, 'break');
+    await usePracticeStore.getState().setPlayerAvailability(5, 'rest');
     await usePracticeStore.getState().generateNextRound();
+    await usePracticeStore.getState().generateNextRound();
+    expect(usePracticeStore.getState().rounds).toHaveLength(2);
+    for (const round of usePracticeStore.getState().rounds) {
+      const includedIds = [
+        ...round.courts.flatMap((court) => [...court.pairA, ...court.pairB]),
+        ...round.rests,
+      ];
+      expect(includedIds).not.toContain(5);
+      expect(round.breakMemberIds).toBeUndefined();
+    }
+    await usePracticeStore.getState().load();
     expect(
-      usePracticeStore.getState().players.find((player) => player.memberId === 5)?.status
-    ).toBe('active');
+      usePracticeStore
+        .getState()
+        .players.find((player) => player.memberId === 5)?.status
+    ).toBe('rest');
+    expect(await usePracticeStore.getState().undoLastRound()).toBe(true);
+    expect((await db.practicePlayers.get(5))?.status).toBe('rest');
 
-    const undone = await usePracticeStore.getState().undoLastRound();
-    expect(undone).toBe(true);
-    const restored = usePracticeStore.getState().players.find(
-      (player) => player.memberId === 5
-    );
-    expect(restored?.status).toBe('rest');
-    expect(restored?.restKind).toBe('break');
-    expect((await db.practicePlayers.get(5))?.restKind).toBe('break');
-  });
-
-  test('生成後に早退へ変えた人は、元に戻しても早退のまま', async () => {
-    await usePracticeStore.getState().startPractice(1, [1, 2, 3, 4, 5]);
-    await usePracticeStore.getState().setPlayerAvailability(5, 'break');
+    await usePracticeStore.getState().setPlayerAvailability(5, 'active');
     await usePracticeStore.getState().generateNextRound();
-    await usePracticeStore.getState().setPlayerAvailability(5, 'early');
-
-    const undone = await usePracticeStore.getState().undoLastRound();
-    expect(undone).toBe(true);
-    const kept = usePracticeStore.getState().players.find(
-      (player) => player.memberId === 5
-    );
-    expect(kept?.status).toBe('rest');
-    expect(kept?.restKind).toBe('early');
-    expect((await db.practicePlayers.get(5))?.restKind).toBe('early');
+    const rounds = usePracticeStore.getState().rounds;
+    const latest = rounds[rounds.length - 1]!;
+    expect([
+      ...latest.courts.flatMap((court) => [...court.pairA, ...court.pairB]),
+      ...latest.rests,
+    ]).toContain(5);
+    expect((await db.practicePlayers.get(5))?.status).toBe('active');
   });
+
+  test.each(['break', 'early'] as const)(
+    '旧形式の休憩区分 %s も再開するまで休憩が続く',
+    async (restKind) => {
+      await usePracticeStore.getState().startPractice(1, [1, 2, 3, 4, 5]);
+      await db.practicePlayers.update(5, { status: 'rest', restKind });
+      await usePracticeStore.getState().load();
+      await usePracticeStore.getState().generateNextRound();
+      await usePracticeStore.getState().generateNextRound();
+      expect(
+        usePracticeStore
+          .getState()
+          .players.find((player) => player.memberId === 5)?.status
+      ).toBe('rest');
+      expect((await db.practicePlayers.get(5))?.status).toBe('rest');
+      await usePracticeStore.getState().setPlayerAvailability(5, 'active');
+      expect((await db.practicePlayers.get(5))?.restKind).toBeUndefined();
+    }
+  );
+
+  test.each(['active', 'rest'] as const)(
+    '旧ラウンドを取り消しても手動で設定した %s を維持する',
+    async (status) => {
+      await usePracticeStore.getState().startPractice(1, [1, 2, 3, 4, 5]);
+      await usePracticeStore.getState().generateNextRound();
+      const previous = {
+        ...usePracticeStore.getState().rounds[0]!,
+        breakMemberIds: [5],
+      };
+      await db.rounds.put(previous);
+      usePracticeStore.setState({ rounds: [previous] });
+      await usePracticeStore.getState().setPlayerAvailability(5, status);
+      expect(await usePracticeStore.getState().undoLastRound()).toBe(true);
+      expect(
+        usePracticeStore
+          .getState()
+          .players.find((player) => player.memberId === 5)?.status
+      ).toBe(status);
+      expect((await db.practicePlayers.get(5))?.status).toBe(status);
+    }
+  );
 });
 
 describe('memberStore', () => {

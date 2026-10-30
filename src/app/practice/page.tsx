@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMemberStore } from '@/lib/stores/memberStore';
 import { usePracticeStore } from '@/lib/stores/practiceStore';
 import { ParticipantSelection } from '@/components/practice/ParticipantSelection';
+import { PracticeToolbar } from '@/components/practice/PracticeToolbar';
 import { MemberRoster } from '@/components/members/MemberRoster';
 import { ParticipantManagement } from '@/components/practice/ParticipantManagement';
 import { CourtManagement } from '@/components/practice/CourtManagement';
@@ -21,8 +22,7 @@ import {
   countOpponentOccurrencesInRounds,
   countPairOccurrencesInRounds,
 } from '@/lib/statsCalculator';
-import { Users, AlertTriangle, Shuffle, MoreVertical, Monitor } from 'lucide-react';
-import { PiCourtBasketball } from 'react-icons/pi';
+import { Users, AlertTriangle, Shuffle, Monitor } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 const HIDE_RESULT_REMINDER_KEY = 'pairkuji-hide-result-reminder';
@@ -60,7 +60,7 @@ export default function PracticePage() {
   const activeCount = players.filter((player) => player.status === 'active').length;
   const generateBlockedReason =
     activeCount < 4
-      ? `出場できる人が${activeCount}人です（4人必要）。休憩・早退の人を戻すか、参加者を追加してください`
+      ? `出場できる人が${activeCount}人です（4人必要）。休憩中の人を戻すか、参加者を追加してください`
       : null;
 
   const [courts, setCourts] = useState(2);
@@ -371,57 +371,16 @@ export default function PracticePage() {
         />
       ) : (
         <>
-          {/* ヘッダーエリア */}
-          <div className="flex gap-2 mb-5">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setShowRoundSummary(true)}
-              className="flex-1 min-w-0 text-base sm:text-sm shadow-level-1 hover:shadow-level-2"
-            >
-              <Shuffle className="w-4 h-4" />
-              <span className="sm:text-inherit text-small font-semibold">ラウンド</span>
-              <span className="sm:text-inherit text-small font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded">{rounds.length}</span>
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setShowCourtModal(true)}
-              className="flex-1 min-w-0 text-base sm:text-sm shadow-level-1 hover:shadow-level-2"
-            >
-              <PiCourtBasketball className="w-4 h-4" />
-              <span className="sm:text-inherit text-small font-semibold">コート</span>
-              <span className="sm:text-inherit text-small font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded">{settings.courts}</span>
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleOpenParticipants}
-              className="flex-1 min-w-0 text-base sm:text-sm shadow-level-1 hover:shadow-level-2"
-            >
-              <Users className="w-4 h-4" />
-              <span className="sm:text-inherit text-small font-semibold">参加者</span>
-              <span
-                className="sm:text-inherit text-small font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded"
-                title={`出場できる人 ${activeCount}人、全体 ${players.length}人`}
-              >
-                {activeCount}/{players.length}
-              </span>
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setShowPracticeMenu(true)}
-              className="shrink-0 px-2 shadow-level-1"
-              aria-label="練習メニュー"
-            >
-              <MoreVertical className="w-4 h-4" />
-            </Button>
-          </div>
+          <PracticeToolbar
+            roundCount={rounds.length}
+            courts={settings.courts}
+            activeCount={activeCount}
+            participantCount={players.length}
+            onShowRounds={() => setShowRoundSummary(true)}
+            onShowCourts={() => setShowCourtModal(true)}
+            onShowParticipants={handleOpenParticipants}
+            onShowMenu={() => setShowPracticeMenu(true)}
+          />
 
           {courtNotice && (
             <p className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
@@ -636,7 +595,7 @@ export default function PracticePage() {
 
       {/* Participant management modal */}
       <Dialog open={showParticipantModal && !!settings} onOpenChange={(open) => !open && setShowParticipantModal(false)}>
-        <DialogContent className="max-w-3xl rounded-2xl border-2 border-border/50 p-0">
+        <DialogContent className="top-1/2 flex max-h-[85dvh] max-w-[calc(100%-2rem)] flex-col gap-0 overflow-hidden rounded-2xl border-2 border-border/50 p-0 sm:max-w-3xl">
           <div className="border-b px-5 py-4">
             <DialogTitle className="text-base font-semibold text-foreground">
               参加者の管理
@@ -646,14 +605,12 @@ export default function PracticePage() {
             </p>
           </div>
           <DialogDescription className="sr-only">参加者のステータスを管理します</DialogDescription>
-          <div className="h-[60vh] px-5 py-4">
+          <div className="h-[60vh] min-h-0 px-5 py-4">
             {settings && (
               <ParticipantManagement
-                settings={settings}
                 players={players}
                 memberMap={memberMap}
                 matchCounts={matchCounts}
-                updateCourts={updateCourts}
                 onSetAvailability={setPlayerAvailability}
                 onShowAddParticipant={() => setShowAddParticipant(true)}
               />
@@ -665,7 +622,7 @@ export default function PracticePage() {
       <Dialog open={showMemberRoster && !!settings} onOpenChange={setShowMemberRoster}>
         <DialogContent className="top-1/2 max-h-[85dvh] max-w-[calc(100%-2rem)] overflow-y-auto rounded-2xl border-2 border-border/50 p-5 sm:max-w-2xl">
           <DialogTitle className="text-base font-semibold">メンバー名簿</DialogTitle>
-          <DialogDescription>選手の追加・編集・今は来ない設定・削除を行います。</DialogDescription>
+          <DialogDescription>選手の追加・編集・参加候補への表示設定・削除を行います。</DialogDescription>
           <MemberRoster members={members} protectedMemberIds={players.map((player) => player.memberId)} />
         </DialogContent>
       </Dialog>

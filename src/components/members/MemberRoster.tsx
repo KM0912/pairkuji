@@ -111,7 +111,7 @@ export function MemberRoster({
           },
         ]
       : []),
-    { id: 'inactive', label: '今は来ない', count: inactiveMembers.length },
+    { id: 'inactive', label: '非表示', count: inactiveMembers.length },
   ];
 
   const openEdit = (member: Member) => {
@@ -239,7 +239,7 @@ export function MemberRoster({
       size="icon"
       className="size-11 shrink-0"
       aria-label={`${member.name}を編集`}
-      title="名前・今は来ない設定・削除"
+      title="名前・参加候補への表示・削除"
       onClick={() => openEdit(member)}
     >
       <Edit3 className="size-4" aria-hidden />
@@ -251,7 +251,7 @@ export function MemberRoster({
       <p className="text-xs text-muted-foreground">
         {selection
           ? '名前をタップして参加者を選択。編集ボタンから名前変更・削除もできます。'
-          : '名前や「今は来ない」の設定を編集できます。'}
+          : '名前や参加候補への表示を編集できます。'}
       </p>
       <div
         className={cn('grid grid-cols-2 gap-2', selection && 'sm:grid-cols-4')}
@@ -349,7 +349,7 @@ export function MemberRoster({
                   </span>
                   {!member.isActive && (
                     <span className="block text-xs text-muted-foreground">
-                      今は来ない
+                      候補から非表示
                     </span>
                   )}
                   {isProtected && (
@@ -399,11 +399,11 @@ export function MemberRoster({
             {term
               ? '検索条件に一致するメンバーがいません'
               : viewFilter === 'inactive'
-                ? '「今は来ない」に設定した選手はいません'
+                ? '非表示にしている選手はいません'
                 : viewFilter === 'unselected'
                   ? '参加候補は全員選択されています'
                   : members.length > 0
-                    ? '参加候補がいません。「今は来ない」から設定を変更できます'
+                    ? '参加候補がいません。「非表示」から表示設定を変更できます'
                     : 'まだ選手がいません。「選手を追加」から登録できます'}
           </p>
         )}
@@ -536,20 +536,20 @@ export function MemberRoster({
               <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-border p-3 text-sm">
                 <input
                   type="checkbox"
-                  checked={!editingMember.isActive}
+                  checked={editingMember.isActive}
                   onChange={(event) =>
                     setEditingMember({
                       ...editingMember,
-                      isActive: !event.target.checked,
+                      isActive: event.target.checked,
                     })
                   }
                   className="size-5 accent-primary"
                   disabled={isSaving}
                 />
-                今は来ない
+                参加候補に表示
               </label>
               <p className="text-xs text-muted-foreground">
-                オンにすると参加候補から外れます。過去の記録や進行中の練習には影響しません。
+                オフにすると参加候補から非表示になります。「非表示」の一覧から、いつでも戻せます。
               </p>
               {confirmDeletedName === editingMember.name.trim() && (
                 <p role="alert" className="text-sm text-amber-900">

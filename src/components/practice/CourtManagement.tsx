@@ -31,7 +31,7 @@ function MatchCountIndicator({
 
 function nextOutLabel(player: PracticePlayer | undefined): string | null {
   if (!player || player.status !== 'rest') return null;
-  return player.restKind === 'break' ? '次は休憩' : '次は早退';
+  return '次は休憩';
 }
 
 function pairNumbers(
@@ -153,7 +153,10 @@ export function CourtManagement({
                         : 'border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5'
                     )}
                   >
-                    <PairCountIndicator pair={cm.pairA} pairCounts={pairCounts} />
+                    <PairCountIndicator
+                      pair={cm.pairA}
+                      pairCounts={pairCounts}
+                    />
                     <div className="space-y-1">
                       {cm.pairA.map((id) => {
                         const member = memberMap.get(id);
@@ -257,7 +260,10 @@ export function CourtManagement({
                         : 'border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5'
                     )}
                   >
-                    <PairCountIndicator pair={cm.pairB} pairCounts={pairCounts} />
+                    <PairCountIndicator
+                      pair={cm.pairB}
+                      pairCounts={pairCounts}
+                    />
                     <div className="space-y-1">
                       {cm.pairB.map((id) => {
                         const member = memberMap.get(id);
@@ -374,7 +380,7 @@ export function CourtManagement({
                 <div className="rounded-xl border-2 border-border/50 bg-gradient-to-br from-muted/80 to-muted/50 p-3 shadow-level-1">
                   <div className="mb-2 font-heading font-semibold text-foreground text-caption flex items-center gap-2">
                     <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full"></div>
-                    休憩中
+                    今回の休憩
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {restingPlayers.map((id) => {
@@ -430,39 +436,21 @@ export function CourtManagement({
               )
             );
           })()}
-          {(
-            [
-              {
-                kind: 'break' as const,
-                title: '休憩',
-                note: '次の1ラウンドだけ組み合わせから外れ、その次は戻ります。タップすると今すぐ戻せます。',
-              },
-              {
-                kind: 'early' as const,
-                title: '早退',
-                note: '戻すまで、次のラウンドの組み合わせに入りません。タップすると出場に戻せます。',
-              },
-            ] as const
-          ).map((section) => {
-            const sectionPlayers = players.filter(
-              (player) =>
-                player.status === 'rest' &&
-                (section.kind === 'break'
-                  ? player.restKind === 'break'
-                  : player.restKind !== 'break')
+          {(() => {
+            const pausedPlayers = players.filter(
+              (player) => player.status === 'rest'
             );
-            if (sectionPlayers.length === 0) return null;
+            if (pausedPlayers.length === 0) return null;
             return (
-              <div
-                key={section.kind}
-                className="rounded-xl border border-dashed border-border bg-muted/30 p-3"
-              >
+              <div className="rounded-xl border border-dashed border-border bg-muted/30 p-3">
                 <div className="mb-1 font-heading font-semibold text-foreground text-caption">
-                  {section.title}
+                  休憩に設定中
                 </div>
-                <p className="mb-2 text-xs text-muted-foreground">{section.note}</p>
+                <p className="mb-2 text-xs text-muted-foreground">
+                  再開するまで次の組み合わせから外れます。タップすると出場を再開できます。
+                </p>
                 <div className="flex flex-wrap gap-2">
-                  {sectionPlayers.map((player) => {
+                  {pausedPlayers.map((player) => {
                     const name = memberMap.get(player.memberId)?.name ?? '???';
                     return (
                       <button
@@ -470,7 +458,7 @@ export function CourtManagement({
                         type="button"
                         className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-background/80 px-3 py-1.5 text-caption text-muted-foreground"
                         onClick={() => void onToggleStatus?.(player.memberId)}
-                        aria-label={`${name}を出場に戻す`}
+                        aria-label={`${name}の出場を再開`}
                       >
                         <PlayerNumber
                           number={player.playerNumber}
@@ -484,7 +472,7 @@ export function CourtManagement({
                 </div>
               </div>
             );
-          })}
+          })()}
         </div>
       ) : (
         <div className="text-muted-foreground text-caption">
