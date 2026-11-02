@@ -7,6 +7,8 @@ import { IconBadge } from '../ui/IconBadge';
 import { PlayerNumber } from '../ui/PlayerNumber';
 import { Swords, Trophy, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { practiceLevelCardClass, practiceLevelLabel } from '@/lib/practiceLevels';
+import { PracticeLevelBadge } from '@/components/practice/PracticeLevelBadge';
 
 function MatchCountIndicator({
   count,
@@ -174,19 +176,24 @@ export function CourtManagement({
                               numberEmphasis
                                 ? 'flex items-center justify-center px-2 pb-2 pt-5 min-h-[64px]'
                                 : 'flex items-center gap-1.5 px-2 py-1.5 min-h-[48px] sm:gap-2.5 sm:px-3 sm:py-2.5',
+                              player?.level
+                                ? practiceLevelCardClass(player.level)
+                                : 'bg-white/80 dark:bg-card border-primary/40 hover:bg-primary/15 hover:border-primary/50',
                               substituting === id
-                                ? 'bg-warning/10 border-warning ring-2 ring-warning/30 shadow-level-2'
-                                : 'bg-white/80 border-primary/40 hover:bg-primary/15 hover:border-primary/50 hover:shadow-level-1'
+                                ? 'ring-2 ring-foreground ring-offset-2 ring-offset-background shadow-level-2'
+                                : 'hover:shadow-level-1'
                             )}
                             onClick={() => onPlayerClick(id)}
                             title={numberEmphasis ? name : undefined}
-                            aria-label={`番号${number}、${name}、${matchCount}試合${nextOut ? `、${nextOut}` : ''}。選択して入れ替え`}
+                            aria-pressed={substituting === id}
+                            aria-label={`番号${number}、${name}、${practiceLevelLabel(player?.level)}、${matchCount}試合${nextOut ? `、${nextOut}` : ''}。選択して入れ替え`}
                           >
                             <PlayerNumber
                               number={number}
                               variant="primary"
                               size={numberEmphasis ? 'lg' : 'xs'}
                             />
+                            <PracticeLevelBadge level={player?.level} className={numberEmphasis ? 'absolute left-1 top-1' : undefined} />
                             {nextOut && (
                               <span
                                 className={cn(
@@ -281,19 +288,24 @@ export function CourtManagement({
                               numberEmphasis
                                 ? 'flex items-center justify-center px-2 pb-2 pt-5 min-h-[64px]'
                                 : 'flex items-center gap-1.5 px-2 py-1.5 min-h-[48px] sm:gap-2.5 sm:px-3 sm:py-2.5',
+                              player?.level
+                                ? practiceLevelCardClass(player.level)
+                                : 'bg-white/80 dark:bg-card border-primary/40 hover:bg-primary/15 hover:border-primary/50',
                               substituting === id
-                                ? 'bg-warning/10 border-warning ring-2 ring-warning/30 shadow-level-2'
-                                : 'bg-white/80 border-primary/40 hover:bg-primary/15 hover:border-primary/50 hover:shadow-level-1'
+                                ? 'ring-2 ring-foreground ring-offset-2 ring-offset-background shadow-level-2'
+                                : 'hover:shadow-level-1'
                             )}
                             onClick={() => onPlayerClick(id)}
                             title={numberEmphasis ? name : undefined}
-                            aria-label={`番号${number}、${name}、${matchCount}試合${nextOut ? `、${nextOut}` : ''}。選択して入れ替え`}
+                            aria-pressed={substituting === id}
+                            aria-label={`番号${number}、${name}、${practiceLevelLabel(player?.level)}、${matchCount}試合${nextOut ? `、${nextOut}` : ''}。選択して入れ替え`}
                           >
                             <PlayerNumber
                               number={number}
                               variant="primary"
                               size={numberEmphasis ? 'lg' : 'xs'}
                             />
+                            <PracticeLevelBadge level={player?.level} className={numberEmphasis ? 'absolute left-1 top-1' : undefined} />
                             {nextOut && (
                               <span
                                 className={cn(
@@ -398,19 +410,24 @@ export function CourtManagement({
                             numberEmphasis
                               ? 'justify-center rounded-full px-2 py-2 min-h-[48px] min-w-[48px]'
                               : 'gap-2 rounded-full px-3.5 py-2 min-h-[44px]',
+                            player?.level
+                              ? practiceLevelCardClass(player.level)
+                              : 'bg-white/90 dark:bg-card border-border/60 text-foreground hover:bg-muted hover:border-border',
                             substituting === id
-                              ? 'bg-warning/10 border-warning text-warning-foreground ring-2 ring-warning/30 shadow-level-2'
-                              : 'bg-white/90 border-border/60 text-foreground hover:bg-muted hover:border-border hover:shadow-level-2'
+                              ? 'ring-2 ring-foreground ring-offset-2 ring-offset-background shadow-level-2'
+                              : 'hover:shadow-level-2'
                           )}
                           onClick={() => onPlayerClick(id)}
                           title={numberEmphasis ? name : undefined}
-                          aria-label={`番号${number}、${name}、${matchCount}試合。選択して入れ替え`}
+                          aria-pressed={substituting === id}
+                          aria-label={`番号${number}、${name}、${practiceLevelLabel(player?.level)}、${matchCount}試合。選択して入れ替え`}
                         >
                           <PlayerNumber
                             number={number}
                             variant="neutral"
                             size={numberEmphasis ? 'lg' : 'xs'}
                           />
+                          <PracticeLevelBadge level={player?.level} className={numberEmphasis ? 'absolute -left-1 -top-1' : undefined} />
                           {!numberEmphasis && (
                             <>
                               <span
@@ -456,9 +473,12 @@ export function CourtManagement({
                       <button
                         key={player.memberId}
                         type="button"
-                        className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-background/80 px-3 py-1.5 text-caption text-muted-foreground"
+                        className={cn(
+                          'inline-flex min-h-11 items-center gap-2 rounded-full border px-3 py-1.5 text-caption',
+                          player.level ? practiceLevelCardClass(player.level) : 'border-border bg-background/80 text-muted-foreground'
+                        )}
                         onClick={() => void onToggleStatus?.(player.memberId)}
-                        aria-label={`${name}の出場を再開`}
+                        aria-label={`${name}、${practiceLevelLabel(player.level)}。出場を再開`}
                       >
                         <PlayerNumber
                           number={player.playerNumber}
@@ -466,6 +486,7 @@ export function CourtManagement({
                           size="xs"
                         />
                         <span className="max-w-[120px] truncate">{name}</span>
+                        <PracticeLevelBadge level={player.level} />
                       </button>
                     );
                   })}

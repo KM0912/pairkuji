@@ -15,6 +15,8 @@ import { CourtSelector } from '@/components/ui/CourtSelector';
 import { Spinner } from '@/components/ui/spinner';
 import { SessionStatsModal } from '@/components/practice/SessionStatsModal';
 import { FullscreenDisplay } from '@/components/practice/FullscreenDisplay';
+import { PracticeLevelDialog } from '@/components/practice/PracticeLevelDialog';
+import { PracticeLevelLegend } from '@/components/practice/PracticeLevelBadge';
 import { useCourtDisplayMode } from '@/hooks/useCourtDisplayMode';
 import { calculateWinRates } from '@/lib/winRateCalculator';
 import { cn } from '@/lib/utils';
@@ -22,7 +24,7 @@ import {
   countOpponentOccurrencesInRounds,
   countPairOccurrencesInRounds,
 } from '@/lib/statsCalculator';
-import { Users, AlertTriangle, Shuffle, Monitor } from 'lucide-react';
+import { Users, AlertTriangle, Shuffle, Monitor, Palette } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 const HIDE_RESULT_REMINDER_KEY = 'pairkuji-hide-result-reminder';
@@ -47,6 +49,7 @@ export default function PracticePage() {
     load,
     startPractice,
     setPlayerAvailability,
+    setPlayerLevels,
     generateNextRound,
     undoLastRound,
     resetPractice,
@@ -73,6 +76,7 @@ export default function PracticePage() {
   const [showCourtModal, setShowCourtModal] = useState(false);
   const [pendingCourts, setPendingCourts] = useState<number>(courts);
   const [showParticipantModal, setShowParticipantModal] = useState(false);
+  const [showLevelSettings, setShowLevelSettings] = useState(false);
   const [showMemberRoster, setShowMemberRoster] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showPracticeMenu, setShowPracticeMenu] = useState(false);
@@ -101,6 +105,7 @@ export default function PracticePage() {
       setShowRoundSummary(false);
       setShowCourtModal(false);
       setShowParticipantModal(false);
+      setShowLevelSettings(false);
       setShowMemberRoster(false);
       setShowBoard(false);
     }
@@ -469,6 +474,19 @@ export default function PracticePage() {
             </div>
           </div>
 
+          <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="min-h-11 gap-2 px-3 text-sm"
+              onClick={() => setShowLevelSettings(true)}
+            >
+              <Palette className="size-4" aria-hidden />
+              レベル設定
+            </Button>
+            {players.some((player) => player.level) && <PracticeLevelLegend />}
+          </div>
+
           {/* コート管理 */}
           <div ref={combosRef} className="space-y-6 pb-32">
             <div>
@@ -488,6 +506,15 @@ export default function PracticePage() {
             </div>
           </div>
         </>
+      )}
+
+      {showLevelSettings && settings && (
+        <PracticeLevelDialog
+          players={players}
+          memberMap={memberMap}
+          onSetLevels={setPlayerLevels}
+          onClose={() => setShowLevelSettings(false)}
+        />
       )}
 
       {/* Court count modal */}

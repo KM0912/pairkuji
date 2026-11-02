@@ -1,5 +1,6 @@
 import { db } from '@/lib/db';
 import { saveSafetySnapshot } from '@/lib/safetyBackup';
+import { isPracticeLevel } from '@/lib/practiceLevels';
 import type { Member } from '@/types/member';
 import type { PracticePlayer, PracticeSettings } from '@/types/practice';
 import type { PracticeSession, SessionParticipant } from '@/types/practiceSession';
@@ -224,12 +225,17 @@ function parsePlayer(value: unknown, index: number, errors: string[]): PracticeP
     pushError(errors, `${label}の試合数補正が不正です`);
     return null;
   }
+  if (value.level !== undefined && !isPracticeLevel(value.level)) {
+    pushError(errors, `${label}のレベルが不正です`);
+    return null;
+  }
   return {
     memberId: value.memberId,
     playerNumber: value.playerNumber,
     status: value.status,
     createdAt: value.createdAt,
     playedOffset: value.playedOffset,
+    ...(value.level !== undefined ? { level: value.level } : {}),
   };
 }
 
@@ -242,7 +248,15 @@ function parseParticipant(
     pushError(errors, `${label}の出場番号が不正です`);
     return null;
   }
-  return { memberId: value.memberId, playerNumber: value.playerNumber };
+  if (value.level !== undefined && !isPracticeLevel(value.level)) {
+    pushError(errors, `${label}のレベルが不正です`);
+    return null;
+  }
+  return {
+    memberId: value.memberId,
+    playerNumber: value.playerNumber,
+    ...(value.level !== undefined ? { level: value.level } : {}),
+  };
 }
 
 function parseSession(value: unknown, index: number, errors: string[]): PracticeSession | null {

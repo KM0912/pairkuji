@@ -56,6 +56,32 @@ function validBackup(overrides: Record<string, unknown> = {}) {
 }
 
 describe('validateBackup', () => {
+  test.each(['D', 1, null])('不正なレベル %s を参加者・履歴から読み込まない', (level) => {
+    const player = {
+      memberId: 1,
+      playerNumber: 1,
+      status: 'active',
+      createdAt: '2026-04-01T00:00:00Z',
+      level,
+    };
+    const active = validateBackup(validBackup({ practicePlayers: [player] }));
+    expect(active.ok).toBe(false);
+    if (!active.ok) expect(active.errors.join('')).toContain('レベル');
+
+    const archived = validateBackup(validBackup({
+      practiceSessions: [{
+        startedAt: '2026-04-01T00:00:00Z',
+        endedAt: '2026-04-01T02:00:00Z',
+        courts: 1,
+        playerIds: [1],
+        participants: [{ memberId: 1, playerNumber: 1, level }],
+        rounds: [],
+      }],
+    }));
+    expect(archived.ok).toBe(false);
+    if (!archived.ok) expect(archived.errors.join('')).toContain('レベル');
+  });
+
   test('正しいバックアップを受け入れる', () => {
     const result = validateBackup(validBackup());
     expect(result.ok).toBe(true);

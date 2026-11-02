@@ -19,6 +19,7 @@ export function playersForSession(
         playerNumber: participant.playerNumber,
         status: 'active' as const,
         createdAt: session.startedAt,
+        ...(participant.level ? { level: participant.level } : {}),
       }));
   }
 

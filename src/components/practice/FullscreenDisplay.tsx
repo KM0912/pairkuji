@@ -5,6 +5,9 @@ import { type Round } from '@/types/round';
 import { X, Shuffle } from 'lucide-react';
 import { PlayerNumber } from '../ui/PlayerNumber';
 import { Button } from '../ui/button';
+import { cn } from '@/lib/utils';
+import { practiceLevelCardClass, practiceLevelLabel } from '@/lib/practiceLevels';
+import { PracticeLevelBadge, PracticeLevelLegend } from '@/components/practice/PracticeLevelBadge';
 
 interface FullscreenDisplayProps {
   round: Round;
@@ -109,9 +112,13 @@ export function FullscreenDisplay({
     return (
       <div
         key={id}
-        className="flex min-h-[72px] w-full min-w-0 items-center gap-3 rounded-md border border-primary/30 bg-card p-3"
-        aria-label={`番号${number}、${name}${nextOut ? `、${nextOut}` : ''}`}
+        className={cn(
+          'relative flex min-h-[72px] w-full min-w-0 items-center gap-3 rounded-md border p-3',
+          player?.level ? practiceLevelCardClass(player.level) : 'border-primary/30 bg-card'
+        )}
+        aria-label={`番号${number}、${name}、${practiceLevelLabel(player?.level)}${nextOut ? `、${nextOut}` : ''}`}
       >
+        <PracticeLevelBadge level={player?.level} className="absolute right-1 top-1" />
         <PlayerNumber number={number} variant="primary" size="xl" />
         <div className="min-w-0 flex-1">
           <div
@@ -149,6 +156,9 @@ export function FullscreenDisplay({
       </div>
 
       <div className="p-3 pb-52">
+        {players.some((player) => player.level) && (
+          <div className="mb-3"><PracticeLevelLegend /></div>
+        )}
         <div className="grid grid-cols-1 gap-3 landscape:grid-cols-2">
           {round.courts.map((court) => (
             <div
@@ -190,10 +200,14 @@ export function FullscreenDisplay({
                 return (
                   <div
                     key={id}
-                    className="flex min-h-[52px] items-center gap-2 rounded-full border border-border bg-card px-3 py-2"
-                    aria-label={`番号${number}、${name}`}
+                    className={cn(
+                      'flex min-h-[52px] items-center gap-2 rounded-full border px-3 py-2',
+                      player?.level ? practiceLevelCardClass(player.level) : 'border-border bg-card'
+                    )}
+                    aria-label={`番号${number}、${name}、${practiceLevelLabel(player?.level)}`}
                   >
                     <PlayerNumber number={number} variant="neutral" size="lg" />
+                    <PracticeLevelBadge level={player?.level} />
                     <div
                       className="max-w-[180px] truncate text-xl font-bold text-foreground landscape:text-2xl"
                       title={name}
@@ -219,14 +233,18 @@ export function FullscreenDisplay({
               {pausedPlayers.map((player) => (
                 <span
                   key={player.memberId}
-                  className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-2"
+                  className={cn(
+                    'inline-flex items-center gap-2 rounded-full border px-3 py-2',
+                    player.level ? practiceLevelCardClass(player.level) : 'border-border bg-card'
+                  )}
                 >
                   <PlayerNumber
                     number={player.playerNumber}
                     variant="neutral"
                     size="lg"
                   />
-                  <span className="max-w-[180px] truncate text-xl font-bold text-muted-foreground">
+                  <PracticeLevelBadge level={player.level} />
+                  <span className="max-w-[180px] truncate text-xl font-bold text-foreground">
                     {memberMap.get(player.memberId)?.name ?? '???'}
                   </span>
                 </span>

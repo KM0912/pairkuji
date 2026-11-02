@@ -101,6 +101,67 @@
 }
 
 @layer components {
+  /* 当日の相対レベル。低めは青、中間は黄、高めは紫。 */
+  .practice-level-a {
+    --level-surface: 269 100% 95%;
+    --level-border: 271 81% 56%;
+    --level-foreground: 274 87% 21%;
+  }
+  .practice-level-b {
+    --level-surface: 55 97% 88%;
+    --level-border: 41 96% 40%;
+    --level-foreground: 26 83% 14%;
+  }
+  .practice-level-c {
+    --level-surface: 214 95% 93%;
+    --level-border: 217 91% 60%;
+    --level-foreground: 226 57% 21%;
+  }
+  .dark .practice-level-a {
+    --level-surface: 274 65% 18%;
+    --level-border: 270 95% 75%;
+    --level-foreground: 269 100% 95%;
+  }
+  .dark .practice-level-b {
+    --level-surface: 32 75% 14%;
+    --level-border: 48 96% 53%;
+    --level-foreground: 55 97% 88%;
+  }
+  .dark .practice-level-c {
+    --level-surface: 224 64% 19%;
+    --level-border: 213 94% 68%;
+    --level-foreground: 214 95% 93%;
+  }
+  .practice-level-card,
+  .practice-level-badge {
+    background-color: hsl(var(--level-surface));
+    border-color: hsl(var(--level-border));
+    color: hsl(var(--level-foreground));
+  }
+  .practice-level-badge {
+    border-width: 1px;
+  }
+  @media (max-height: 500px) and (min-width: 640px) {
+    .practice-level-dialog .practice-level-dialog-header {
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem;
+    }
+    .practice-level-dialog .practice-level-dialog-footer {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem;
+    }
+    .practice-level-dialog .practice-level-dialog-controls {
+      grid-column: 2;
+      grid-row: 1;
+    }
+    .practice-level-dialog .practice-level-dialog-status {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+  }
+
   /* スムーズなスクロール */
   html {
     scroll-behavior: smooth;

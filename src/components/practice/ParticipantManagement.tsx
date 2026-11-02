@@ -2,6 +2,9 @@ import type { Member } from '@/types/member';
 import type { PracticePlayer, PlayerStatus } from '@/types/practice';
 import { Button } from '@/components/ui/button';
 import { PlayerNumber } from '@/components/ui/PlayerNumber';
+import { PracticeLevelBadge } from '@/components/practice/PracticeLevelBadge';
+import { practiceLevelCardClass } from '@/lib/practiceLevels';
+import { cn } from '@/lib/utils';
 
 interface ParticipantManagementProps {
   players: PracticePlayer[];
@@ -35,13 +38,17 @@ export function ParticipantManagement({
               return (
                 <div
                   key={player.memberId}
-                  className="flex items-center justify-between gap-2 rounded-lg border border-border bg-card px-3 py-2 shadow-level-1"
+                  className={cn(
+                    'flex items-center justify-between gap-2 rounded-lg border px-3 py-2 shadow-level-1',
+                    player.level ? practiceLevelCardClass(player.level) : 'border-border bg-card'
+                  )}
                 >
                   <PlayerNumber
                     number={player.playerNumber}
                     variant="neutral"
                     size="sm"
                   />
+                  <PracticeLevelBadge level={player.level} />
                   <div className="min-w-0 flex-1">
                     <span className="block truncate" title={member.name}>
                       {member.name}

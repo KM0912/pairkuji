@@ -39,7 +39,7 @@ describe('playersForSession', () => {
         playerIds: [1, 2],
         participants: [
           { memberId: 1, playerNumber: 7 },
-          { memberId: 2, playerNumber: 2 },
+          { memberId: 2, playerNumber: 2, level: 'C' },
         ],
       }),
       memberMap
@@ -51,6 +51,8 @@ describe('playersForSession', () => {
         [1, 7],
       ]
     );
+    expect(players[0]?.level).toBe('C');
+    expect(players[1]?.level).toBeUndefined();
     expect(sessionHasSavedNumbers(session({
       participants: [{ memberId: 1, playerNumber: 7 }],
     }))).toBe(true);

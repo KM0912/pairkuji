@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { db } from '@/lib/db';
-import type { PracticePlayer, PracticeSettings, PlayerStatus } from '@/types/practice';
+import type { PracticePlayer, PracticeSettings, PlayerStatus, PracticeLevel } from '@/types/practice';
 import type { Round, CourtMatch, MatchResult } from '@/types/round';
 import type { PracticeSession } from '@/types/practiceSession';
 import {
@@ -30,6 +30,7 @@ type Actions = {
     memberId: number,
     mode: PlayerStatus
   ) => Promise<void>;
+  setPlayerLevels: (memberIds: number[], level: PracticeLevel | null) => Promise<boolean>;
   generateNextRound: () => Promise<void>;
   undoLastRound: () => Promise<boolean>;
   resetPractice: () => Promise<void>;
@@ -166,6 +167,50 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
     }
   },
 
+  setPlayerLevels: async (memberIds, level) => {
+    const ids = Array.from(new Set(memberIds));
+    if (ids.length === 0 || !get().settings) return false;
+    try {
+      const updatedAt = new Date().toISOString();
+      const updatedIds = await db.transaction(
+        'rw',
+        db.practicePlayers,
+        db.practiceSettings,
+        async () => {
+          if (!(await db.practiceSettings.get(SETTINGS_ID))) return [];
+          const records = await db.practicePlayers.bulkGet(ids);
+          const updated = records.flatMap((player) => {
+            if (!player) return [];
+            const next = { ...player };
+            if (level === null) delete next.level;
+            else next.level = level;
+            return [next];
+          });
+          await db.practicePlayers.bulkPut(updated);
+          await db.practiceSettings.update(SETTINGS_ID, { updatedAt });
+          return updated.map((player) => player.memberId);
+        }
+      );
+      if (updatedIds.length === 0) return false;
+      const changed = new Set(updatedIds);
+      set((state) => ({
+        players: state.players.map((player) => {
+          if (!changed.has(player.memberId)) return player;
+          const next = { ...player };
+          if (level === null) delete next.level;
+          else next.level = level;
+          return next;
+        }),
+        settings: state.settings ? { ...state.settings, updatedAt } : null,
+        error: null,
+      }));
+      return true;
+    } catch (e: unknown) {
+      set({ error: e instanceof Error ? e.message : 'レベルを保存できませんでした' });
+      return false;
+    }
+  },
+
   generateNextRound: async () => {
     const state = get();
     const s = state.settings;
@@ -263,6 +308,7 @@ export const usePracticeStore = create<State & Actions>((set, get) => ({
               participants: state.players.map((p) => ({
                 memberId: p.memberId,
                 playerNumber: p.playerNumber,
+                ...(p.level ? { level: p.level } : {}),
               })),
               rounds: state.rounds,
               clubTags: state.settings.clubTags,

@@ -1,9 +1,11 @@
 import type { Round } from '@/types/round';
+import type { PracticeLevel } from '@/types/practice';
 
-/** 練習終了時に残す、その日の出場番号。 */
+/** 練習終了時に残す、その日の出場番号とレベル。 */
 export interface SessionParticipant {
   memberId: number;
   playerNumber: number;
+  level?: PracticeLevel;
 }
 
 export interface PracticeSession {

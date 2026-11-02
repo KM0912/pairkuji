@@ -11,6 +11,9 @@ export type NewPracticeSettings = Pick<PracticeSettings, 'courts'>;
 
 export type PlayerStatus = 'active' | 'rest';
 
+/** その練習会の中での相対レベル。Aが高め、Cが低め。 */
+export type PracticeLevel = 'A' | 'B' | 'C';
+
 /** 旧データの読み込み用。現在は区別せず、statusで休憩・再開を管理する。 */
 export type RestKind = 'break' | 'early';
 
@@ -19,6 +22,7 @@ export interface PracticePlayer {
   playerNumber: number; // 選択順に振られる番号（1から開始）
   status: PlayerStatus;
   createdAt: string;
+  level?: PracticeLevel;
   /** @deprecated 旧バックアップとの互換性のため保持する。 */
   restKind?: RestKind;
   // 途中参加時に公平性を担保するための初期試合数補正
