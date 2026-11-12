@@ -1273,6 +1273,61 @@ describe('doubles-scheduler 統合境界テスト', () => {
     expect(PACKAGE_NAME).toBe('doubles-scheduler');
   });
 
+  test.each([1, 2, 3, 4])(
+    '13人3コートで対戦相手と同じ4人組が偏らない（seed %i）',
+    (seed) => {
+      const players = createTestPlayers(13);
+      const rounds: Round[] = [];
+      const courtGroups = new Set<string>();
+      const partnerCounts = new Map<string, number>();
+      const opponentCounts = new Map<string, number>();
+      const recordPair = (
+        counts: Map<string, number>,
+        left: number,
+        right: number
+      ) => {
+        const key = [left, right].sort((a, b) => a - b).join(':');
+        counts.set(key, (counts.get(key) ?? 0) + 1);
+      };
+
+      for (let roundIndex = 0; roundIndex < 11; roundIndex++) {
+        const result = generateFairRound(
+          players,
+          3,
+          rounds,
+          `spread-13-3-${seed}-${roundIndex}`
+        );
+        expect(result.courts).toHaveLength(3);
+        expect(result.rests).toHaveLength(1);
+
+        for (const court of result.courts) {
+          const group = [...court.pairA, ...court.pairB]
+            .sort((a, b) => a - b)
+            .join(':');
+          expect(courtGroups.has(group)).toBe(false);
+          courtGroups.add(group);
+
+          recordPair(partnerCounts, ...court.pairA);
+          recordPair(partnerCounts, ...court.pairB);
+          for (const player of court.pairA) {
+            for (const opponent of court.pairB) {
+              recordPair(opponentCounts, player, opponent);
+            }
+          }
+        }
+
+        rounds.push({ roundNo: roundIndex + 1, ...result });
+      }
+
+      expect(Math.max(...Array.from(partnerCounts.values()))).toBeLessThanOrEqual(
+        2
+      );
+      expect(Math.max(...Array.from(opponentCounts.values()))).toBeLessThanOrEqual(
+        2
+      );
+    }
+  );
+
   test.each([
     { playerCount: 4, courts: 1 },
     { playerCount: 5, courts: 1 },
